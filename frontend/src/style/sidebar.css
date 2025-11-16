@@ -1,0 +1,71 @@
+/* Hoja de estilos para el Sidebar, con clases 'side-' 
+  y un tamaño más grande.
+*/
+
+/* Variables (asumo que ya las tienes definidas en otro lugar) */
+:root {
+  --primary-color: #2e7d32;
+  --box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.side-sidebar {
+    background-color: var(--primary-color);
+    color: white;
+    padding: 24px 0; /* Aumentado de 20px */
+    box-shadow: var(--box-shadow);
+    z-index: 100;
+}
+
+.side-logo {
+    display: flex;
+    align-items: center;
+    padding: 0 24px 24px; /* Aumentado de 20px */
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.side-logo i {
+    font-size: 28px; /* Aumentado de 24px */
+    margin-right: 12px; /* Aumentado de 10px */
+    width: 30px; /* Ancho fijo para alinear */
+    text-align: center;
+}
+
+.side-logo h1 {
+    font-size: 22px; /* Aumentado de 20px */
+    font-weight: 600;
+}
+
+.side-nav-menu {
+    margin-top: 24px; /* Aumentado de 20px */
+}
+
+.side-nav-item {
+    padding: 16px 24px; /* Aumentado de 12px 20px */
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    transition: background-color 0.3s, border-color 0.3s;
+    
+    /* Letra más grande */
+    font-size: 1.05rem; /* (aprox 17px) */
+    font-weight: 400; /* Un poco más de peso */
+
+    /* Técnica para que no se mueva el texto al activar */
+    border-left: 5px solid transparent; /* Aumentado de 4px y transparente */
+}
+
+.side-nav-item:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+.side-nav-item.active {
+    background-color: rgba(255, 255, 255, 0.2);
+    border-left-color: white; /* Solo cambiamos el color */
+}
+
+.side-nav-item i {
+    margin-right: 16px; /* Aumentado de 10px */
+    font-size: 20px; /* Aumentado de 18px */
+    width: 24px; /* Ancho fijo para alinear iconos */
+    text-align: center; /* Centrar iconos en su 'caja' */
+}

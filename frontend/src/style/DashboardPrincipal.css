@@ -1,5 +1,3 @@
-/* DashboardPrincipal.css */
-
 :root {
     --primary-color: #2e7d32;
     --secondary-color: #1565c0;
@@ -31,57 +29,6 @@ body {
     line-height: 1.6;
 }
 
-/* Sidebar */
-.dashboard-sidebar {
-    background-color: var(--primary-color);
-    color: white;
-    padding: 20px 0;
-    box-shadow: var(--box-shadow);
-    z-index: 100;
-}
-
-.dashboard-logo {
-    display: flex;
-    align-items: center;
-    padding: 0 20px 20px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.dashboard-logo i {
-    font-size: 24px;
-    margin-right: 10px;
-}
-
-.dashboard-logo h1 {
-    font-size: 20px;
-    font-weight: 600;
-}
-
-.dashboard-nav-menu {
-    margin-top: 20px;
-}
-
-.dashboard-nav-item {
-    padding: 12px 20px;
-    display: flex;
-    align-items: center;
-    cursor: pointer;
-    transition: background-color 0.3s;
-}
-
-.dashboard-nav-item:hover {
-    background-color: rgba(255, 255, 255, 0.1);
-}
-
-.dashboard-nav-item.active {
-    background-color: rgba(255, 255, 255, 0.2);
-    border-left: 4px solid white;
-}
-
-.dashboard-nav-item i {
-    margin-right: 10px;
-    font-size: 18px;
-}
 
 /* Main Content */
 .dashboard-main-content {
