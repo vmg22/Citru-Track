@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+// Ya no se usa useNavigate aquí, se maneja en App.js
+// import { useNavigate } from "react-router-dom"; 
 import MapaLogistica from "./MapaLogistica";
 
-// 🚀 IMPORTAMOS EL COMPONENTE SIDEBAR MODULAR
-import Sidebar from "../../../components/layout/SideBar"; 
+// ❌ SE ELIMINA LA IMPORTACIÓN REDUNDANTE DEL SIDEBAR
+// import Sidebar from "../../../components/layout/SideBar"; 
 
 import "../../../style/DashboardPrincipal.css";
 
@@ -19,28 +20,12 @@ const Button = ({ children, onClick, className = "", icon }) => {
   );
 };
 
-// Componente NavItem (Nota: Si Sidebar se exportó, NavItem no es necesario aquí)
-// Si Sidebar se importa, la definición de NavItem debe estar dentro de Sidebar.jsx, 
-// o redefinirse aquí si el Sidebar importado espera que lo definas. 
-// Para que funcione con el código completo anterior, lo mantenemos aquí:
+// ❌ SE ELIMINA LA DEFINICIÓN REDUNDANTE DE NavItem
+/*
 const NavItem = ({ icon, text, active, onClick }) => {
-  return (
-    <div
-      className={`dashboard-nav-item ${active ? "active" : ""}`}
-      onClick={onClick}
-    >
-      <i className={icon}></i>
-      <span>{text}</span>
-    </div>
-  );
+  // ...
 };
-
-/* * ⚠️ NOTA IMPORTANTE: LA DEFINICIÓN DEL COMPONENTE Sidebar ORIGINAL SE ELIMINA DE AQUÍ
-* Y SE REEMPLAZA POR LA INVOCACIÓN DEL COMPONENTE IMPORTADO EN EL 'return'.
-* Si el Sidebar modular NO exporta NavItem, necesitarás NavItem en Sidebar.jsx.
-* Para este ejemplo, eliminamos la definición local de Sidebar.
 */
-
 
 // Componente Card Reutilizable
 const Card = ({ title, icon, iconClass, children }) => {
@@ -191,38 +176,10 @@ const Alert = ({ title, description }) => {
   );
 };
 
-// ==================== Componente Principal (Importa Sidebar) ====================
+// ==================== Componente Principal ====================
 
 const DashboardPrincipal = () => {
-  const [activeItem, setActiveItem] = useState("dashboard");
-  const navigate = useNavigate();
 
-  const handleNavigation = (itemId) => {
-    setActiveItem(itemId);
-
-    switch (itemId) {
-      case "dashboard":
-        navigate("/dashboard");
-        break;
-      case "monitoreo":
-        navigate("/monitoreo");
-        break;
-      case "lotes":
-        navigate("/lotes");
-        break;
-      case "logistica":
-        navigate("/logistica");
-        break;
-      case "kpis":
-        navigate("/kpis");
-        break;
-      case "config":
-        navigate("/config");
-        break;
-      default:
-        break;
-    }
-  };
 
   useEffect(() => {
     console.log("✅ Dashboard montado correctamente");
@@ -289,6 +246,10 @@ const DashboardPrincipal = () => {
 
   return (
     <>
+      {/* Estos links es mejor moverlos al index.html 
+        o cargarlos en App.js para que no se recarguen
+        en cada cambio de página.
+      */}
       <link
         rel="stylesheet"
         href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
@@ -298,164 +259,180 @@ const DashboardPrincipal = () => {
         href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
       />
 
-      <div className="dashboard-container">
-        {/* 🚀 Llama al componente Sidebar importado */}
-        <Sidebar activeItem={activeItem} onItemClick={handleNavigation} />
+      {/* Este div "dashboard-container" es el del Layout, 
+        y "dashboard-main-content" también.
+        Tu componente de página no debería re-declararlos.
+        
+        El Layout ya provee:
+        <div className="dashboard-container">
+          <Sidebar />
+          <div className="dashboard-main-content">
+             ... (Aquí se renderiza DashboardPrincipal) ...
+          </div>
+        </div>
 
-        <div className="dashboard-main-content">
-          <div className="dashboard-header">
-            <h2>Dashboard Principal</h2>
-            <div className="dashboard-user-info">
-              <i className="fas fa-user-circle"></i>
-              <span>Administrador</span>
+        Por lo tanto, DashboardPrincipal SÓLO debe renderizar 
+        el contenido de la página.
+      */}
+      
+      {/* Quitamos <div className="dashboard-container">
+        Quitamos <div className="dashboard-main-content">
+      */}
+      
+        <div className="dashboard-header">
+          <h2>Dashboard Principal</h2>
+          <div className="dashboard-user-info">
+            <i className="fas fa-user-circle"></i>
+            <span>Administrador</span>
+          </div>
+        </div>
+
+        <div className="dashboard-cards-container">
+          <Card
+            title="Monitoreo en Tiempo Real"
+            icon="fas fa-eye"
+            iconClass="monitoring"
+          >
+            <p>
+              Visualice el flujo de cajas en la planta y condiciones de
+              transporte en tiempo real.
+            </p>
+            <Conveyor />
+          </Card>
+
+          <Card
+            title="Gestión de Lotes"
+            icon="fas fa-boxes"
+            iconClass="lotes"
+          >
+            <p>
+              Registre, consulte y audite lotes y productos con trazabilidad
+              completa.
+            </p>
+            <Table
+              headers={["ID Lote", "Producto", "Estado"]}
+              rows={lotesData}
+            />
+          </Card>
+
+          <Card
+            title="Logística y Rutas"
+            icon="fas fa-truck"
+            iconClass="logistica"
+          >
+            <p>
+              Monitoree viajes, vehículos y condiciones en trayecto con mapas
+              interactivos.
+            </p>
+            <div className="dashboard-map-container">
+              <MapaLogistica />
+            </div>
+          </Card>
+
+          <Card
+            title="Dashboard de KPIs"
+            icon="fas fa-chart-line"
+            iconClass="kpis"
+          >
+            <p>
+              Métricas clave de calidad y eficiencia con gráficos y
+              comparativas.
+            </p>
+            <div className="dashboard-kpi-container">
+              <KPIItem value="96.5%" label="Puntualidad" status="good" />
+              <KPIItem
+                value="2.4%"
+                label="Rupturas de Frío"
+                status="warning"
+              />
+            </div>
+          </Card>
+        </div>
+
+        <div className="dashboard-grid">
+          <div className="dashboard-left">
+            <div className="dashboard-info-card">
+              <h3>Condiciones Actuales</h3>
+              <Table
+                headers={[
+                  "ID Caja",
+                  "Producto",
+                  "Temperatura",
+                  "Humedad",
+                  "Estado",
+                ]}
+                rows={condicionesData}
+              />
+            </div>
+
+            <div className="dashboard-info-card">
+              <h3>Viajes Activos</h3>
+              <Table
+                headers={[
+                  "ID Viaje",
+                  "Chofer",
+                  "Destino",
+                  "Estado",
+                  "Temperatura Media",
+                ]}
+                rows={viajesData}
+              />
             </div>
           </div>
 
-          <div className="dashboard-cards-container">
-            <Card
-              title="Monitoreo en Tiempo Real"
-              icon="fas fa-eye"
-              iconClass="monitoring"
-            >
-              <p>
-                Visualice el flujo de cajas en la planta y condiciones de
-                transporte en tiempo real.
-              </p>
-              <Conveyor />
-            </Card>
-
-            <Card
-              title="Gestión de Lotes"
-              icon="fas fa-boxes"
-              iconClass="lotes"
-            >
-              <p>
-                Registre, consulte y audite lotes y productos con trazabilidad
-                completa.
-              </p>
-              <Table
-                headers={["ID Lote", "Producto", "Estado"]}
-                rows={lotesData}
-              />
-            </Card>
-
-            <Card
-              title="Logística y Rutas"
-              icon="fas fa-truck"
-              iconClass="logistica"
-            >
-              <p>
-                Monitoree viajes, vehículos y condiciones en trayecto con mapas
-                interactivos.
-              </p>
-              <div className="dashboard-map-container">
-                <MapaLogistica />
+          <div className="dashboard-right">
+            <div className="dashboard-info-card">
+              <h3>Alertas Activas</h3>
+              <div className="dashboard-alertas-container">
+                <Alert
+                  title="Ruptura de frío detectada"
+                  description="Caja T1A3121431LIM00123J - Temperatura: 12.5°C"
+                />
+                <Alert
+                  title="Vibración excesiva"
+                  description="Camión AB 123 CD - Viaje #12"
+                />
               </div>
-            </Card>
+            </div>
 
-            <Card
-              title="Dashboard de KPIs"
-              icon="fas fa-chart-line"
-              iconClass="kpis"
-            >
-              <p>
-                Métricas clave de calidad y eficiencia con gráficos y
-                comparativas.
-              </p>
+            <div className="dashboard-info-card">
+              <h3>KPIs Principales</h3>
               <div className="dashboard-kpi-container">
-                <KPIItem value="96.5%" label="Puntualidad" status="good" />
                 <KPIItem
-                  value="2.4%"
-                  label="Rupturas de Frío"
+                  value="99.7%"
+                  label="Lecturas Correctas"
+                  status="good"
+                />
+                <KPIItem
+                  value="1.8%"
+                  label="Merma Promedio"
                   status="warning"
                 />
-              </div>
-            </Card>
-          </div>
-
-          <div className="dashboard-grid">
-            <div className="dashboard-left">
-              <div className="dashboard-info-card">
-                <h3>Condiciones Actuales</h3>
-                <Table
-                  headers={[
-                    "ID Caja",
-                    "Producto",
-                    "Temperatura",
-                    "Humedad",
-                    "Estado",
-                  ]}
-                  rows={condicionesData}
+                <KPIItem
+                  value="87.3"
+                  label="Costo por Caja ($)"
+                  status="good"
                 />
-              </div>
-
-              <div className="dashboard-info-card">
-                <h3>Viajes Activos</h3>
-                <Table
-                  headers={[
-                    "ID Viaje",
-                    "Chofer",
-                    "Destino",
-                    "Estado",
-                    "Temperatura Media",
-                  ]}
-                  rows={viajesData}
-                />
+                <KPIItem value="12" label="Alertas Críticas" status="bad" />
               </div>
             </div>
 
-            <div className="dashboard-right">
-              <div className="dashboard-info-card">
-                <h3>Alertas Activas</h3>
-                <div className="dashboard-alertas-container">
-                  <Alert
-                    title="Ruptura de frío detectada"
-                    description="Caja T1A3121431LIM00123J - Temperatura: 12.5°C"
-                  />
-                  <Alert
-                    title="Vibración excesiva"
-                    description="Camión AB 123 CD - Viaje #12"
-                  />
-                </div>
-              </div>
-
-              <div className="dashboard-info-card">
-                <h3>KPIs Principales</h3>
-                <div className="dashboard-kpi-container">
-                  <KPIItem
-                    value="99.7%"
-                    label="Lecturas Correctas"
-                    status="good"
-                  />
-                  <KPIItem
-                    value="1.8%"
-                    label="Merma Promedio"
-                    status="warning"
-                  />
-                  <KPIItem
-                    value="87.3"
-                    label="Costo por Caja ($)"
-                    status="good"
-                  />
-                  <KPIItem value="12" label="Alertas Críticas" status="bad" />
-                </div>
-              </div>
-
-              <div className="dashboard-info-card">
-                <h3>Escaneo QR</h3>
-                <div className="dashboard-qr-section">
-                  <i className="fas fa-qrcode dashboard-qr-icon"></i>
-                  <p>
-                    Escanea el código QR de una caja para ver su trazabilidad
-                    completa
-                  </p>
-                  <Button icon="fas fa-camera">Escanear QR</Button>
-                </div>
+            <div className="dashboard-info-card">
+              <h3>Escaneo QR</h3>
+              <div className="dashboard-qr-section">
+                <i className="fas fa-qrcode dashboard-qr-icon"></i>
+                <p>
+                  Escanea el código QR de una caja para ver su trazabilidad
+                  completa
+                </p>
+                <Button icon="fas fa-camera">Escanear QR</Button>
               </div>
             </div>
           </div>
         </div>
-      </div>
+      {/* Se quitan los </div> de cierre de 
+        'dashboard-main-content' y 'dashboard-container'
+      */}
     </>
   );
 };

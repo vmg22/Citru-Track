@@ -1,18 +1,98 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import DashboardPage from "./page/Dashboard/DashboardPage";
-import DashboardPrincipal from "./page/Dashboard/components/DashboardPrincipal";
-import BinReceptionPanel from "./page/Dashboard/components/BinReceptionPanel";
+import {
+  BrowserRouter,
+  Routes,
+  Route,
+  useNavigate,
+  useLocation,
+} from "react-router-dom";
+import { useState, useEffect } from "react";
+import DashboardPrincipal from "./page/Dashboard/components/DashboardPrincipal"; // Asumo que esta ruta es correcta
+import BinsPage from "./page/Bins/BinsPage"; // Asumo que esta ruta es correcta
+import Layout from "./components/layout/Layout";
 
+// --- Mapas de Navegación ---
+// Nos ayudan a traducir de IDs de item a rutas de URL y viceversa.
+
+// 1. De la RUTA (URL) al ID del ITEM (para resaltar el item correcto)
+const routeToItemMap = {
+  "/": "dashboard",
+  "/dashboard": "dashboard",
+  "/bins": "bins",
+  "/monitoreo": "monitoreo",
+  "/lotes": "lotes",
+  "/logistica": "logistica",
+  "/kpis": "kpis",
+  "/config": "config",
+};
+
+// 2. Del ID del ITEM a la RUTA (para navegar al hacer clic)
+const itemToPathMap = {
+  dashboard: "/dashboard", // O "/" si prefieres que el dashboard sea la raíz
+  bins: "/bins",
+  monitoreo: "/monitoreo", // Asegúrate de tener estas rutas en <Routes>
+  lotes: "/lotes", // Asegúrate de tener estas rutas en <Routes>
+  logistica: "/logistica", // Asegúrate de tener estas rutas en <Routes>
+  kpis: "/kpis", // Asegúrate de tener estas rutas en <Routes>
+  config: "/config", // Asegúrate de tener estas rutas en <Routes>
+};
+
+/**
+ * Creamos un componente interno para poder usar los hooks
+ * (useNavigate, useLocation) ya que App() está por fuera de <BrowserRouter>
+ */
+const AppContent = () => {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const [activeItem, setActiveItem] = useState("dashboard");
+
+  // EFECTO: Sincronizar el item activo cuando la URL cambia
+  // (Ej: el usuario usa el botón "atrás" del navegador)
+  useEffect(() => {
+    const currentItem = routeToItemMap[location.pathname];
+    if (currentItem && currentItem !== activeItem) {
+      setActiveItem(currentItem);
+    }
+  }, [location.pathname]); // No incluyas 'activeItem' aquí para evitar loops
+
+  // FUNCIÓN: Navegar al hacer clic en el Sidebar
+  const handleNavigation = (itemId) => {
+    // 1. Obtenemos la ruta a la que queremos ir
+    const path = itemToPathMap[itemId];
+
+    if (path && path !== location.pathname) {
+      // 2. Actualizamos el estado visual (optimista)
+      setActiveItem(itemId);
+      // 3. NAVEGAMOS a la nueva ruta
+      navigate(path);
+    } else if (path) {
+      // Si ya estamos en la ruta, solo aseguramos el estado
+      setActiveItem(itemId);
+    } else {
+      console.warn("No se encontró una ruta para el item:", itemId);
+    }
+  };
+
+  return (
+    <Layout activeItem={activeItem} onItemClick={handleNavigation}>
+      <Routes>
+        {/* Es mejor tener DashboardPrincipal en ambas rutas si son lo mismo */}
+        <Route path="/" element={<DashboardPrincipal />} />
+        <Route path="/dashboard" element={<DashboardPrincipal />} />
+        <Route path="/bins" element={<BinsPage />} />
+        {/* AÑADE AQUÍ EL RESTO DE TUS RUTAS 
+          <Route path="/monitoreo" element={<MonitoreoPage />} />
+          <Route path="/lotes" element={<LotesPage />} />
+          ... etc
+        */}
+      </Routes>
+    </Layout>
+  );
+};
 
 export default function App() {
   return (
     <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<DashboardPage />} />
-        <Route path="/dashboard" element={<DashboardPrincipal />} />
-        <Route path="/bins" element={<BinReceptionPanel />} />
-
-      </Routes>
+      <AppContent />
     </BrowserRouter>
   );
 }
