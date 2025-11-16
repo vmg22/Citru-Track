@@ -1,10 +1,14 @@
 const express = require('express');
 const router = express.Router();
-const ctrl = require('../controllers/transporteController');
-const auth = require('../middleware/auth');
-const { permitirRoles } = require('../middleware/roles');
+const { 
+  createTransportista, 
+  createCamion, 
+  registrarTrackingEvento 
+} = require('../controllers/transporteController');
 
-router.post('/transportistas', auth, permitirRoles('logistica_transporte','admin'), ctrl.createTransportista);
-router.post('/camiones', auth, permitirRoles('logistica_transporte','admin'), ctrl.createCamion);
+// Rutas para transportistas
+router.post('/transportistas', createTransportista);
+router.post('/camiones', createCamion);
+router.post('/tracking/evento', registrarTrackingEvento);
 
 module.exports = router;
