@@ -1,0 +1,364 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>CitrusTrack — Mockup</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 font-sans leading-normal tracking-normal">
+  <div class="min-h-screen flex">
+    <!-- Sidebar -->
+    <aside class="w-72 bg-white shadow-md">
+      <div class="p-4 border-b">
+        <h1 class="text-xl font-bold text-green-700">CitrusTrack</h1>
+        <p class="text-sm text-gray-500">Mockup — Empacadora</p>
+      </div>
+      <nav class="p-4">
+        <button class="w-full text-left py-2 px-3 rounded hover:bg-gray-50 nav-item active">Dashboard</button>
+        <button class="w-full text-left py-2 px-3 rounded hover:bg-gray-50 nav-item">Recepción de Bins</button>
+        <button class="w-full text-left py-2 px-3 rounded hover:bg-gray-50 nav-item">Línea de Proceso</button>
+        <button class="w-full text-left py-2 px-3 rounded hover:bg-gray-50 nav-item">Armado de Pallet</button>
+        <button class="w-full text-left py-2 px-3 rounded hover:bg-gray-50 nav-item">Cámara</button>
+        <button class="w-full text-left py-2 px-3 rounded hover:bg-gray-50 nav-item">Despacho</button>
+      </nav>
+    </aside>
+
+    <!-- Main -->
+    <main class="flex-1 p-6">
+      <!-- Header -->
+      <header class="flex items-center justify-between mb-6">
+        <div>
+          <h2 class="text-2xl font-semibold">Dashboard — Empacadora</h2>
+          <p class="text-sm text-gray-500">Resumen en tiempo real y acciones rápidas</p>
+        </div>
+        <div class="flex items-center gap-4">
+          <div class="text-right">
+            <div class="text-sm text-gray-500">Usuario</div>
+            <div class="text-base font-medium">Admin</div>
+          </div>
+          <div class="w-10 h-10 bg-green-600 rounded-full"></div>
+        </div>
+      </header>
+
+      <!-- Content panels -->
+      <section id="panels">
+        <!-- Dashboard panel -->
+        <div class="panel" id="dashboard">
+          <div class="grid grid-cols-3 gap-4 mb-6">
+            <div class="bg-white p-4 rounded shadow">
+              <div class="text-sm text-gray-500">Bins en espera</div>
+              <div class="text-2xl font-bold">7</div>
+            </div>
+            <div class="bg-white p-4 rounded shadow">
+              <div class="text-sm text-gray-500">Pallets listos</div>
+              <div class="text-2xl font-bold">12</div>
+            </div>
+            <div class="bg-white p-4 rounded shadow">
+              <div class="text-sm text-gray-500">Pallets en cámara</div>
+              <div class="text-2xl font-bold">48</div>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-4">
+            <div class="bg-white p-4 rounded shadow">
+              <h3 class="font-semibold mb-2">Últimos lotes</h3>
+              <table class="w-full text-sm">
+                <thead class="text-left text-gray-500">
+                  <tr><th>Lote</th><th>Estado</th><th>Calibre</th></tr>
+                </thead>
+                <tbody id="lotesList">
+                  <tr><td>LOT-20251116-018</td><td>En Cámara</td><td>88</td></tr>
+                  <tr><td>LOT-20251116-017</td><td>En Proceso</td><td>100</td></tr>
+                </tbody>
+              </table>
+            </div>
+
+            <div class="bg-white p-4 rounded shadow">
+              <h3 class="font-semibold mb-2">Alertas</h3>
+              <ul class="text-sm text-gray-600" id="alerts">
+                <li>Temp cámara 3: 12°C (check)</li>
+                <li>Lote LOT-20251116-017: % descarte 6%</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <!-- Recepción de Bins -->
+        <div class="panel hidden" id="recepcion">
+          <div class="bg-white p-6 rounded shadow mb-4">
+            <h3 class="font-semibold mb-4">Registro rápido — Recepción de Bin</h3>
+            <form id="binForm" class="grid grid-cols-2 gap-4">
+              <div>
+                <label class="text-sm text-gray-600">Productor</label>
+                <input id="productor" class="w-full border p-2 rounded" placeholder="Finca Los Naranjos" />
+              </div>
+              <div>
+                <label class="text-sm text-gray-600">Remito</label>
+                <input id="remito" class="w-full border p-2 rounded" placeholder="RMT-55422" />
+              </div>
+              <div>
+                <label class="text-sm text-gray-600">Fecha cosecha</label>
+                <input id="fechaCosecha" type="date" class="w-full border p-2 rounded" />
+              </div>
+              <div>
+                <label class="text-sm text-gray-600">Peso estimado (kg)</label>
+                <input id="peso" type="number" class="w-full border p-2 rounded" placeholder="420" />
+              </div>
+              <div class="col-span-2">
+                <label class="text-sm text-gray-600">Observaciones</label>
+                <textarea id="obs" class="w-full border p-2 rounded" rows="2"></textarea>
+              </div>
+
+              <div class="col-span-2 text-right">
+                <button type="button" id="registrarBin" class="bg-green-600 text-white px-4 py-2 rounded">Registrar Bin y Generar Lote</button>
+              </div>
+            </form>
+          </div>
+
+          <div class="bg-white p-4 rounded shadow">
+            <h4 class="font-semibold mb-2">Bins recientes</h4>
+            <ul id="binsList" class="text-sm text-gray-700">
+              <!-- dinámica -->
+            </ul>
+          </div>
+        </div>
+
+        <!-- Línea de Proceso -->
+        <div class="panel hidden" id="linea">
+          <div class="bg-white p-4 rounded shadow mb-4">
+            <h3 class="font-semibold">Vista por Lote</h3>
+            <div class="mt-3">
+              <label class="text-sm text-gray-600">Seleccionar Lote</label>
+              <select id="selectLote" class="w-full border p-2 rounded mt-1">
+                <option value="LOT-20251116-018">LOT-20251116-018</option>
+                <option value="LOT-20251116-017">LOT-20251116-017</option>
+              </select>
+
+              <div class="mt-4 p-3 border rounded bg-gray-50">
+                <div class="flex items-center gap-3">
+                  <div class="w-10 h-10 bg-green-200 rounded"></div>
+                  <div>
+                    <div class="font-semibold">LOT-20251116-018</div>
+                    <div class="text-sm text-gray-600">Estado: Clasificado</div>
+                  </div>
+                </div>
+
+                <div class="mt-4">
+                  <div class="text-sm text-gray-500">Etapas</div>
+                  <ol class="mt-2 text-sm text-gray-700">
+                    <li>Ingreso → Lavado → Clasificación → Empacado → Pallet</li>
+                  </ol>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="bg-white p-4 rounded shadow">
+            <h4 class="font-semibold mb-2">Sublotes</h4>
+            <table class="w-full text-sm">
+              <thead class="text-left text-gray-500"><tr><th>Sublote</th><th>Calibre</th><th>Cajas</th></tr></thead>
+              <tbody id="sublotesTable">
+                <tr><td>SL-018-88</td><td>88</td><td>41</td></tr>
+                <tr><td>SL-018-80</td><td>80</td><td>32</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Armado de Pallet -->
+        <div class="panel hidden" id="pallet">
+          <div class="bg-white p-4 rounded shadow mb-4">
+            <h3 class="font-semibold">Armado de Pallet</h3>
+            <div class="grid grid-cols-3 gap-4 mt-3">
+              <div class="col-span-1">
+                <div class="p-3 border rounded bg-gray-50">
+                  <h4 class="font-medium mb-2">Cajas disponibles</h4>
+                  <ul id="cajasAvailable" class="text-sm text-gray-700 space-y-2">
+                    <!-- cajas generadas desde la lógica -->
+                  </ul>
+                  <button id="generarCaja" class="mt-3 w-full bg-blue-600 text-white py-2 rounded">Generar caja (sim)</button>
+                </div>
+              </div>
+
+              <div class="col-span-2">
+                <div class="p-3 border rounded bg-gray-50">
+                  <h4 class="font-medium mb-2">Pallet (64 slots)</h4>
+                  <div id="palletGrid" class="grid grid-cols-8 gap-2 bg-white p-3 rounded" style="min-height:220px;">
+                    <!-- slots -->
+                  </div>
+
+                  <div class="mt-3 flex justify-between items-center">
+                    <div>
+                      <div class="text-sm text-gray-500">Cajas añadidas: <span id="countAdded">0</span></div>
+                      <div class="text-sm text-gray-500">Peso total: <span id="pesoTotal">0</span> kg</div>
+                    </div>
+                    <div>
+                      <button id="cerrarPallet" class="bg-green-600 text-white px-4 py-2 rounded disabled:opacity-50" disabled>Cerrar Pallet</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </div>
+
+        <!-- Camara -->
+        <div class="panel hidden" id="camara">
+          <div class="bg-white p-4 rounded shadow">
+            <h3 class="font-semibold">Mapa de Cámaras</h3>
+            <div class="grid grid-cols-3 gap-4 mt-3">
+              <div class="p-3 border rounded bg-gray-50">
+                <div class="font-medium">Cámara 1</div>
+                <div class="text-sm text-gray-600">Temp: 9.0°C</div>
+                <div class="text-sm text-gray-600">Pallets: 12</div>
+              </div>
+              <div class="p-3 border rounded bg-gray-50">
+                <div class="font-medium">Cámara 2</div>
+                <div class="text-sm text-gray-600">Temp: 9.2°C</div>
+                <div class="text-sm text-gray-600">Pallets: 24</div>
+              </div>
+              <div class="p-3 border rounded bg-gray-50">
+                <div class="font-medium">Cámara 3</div>
+                <div class="text-sm text-gray-600">Temp: 12.1°C</div>
+                <div class="text-sm text-gray-600">Pallets: 8</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Despacho -->
+        <div class="panel hidden" id="despacho">
+          <div class="bg-white p-4 rounded shadow">
+            <h3 class="font-semibold">Despacho</h3>
+            <form class="grid grid-cols-2 gap-4 mt-3">
+              <div>
+                <label class="text-sm text-gray-600">Orden Exportación</label>
+                <input id="ordenExp" class="w-full border p-2 rounded" placeholder="EXP-20251116-ES001" />
+              </div>
+              <div>
+                <label class="text-sm text-gray-600">Contenedor</label>
+                <input id="contenedor" class="w-full border p-2 rounded" placeholder="CNT-ES-88321" />
+              </div>
+              <div class="col-span-2 text-right">
+                <button id="registrarDespacho" type="button" class="bg-green-600 text-white px-4 py-2 rounded">Registrar carga y sellos</button>
+              </div>
+            </form>
+          </div>
+        </div>
+
+      </section>
+
+    </main>
+  </div>
+
+  <script>
+    // simple nav
+    document.querySelectorAll('.nav-item').forEach((btn, idx) => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+        btn.classList.add('active');
+        document.querySelectorAll('.panel').forEach(p=>p.classList.add('hidden'));
+        const panels = ['dashboard','recepcion','linea','pallet','camara','despacho'];
+        document.getElementById(panels[idx]).classList.remove('hidden');
+      });
+    });
+
+    // bins list
+    const binsList = document.getElementById('binsList');
+    const lotesList = document.getElementById('lotesList');
+    const cajasAvailable = document.getElementById('cajasAvailable');
+    const palletGrid = document.getElementById('palletGrid');
+    const countAdded = document.getElementById('countAdded');
+    const pesoTotal = document.getElementById('pesoTotal');
+    const cerrarPallet = document.getElementById('cerrarPallet');
+
+    let cajas = [];
+    let palletSlots = Array(64).fill(null);
+
+    function renderBins(){
+      binsList.innerHTML = '';
+      ['BIN-20251116-034','BIN-20251116-035','BIN-20251115-022'].forEach(b=>{
+        const li = document.createElement('li'); li.className='py-2 border-b'; li.textContent = b; binsList.appendChild(li);
+      });
+    }
+    renderBins();
+
+    document.getElementById('registrarBin').addEventListener('click', ()=>{
+      const productor = document.getElementById('productor').value || 'Finca demo';
+      const remito = document.getElementById('remito').value || 'RMT-000';
+      const fecha = document.getElementById('fechaCosecha').value || new Date().toISOString().slice(0,10);
+      const peso = document.getElementById('peso').value || '0';
+      const binId = 'BIN-'+Date.now().toString().slice(-6);
+      binsList.insertAdjacentHTML('afterbegin', `<li class=\"py-2 border-b\">${binId} — ${productor} — ${remito} — ${peso}kg</li>`);
+      lotesList.insertAdjacentHTML('afterbegin', `<tr><td>LOT-${binId.slice(-6)}</td><td>Ingresado</td><td>-</td></tr>`);
+      alert('Bin registrado: '+binId+' → se generó Lote de ejemplo');
+    });
+
+    // pallet grid render
+    function renderPalletGrid(){
+      palletGrid.innerHTML = '';
+      for(let i=0;i<64;i++){
+        const slot = document.createElement('div');
+        slot.className = 'h-14 border rounded flex items-center justify-center text-xs bg-gray-50';
+        slot.dataset.index = i;
+        slot.textContent = palletSlots[i] ? palletSlots[i].id : '';
+        slot.addEventListener('click', ()=>{
+          if(!palletSlots[i] && cajas.length>0){
+            palletSlots[i] = cajas.shift();
+            renderCajas(); renderPalletGrid(); updateCounts();
+          }
+        });
+        palletGrid.appendChild(slot);
+      }
+    }
+
+    function renderCajas(){
+      cajasAvailable.innerHTML = '';
+      cajas.forEach(c=>{
+        const li = document.createElement('li'); li.className='flex justify-between items-center';
+        li.innerHTML = `<span>${c.id} — ${c.peso}kg</span> <button data-id='${c.id}' class='text-sm px-2 py-1 border rounded addBtn'>Add</button>`;
+        cajasAvailable.appendChild(li);
+      });
+      // attach add button
+      document.querySelectorAll('.addBtn').forEach(b=>b.addEventListener('click', (e)=>{
+        const id = e.target.dataset.id;
+        const idx = cajas.findIndex(x=>x.id===id);
+        const slotIndex = palletSlots.findIndex(s=>s===null);
+        if(idx>-1 && slotIndex>-1){ palletSlots[slotIndex]=cajas.splice(idx,1)[0]; renderCajas(); renderPalletGrid(); updateCounts(); }
+      }));
+    }
+
+    function updateCounts(){
+      const added = palletSlots.filter(Boolean).length;
+      const peso = palletSlots.filter(Boolean).reduce((s,c)=>s+(c?pesoNumber(c.peso):0),0);
+      countAdded.textContent = added;
+      pesoTotal.textContent = peso;
+      cerrarPallet.disabled = added===0;
+    }
+    function pesoNumber(v){ return Number(v)||0 }
+
+    document.getElementById('generarCaja').addEventListener('click', ()=>{
+      const id = 'CX-'+Date.now().toString().slice(-6);
+      const pesoKg = (Math.random()*2+13).toFixed(2);
+      cajas.push({id:id,peso:pesoKg});
+      renderCajas();
+    });
+
+    document.getElementById('cerrarPallet').addEventListener('click', ()=>{
+      const palletId = 'PALT-'+Date.now().toString().slice(-6);
+      const cajasCount = palletSlots.filter(Boolean).length;
+      const peso = palletSlots.filter(Boolean).reduce((s,c)=>s+Number(c.peso),0).toFixed(2);
+      alert('Pallet cerrado: '+palletId+' | Cajas: '+cajasCount+' | Peso: '+peso+'kg');
+      // reset
+      palletSlots = Array(64).fill(null);
+      renderPalletGrid(); updateCounts(); renderCajas();
+    });
+
+    // init
+    renderPalletGrid();
+
+  </script>
+</body>
+</html>
