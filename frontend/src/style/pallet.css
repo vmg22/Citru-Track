@@ -1,0 +1,228 @@
+/* Hoja de estilos para PalletPage */
+
+/* Contenedor principal */
+.pallet-container {
+    width: 100%;
+    padding: 1.5rem; 
+    box-sizing: border-box;
+}
+
+/* Tarjeta principal */
+.pallet-card {
+    background-color: #ffffff; /* bg-white */
+    padding: 1.5rem; /* p-4 (agrandado) */
+    border-radius: 0.25rem; /* rounded */
+    box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1); /* shadow */
+    margin-bottom: 1rem; /* mb-4 */
+    width: 100%;
+    box-sizing: border-box;
+}
+
+/* --- AÑADIDO: Mensaje de Estado --- */
+.pallet-message {
+  padding: 0.75rem 1rem;
+  background-color: #fefcbf; /* Amarillo claro */
+  border: 1px solid #f6e05e; /* Amarillo oscuro */
+  color: #744210; /* Marrón */
+  border-radius: 4px;
+  margin-bottom: 1rem;
+  font-weight: 500;
+  text-align: center;
+}
+
+
+/* Título principal de la tarjeta */
+.pallet-title {
+    font-weight: 600; /* font-semibold */
+    font-size: 1.125rem; /* 18px (de bins.css) */
+    color: var(--primary-color, #2e7d32);
+    margin-bottom: 1rem; /* Espacio antes del grid */
+}
+
+/* Grid principal (col-izq, col-der) */
+.pallet-main-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr)); /* grid-cols-3 */
+    gap: 1rem; /* gap-4 */
+}
+
+.pallet-column-left {
+    grid-column: span 1 / span 1; /* col-span-1 */
+}
+
+.pallet-column-right {
+    grid-column: span 2 / span 2; /* col-span-2 */
+}
+
+/* La caja gris interior usada en ambas columnas */
+.pallet-inner-box {
+    padding: 0.75rem; /* p-3 */
+    border: 1px solid #e5e7eb; /* border */
+    border-radius: 0.25rem; /* rounded */
+    background-color: #f9fafb; /* bg-gray-50 */
+    height: 100%; /* Para que ambas columnas tengan la misma altura */
+    box-sizing: border-box;
+}
+
+/* Subtítulos (Cajas disponibles, Pallet) */
+.pallet-subtitle {
+    font-weight: 500; /* font-medium */
+    margin-bottom: 0.75rem; /* mb-2 (un poco más) */
+    font-size: 1.1rem; /* (de linea-proceso.css) */
+    color: var(--primary-color, #2e7d32);
+}
+
+/* Lista de cajas disponibles */
+.pallet-cajas-list {
+    list-style: none;
+    padding-left: 0;
+    margin-bottom: 0.75rem; /* space-y-2 (aprox) */
+    /* --- AÑADIDO: Scroll si hay muchas cajas --- */
+    max-height: 250px;
+    overflow-y: auto;
+    border: 1px solid #eee;
+    border-radius: 4px;
+}
+
+/* --- MODIFICADO: Ahora es .pallet-caja-item --- */
+.pallet-caja-item {
+     font-size: 0.9rem; /* text-sm (de bins.css) */
+     color: #374151; /* text-gray-700 */
+     padding: 0.75rem 0.5rem; /* (de bins.css) */
+     border-bottom: 1px solid #e5e7eb;
+     /* --- AÑADIDO: Para el botón --- */
+     display: flex;
+     justify-content: space-between;
+     align-items: center;
+}
+.pallet-caja-item:last-child {
+    border-bottom: none;
+}
+/* --- AÑADIDO: Mensaje de lista vacía --- */
+.pallet-caja-item-empty {
+    font-size: 0.9rem;
+    color: #6b7280;
+    padding: 0.75rem 0.5rem;
+    text-align: center;
+    font-style: italic;
+}
+
+
+/* --- AÑADIDO: Botón "Add" en la lista --- */
+.pallet-caja-add-btn {
+  background-color: #1e40af; /* Azul oscuro */
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 0.25rem 0.5rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+.pallet-caja-add-btn:hover {
+  background-color: #1d4ed8; /* Azul más claro */
+}
+
+
+/* Botón de Generar Caja (Azul) */
+.pallet-button-generar {
+    margin-top: 0.75rem; /* mt-3 */
+    width: 100%; /* w-full */
+    background-color: #1565c0; /* bg-blue-600 (usando tu --secondary-color) */
+    color: #ffffff; /* text-white */
+    padding-top: 0.75rem; /* py-2 (agrandado) */
+    padding-bottom: 0.75rem; /* py-2 (agrandado) */
+    border-radius: 9px; /* (de bins.css) */
+    border: none;
+    cursor: pointer;
+    transition: opacity 0.2s;
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+.pallet-button-generar:hover {
+    opacity: 0.9;
+}
+
+/* Grid de 8 columnas para los slots */
+.pallet-grid-slots {
+    display: grid;
+    grid-template-columns: repeat(8, minmax(0, 1fr)); /* grid-cols-8 */
+    gap: 0.5rem; /* gap-2 */
+    background-color: #ffffff; /* bg-white */
+    padding: 0.75rem; /* p-3 */
+    border-radius: 0.25rem; /* rounded */
+}
+
+/* Slot individual del pallet */
+.pallet-slot {
+    height: 3.5rem; /* h-14 */
+    border: 1px dashed #cccccc; /* border (customizado a dashed) */
+    border-radius: 0.25rem; /* rounded */
+    background-color: #f9fafb; /* bg-gray-50 */
+    font-size: 0.75rem; /* text-xs */
+    /* Para centrar el texto si lo hubiera */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.25rem;
+    box-sizing: border-box;
+    word-break: break-all;
+    /* --- AÑADIDO: Feedback visual --- */
+    transition: background-color 0.2s, border-color 0.2s;
+}
+
+.pallet-slot.empty {
+  cursor: pointer;
+}
+
+.pallet-slot.empty:hover {
+  background-color: #f0fdf4; /* Verde muy claro */
+  border-color: var(--primary-color, #2e7d32);
+}
+
+.pallet-slot.filled {
+  background-color: #dcfce7; /* Verde claro */
+  border-color: #86efac; /* Verde */
+  color: #14532d; /* Verde oscuro */
+  font-weight: 600;
+  cursor: not-allowed;
+}
+
+
+/* Footer del resumen (stats y botón) */
+.pallet-summary-footer {
+    margin-top: 0.75rem; /* mt-3 */
+    display: flex;
+    justify-content: space-between; /* justify-between */
+    align-items: center; /* items-center */
+}
+
+/* Texto de stats (Cajas, Peso) */
+.pallet-stat-item {
+     font-size: 0.9rem; /* text-sm (de bins.css) */
+     color: #6b7280; /* text-gray-500 */
+}
+.pallet-stat-item:first-child {
+    margin-bottom: 0.25rem;
+}
+
+/* Botón de Cerrar Pallet (Verde) */
+.pallet-button-cerrar {
+    background-color: var(--primary-color, #2e7d32); /* bg-green-600 */
+    color: #ffffff; /* text-white */
+    padding: 0.75rem 1.5rem; /* (de bins.css) */
+    border-radius: 9px; /* (de bins.css) */
+    border: none;
+    cursor: pointer;
+    transition: opacity 0.2s;
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+.pallet-button-cerrar:disabled {
+    opacity: 0.5; /* disabled:opacity-50 */
+    cursor: not-allowed;
+}
+.pallet-button-cerrar:hover:not(:disabled) {
+    opacity: 0.9;
+}

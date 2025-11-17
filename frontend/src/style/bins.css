@@ -90,16 +90,16 @@
     /* Usando la variable de color de tu CSS original (--primary-color) */
     background-color: var(--primary-color, #2e7d32); /* bg-green-600 */
     color: #ffffff; /* text-white */
-    padding-left: 1.5rem; /* <-- MODIFICADO: Más padding (era 1rem) */
-    padding-right: 1.5rem; /* <-- MODIFICADO: Más padding (era 1rem) */
-    padding-top: 0.75rem; /* <-- MODIFICADO: Más padding (era 0.5rem) */
-    padding-bottom: 0.75rem; /* <-- MODIFICADO: Más padding (era 0.5rem) */
-    border-radius: 0.25rem; /* rounded (4px) */
+    padding-left: 1.5rem; 
+    padding-right: 1.5rem;
+    padding-top: 0.75rem; 
+    padding-bottom: 0.75rem; 
+    border-radius: 9px;
     border: none;
     cursor: pointer;
     transition: opacity 0.2s;
-    font-size: 0.9rem; /* <-- AÑADIDO: Letra más grande */
-    font-weight: 600; /* <-- AÑADIDO: Letra en negrita */
+    font-size: 0.9rem; 
+    font-weight: 600; 
 }
 .recepcion-form-button:hover {
     opacity: 0.9;

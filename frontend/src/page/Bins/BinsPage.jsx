@@ -3,13 +3,15 @@ import "../../style/bins.css"
 
 const BinsPage = () => {
   return (
-    // Cambiamos 'class="panel hidden"' por 'className="bins-page-container"'
     <div className="bins-page-container" id="recepcion">
-    
-        {/* Usamos className en lugar de class */}
-        <div className="recepcion-card">
-            <h3 className="recepcion-card-title">Recepción de Bin</h3>
-            
+        <div className="dashboard-header">
+          <h2>Recepción de Bin</h2>
+          <div className="dashboard-user-info">
+            <i className="fas fa-user-circle"></i>
+            <span>Administrador</span>
+          </div>
+        </div>
+            <div className="recepcion-card">            
             <form id="binForm" className="recepcion-form">
                 
                 <div className="recepcion-form-group">

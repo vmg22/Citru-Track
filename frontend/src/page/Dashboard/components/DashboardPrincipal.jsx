@@ -1,14 +1,6 @@
 import React, { useState, useEffect } from "react";
-// Ya no se usa useNavigate aquí, se maneja en App.js
-// import { useNavigate } from "react-router-dom"; 
 import MapaLogistica from "./MapaLogistica";
-
-// ❌ SE ELIMINA LA IMPORTACIÓN REDUNDANTE DEL SIDEBAR
-// import Sidebar from "../../../components/layout/SideBar"; 
-
 import "../../../style/DashboardPrincipal.css";
-
-// ==================== Componentes Auxiliares ====================
 
 // Componente Button Reutilizable
 const Button = ({ children, onClick, className = "", icon }) => {
@@ -19,13 +11,6 @@ const Button = ({ children, onClick, className = "", icon }) => {
     </button>
   );
 };
-
-// ❌ SE ELIMINA LA DEFINICIÓN REDUNDANTE DE NavItem
-/*
-const NavItem = ({ icon, text, active, onClick }) => {
-  // ...
-};
-*/
 
 // Componente Card Reutilizable
 const Card = ({ title, icon, iconClass, children }) => {
