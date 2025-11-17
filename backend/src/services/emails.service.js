@@ -26,20 +26,26 @@ console.log('  Pass:', process.env.EMAIL_PASS ? '✅' : '❌ FALTA');
 
 
 const enviarMailTest = async (to) => {
-  try {
-    const info = await transporter.sendMail({
-      from: `Servidor de pruebas <${process.env.EMAIL_USER}>`,
-      to: to || "omegasuprime2585@gmail.com",
-      subject: "Email de prueba",
-      text: "Este es un email de prueba enviado desde el servidor Node.js usando Nodemailer",
-      html: "<h1>Hola!</h1><p>Este es un email de prueba enviado desde el servidor Node.js usando Nodemailer</p>",
-    });
-    console.log("✅ Email de prueba enviado:", info.messageId);
-    return info;
-  } catch (error) {
-    console.error("❌ Error al enviar email de prueba:", error);
-    throw error;
-  }
+  try {
+    // Siempre envía al email de prueba Y al que pases como parámetro
+    const destinatarios = to 
+      ? `${to}, citrustrackutn@gmail.com`
+      : "citrustrackutn@gmail.com";
+
+    const info = await transporter.sendMail({
+      from: `Servidor de pruebas <${process.env.EMAIL_USER}>`,
+      to: destinatarios,
+      subject: "Email de prueba",
+      text: "Este es un email de prueba enviado desde el servidor Node.js usando Nodemailer",
+      html: "<h1>Hola!</h1><p>Este es un email de prueba enviado desde el servidor Node.js usando Nodemailer</p>",
+    });
+    console.log("✅ Email de prueba enviado a:", destinatarios);
+    console.log("   Message ID:", info.messageId);
+    return info;
+  } catch (error) {
+    console.error("❌ Error al enviar email de prueba:", error);
+    throw error;
+  }
 };
 
 const enviarRecuperacionPassword = async (mail, resetLink, username) => {
@@ -141,7 +147,7 @@ const enviarRecuperacionPassword = async (mail, resetLink, username) => {
             </div>
             <div class="content">
               <h2>Hola, ${username || "Usuario"}!</h2>
-              <p>Hemos recibido una solicitud para restablecer la contraseña de tu cuenta en el <strong>Sistema de Gestión del Colegio Carlos Guido Spano</strong>.</p>
+              <p>Hemos recibido una solicitud para restablecer la contraseña de tu cuenta en el <strong>Sistema de Gestión CitrusTrackUtn</strong>.</p>
               
               <p>Haz clic en el siguiente botón para crear una nueva contraseña:</p>
               
@@ -170,9 +176,9 @@ const enviarRecuperacionPassword = async (mail, resetLink, username) => {
             </div>
             <div class="footer">
               <p>Este es un correo automático, por favor no respondas a este mensaje.</p>
-              <p><strong>&copy; ${new Date().getFullYear()} Colegio Carlos Guido Spano - Sistema de Gestión</strong></p>
+              <p><strong>&copy; ${new Date().getFullYear()} CitrusTrackUtn - Sistema de Gestión</strong></p>
               <p style="font-size: 11px; color: #999;">
-                Dirección: [Dirección del colegio] | Teléfono: [Teléfono] | Email: [Email de contacto]
+                Dirección: [Dirección de CitrusTrackUtn] | Teléfono: [Teléfono] | Email: [Email de contacto]
               </p>
             </div>
           </div>
@@ -187,7 +193,7 @@ const enviarRecuperacionPassword = async (mail, resetLink, username) => {
         Hola, ${username || "Usuario"}!
 
         Hemos recibido una solicitud para restablecer la contraseña de tu cuenta 
-        en el Sistema de Gestión del Colegio Carlos Guido Spano.
+        en el Sistema de Gestión CitrusTrackUtn.
 
         Para crear una nueva contraseña, haz clic en el siguiente enlace:
         ${resetLink}
@@ -206,8 +212,8 @@ const enviarRecuperacionPassword = async (mail, resetLink, username) => {
         --
         Este es un correo automático, por favor no respondas a este mensaje.
 
-        © ${new Date().getFullYear()} Colegio Carlos Guido Spano - Sistema de Gestión
-        Dirección: [Dirección del colegio] | Teléfono: [Teléfono] 
+        © ${new Date().getFullYear()} CitrusTrackUtn - Sistema de Gestión
+        Dirección: [Dirección de CitrusTrackUtn] | Teléfono: [Teléfono] 
       `,
     };
 

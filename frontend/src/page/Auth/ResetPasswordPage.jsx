@@ -1,6 +1,6 @@
-import AuthForm from "./components/AuthForm";
+import ResetPasswordForm from "./components/ResetPasswordForm";
 
-export default function LoginPage() {
+export default function ResetPasswordPage() {
   return (
     <div
       style={{
@@ -11,7 +11,7 @@ export default function LoginPage() {
         background: "linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url('/bg_orchard.png') center/cover no-repeat",
       }}
     >
-      <AuthForm />
+      <ResetPasswordForm />
     </div>
   );
 }
