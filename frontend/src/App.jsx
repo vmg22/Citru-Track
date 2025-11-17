@@ -1,11 +1,3 @@
-<<<<<<< HEAD
-import { BrowserRouter, Routes, Route, Navigate  } from "react-router-dom";
-
-import DashboardPage from "./page/Dashboard/DashboardPage";
-import LoginPage from "./page/Auth/LoginPage";
-import ForgotPasswordPage from "./page/Auth/ForgotPasswordPage";
-import ResetPasswordPage from "./page/Auth/ResetPasswordPage";
-=======
 import {
   BrowserRouter,
   Routes,
@@ -103,23 +95,11 @@ const AppContent = () => {
     </Layout>
   );
 };
->>>>>>> bec0a36c1477c0d7b7bd208edb509c26ed5272e3
 
 export default function App() {
   return (
     <BrowserRouter>
-<<<<<<< HEAD
-      <Routes>
-        <Route path="/" element={<DashboardPage />} />
-        <Route path="/login" element={<LoginPage />} />
-        <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-        <Route path="/reset-password" element={<ResetPasswordPage />} />
-
-        
-      </Routes>
-=======
       <AppContent />
->>>>>>> bec0a36c1477c0d7b7bd208edb509c26ed5272e3
     </BrowserRouter>
   );
 }
