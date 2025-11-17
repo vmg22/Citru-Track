@@ -2,6 +2,7 @@ import {
   BrowserRouter,
   Routes,
   Route,
+  Navigate,
   useNavigate,
   useLocation,
 } from "react-router-dom";
@@ -20,8 +21,6 @@ import LineaDeProceso from "./page/LineaProceso/LineaDeProceso";
 import Pallet from "./page/Pallet/Pallet";
 import CamaraFrio from "./page/CamaraFrio/CamaraFrio";
 
-// ---------------------------------------------------
-// MAPAS DE RUTA <-> ITEM
 // ---------------------------------------------------
 
 const routeToItemMap = {
@@ -47,10 +46,15 @@ const itemToPathMap = {
 const AppContent = () => {
   const navigate = useNavigate();
   const location = useLocation();
-
   const [activeItem, setActiveItem] = useState("dashboard");
 
-  // Sincronizar activo con la ruta
+  // Si alguien entra a /* directamente → lo llevo a /dashboard
+  useEffect(() => {
+    if (location.pathname === "/") {
+      navigate("/dashboard", { replace: true });
+    }
+  }, [location.pathname]);
+
   useEffect(() => {
     const currentItem = routeToItemMap[location.pathname];
     if (currentItem && currentItem !== activeItem) {
@@ -58,7 +62,6 @@ const AppContent = () => {
     }
   }, [location.pathname]);
 
-  // Navegación desde el sidebar
   const handleNavigation = (itemId) => {
     const path = itemToPathMap[itemId];
     if (!path) return;
@@ -78,8 +81,8 @@ const AppContent = () => {
         <Route path="/armado-pallet" element={<Pallet />} />
         <Route path="/camara" element={<CamaraFrio />} />
 
-        {/* Redirección de raíz → dashboard */}
-        <Route path="/" element={<DashboardPrincipal />} />
+        {/* Cualquier ruta desconocida en privado va al dashboard */}
+        <Route path="*" element={<Navigate to="/dashboard" replace />} />
       </Routes>
     </Layout>
   );
@@ -93,15 +96,19 @@ export default function App() {
   return (
     <BrowserRouter>
       <Routes>
-        {/* Rutas públicas sin layout */}
+        {/* Rutas públicas */}
         <Route path="/login" element={<LoginPage />} />
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
         <Route path="/reset-password" element={<ResetPasswordPage />} />
 
-        {/* Todo lo privado va dentro de AppContent */}
+        {/* Redirección directa al login al iniciar */}
+        <Route path="/" element={<Navigate to="/login" replace />} />
+
+        {/* Rutas privadas */}
         <Route path="/*" element={<AppContent />} />
       </Routes>
     </BrowserRouter>
   );
 }
+
 
