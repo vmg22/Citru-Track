@@ -15,7 +15,7 @@ const {
 router.post('/login', loginRateLimiter, authController.login);//Login con email y contraseña//POST /api/auth/login
 router.post('/solicitar-reset', passwordResetRateLimiter, authController.solicitarReset);//Solicita recuperación de contraseña por email//POST /api/auth/solicitar-reset
 router.get('/validar-token-reset/:token', authController.validarTokenReset);//Valida si un token de recuperación es válido//GET /api/auth/validar-token-reset/:token
-
+router.post('/reset-password', passwordResetRateLimiter, authController.resetPasswordConToken);//Resetea la contraseña usando un token de recuperación//POST /api/auth/reset-password
 
 // Rutas protegidas (requieren token)
 router.get('/me',authenticateToken, checkTokenBlacklist, authController.me);//Obtiene el perfil del usuario autenticado//GET /api/auth/me

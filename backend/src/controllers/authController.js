@@ -369,6 +369,93 @@ async function logout(req, res) {
   }
 }
 
+
+const resetPasswordConToken = async (req, res) => {
+  try {
+    const { token, newPassword } = req.body;
+
+    console.log("🔄 === INICIO RESET PASSWORD ===");
+    console.log("🔑 Token recibido:", token?.substring(0, 20) + "...");
+    console.log("🔐 Nueva password longitud:", newPassword?.length);
+
+    // Validaciones básicas
+    if (!token || !newPassword) {
+      console.log("❌ Faltan datos");
+      return res.status(400).json({
+        exito: false,
+        mensaje: "Token y nueva contraseña son obligatorios"
+      });
+    }
+
+    if (newPassword.length < 6) {
+      console.log("❌ Password muy corta");
+      return res.status(400).json({
+        exito: false,
+        mensaje: "La contraseña debe tener al menos 6 caracteres"
+      });
+    }
+
+    // Verificar y decodificar token
+    let decoded;
+    try {
+      decoded = jwt.verify(token, process.env.JWT_SECRET);
+      console.log("✅ Token válido - userId:", decoded.userId);
+    } catch (err) {
+      console.log("❌ Token inválido o expirado:", err.message);
+      return res.status(401).json({
+        exito: false,
+        mensaje: "Token inválido o expirado"
+      });
+    }
+
+    const userId = decoded.userId;
+
+    // Verificar que el token coincida en BD y que no haya sido usado
+    const [rows] = await db.execute(
+      "SELECT user_id, email FROM users WHERE user_id = ? AND token_reset = ? LIMIT 1",
+      [userId, token]
+    );
+
+    console.log("🔍 Usuario encontrado en BD:", rows.length > 0);
+
+    if (rows.length === 0) {
+      console.log("❌ Token no coincide o ya fue usado");
+      return res.status(401).json({
+        exito: false,
+        mensaje: "Token inválido o ya fue utilizado"
+      });
+    }
+
+    // Hash de la nueva contraseña
+    console.log("🔐 Hasheando nueva contraseña...");
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    console.log("✅ Password hasheada (primeros 20 chars):", hashedPassword.substring(0, 20) + "...");
+
+    // Actualizar contraseña y limpiar token
+    await db.execute(
+      "UPDATE users SET hashed_password = ?, token_reset = NULL WHERE user_id = ?",
+      [hashedPassword, userId]
+    );
+
+    console.log("✅ Contraseña actualizada en BD");
+    console.log("🔄 === FIN RESET PASSWORD ===\n");
+
+    return res.status(200).json({
+      exito: true,
+      mensaje: "Contraseña actualizada exitosamente"
+    });
+
+  } catch (error) {
+    console.error("🚨 ERROR EN resetPasswordConToken:", error);
+    console.error("Stack:", error.stack);
+    return res.status(500).json({
+      exito: false,
+      mensaje: "Error al restablecer contraseña"
+    });
+  }
+};
+
+
 // ==================== EXPORTAR ====================
 
 module.exports = {
@@ -377,6 +464,7 @@ module.exports = {
   logout,
   solicitarReset,
   validarTokenReset,
-  cambiarPasswordAutenticado
+  cambiarPasswordAutenticado,
+  resetPasswordConToken
   
 };
