@@ -1,11 +1,12 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useAuthStore } from "../store/authStore";
 
 export default function LoginForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const navigate = useNavigate();
 
-  // ✅ SOLUCIÓN 1: Acceder directamente sin selector
   const login = useAuthStore((state) => state.login);
   const error = useAuthStore((state) => state.error);
   const loading = useAuthStore((state) => state.loading);
@@ -16,8 +17,7 @@ export default function LoginForm() {
     const success = await login(email, password);
 
     if (success) {
-      alert("¡Login Exitoso!");
-      // navigate('/dashboard');
+      navigate("/");
     }
   };
 
@@ -33,7 +33,6 @@ export default function LoginForm() {
         boxShadow: "0 10px 25px rgba(0, 0, 0, 0.1)",
       }}
     >
-      {/* LOGO + TITULO */}
       <div style={{ marginBottom: "30px" }}>
         <img
           src="/logo_citrustrack.png"
@@ -62,18 +61,21 @@ export default function LoginForm() {
         </div>
       </div>
 
-      {/* FORM */}
-      <form
-        onSubmit={handleSubmit}
-        style={{ display: "flex", flexDirection: "column", gap: "20px" }}
-      >
+      <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
         {error && (
-          <div style={{ color: "red", fontSize: "14px", marginBottom: "10px" }}>
+          <div
+            style={{
+              color: "#d32f2f",
+              backgroundColor: "#ffebee",
+              padding: "12px",
+              borderRadius: "8px",
+              fontSize: "14px",
+            }}
+          >
             {error}
           </div>
         )}
 
-        {/* EMAIL */}
         <div
           style={{
             display: "flex",
@@ -85,12 +87,7 @@ export default function LoginForm() {
           }}
         >
           <span style={{ color: "#888", display: "flex" }}>
-            <svg
-              width="20"
-              height="20"
-              fill="currentColor"
-              viewBox="0 0 24 24"
-            >
+            <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24">
               <path d="M12 12c2.7 0 5-2.3 5-5s-2.3-5-5-5-5 2.3-5 5 2.3 5 5 5zm0 2c-4 0-8 2-8 5v1h16v-1c0-3-4-5-8-5z" />
             </svg>
           </span>
@@ -110,7 +107,6 @@ export default function LoginForm() {
           />
         </div>
 
-        {/* PASSWORD */}
         <div
           style={{
             display: "flex",
@@ -122,12 +118,7 @@ export default function LoginForm() {
           }}
         >
           <span style={{ color: "#888", display: "flex" }}>
-            <svg
-              width="20"
-              height="20"
-              fill="currentColor"
-              viewBox="0 0 24 24"
-            >
+            <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24">
               <path d="M17 8h-1V6c0-2.8-2.2-5-5-5S6 3.2 6 6v2H5c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zM8 6c0-1.7 1.3-3 3-3s3 1.3 3 3v2H8V6zm9 14H5V10h12v10z" />
             </svg>
           </span>
@@ -147,9 +138,8 @@ export default function LoginForm() {
           />
         </div>
 
-        {/* BOTON ENTRAR */}
         <button
-          type="submit"
+          onClick={handleSubmit}
           disabled={loading}
           style={{
             backgroundColor: loading ? "#BDBDBD" : "#6FBF47",
@@ -167,7 +157,6 @@ export default function LoginForm() {
           {loading ? "Cargando..." : "Entrar"}
         </button>
 
-        {/* OPCIONES INFERIORES */}
         <div
           style={{
             display: "flex",
@@ -177,30 +166,36 @@ export default function LoginForm() {
         >
           <button
             type="button"
+            onClick={() => navigate("/forgot-password")}
+            disabled={loading}
             style={{
               background: "none",
               border: "none",
               color: "#444",
-              cursor: "pointer",
+              cursor: loading ? "not-allowed" : "pointer",
               fontSize: "14px",
+              textDecoration: "underline",
             }}
           >
             ¿Olvidaste tu contraseña?
           </button>
           <button
             type="button"
+            onClick={() => navigate("/register")}
+            disabled={loading}
             style={{
               background: "none",
               border: "none",
               color: "#444",
-              cursor: "pointer",
+              cursor: loading ? "not-allowed" : "pointer",
               fontSize: "14px",
+              textDecoration: "underline",
             }}
           >
             Crear cuenta
           </button>
         </div>
-      </form>
+      </div>
     </div>
   );
 }
