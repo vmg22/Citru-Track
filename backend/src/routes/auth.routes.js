@@ -1,9 +1,19 @@
+// 
+// auth.routes.js
 const express = require('express');
 const router = express.Router();
-const ctrl = require('../controllers/authController');
-const authMiddleware = require('../middleware/auth');
+const authController = require('../controllers/authController'); // Usando el nuevo archivo adaptado
+const { authMiddleware } = require('../middleware/auth.middleware'); // Middleware para proteger rutas
 
-router.post('/login', ctrl.login);
-router.get('/me', authMiddleware, ctrl.me);
+/**
+ * Rutas de Autenticación
+ * Prefijo base: /api/auth
+ */
+
+// POST /api/auth/login - Iniciar sesión
+router.post('/login', authController.login);
+
+// GET /api/auth/me - Obtener el perfil del usuario autenticado
+router.get('/me', authController.me); 
 
 module.exports = router;

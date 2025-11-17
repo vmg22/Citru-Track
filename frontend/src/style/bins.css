@@ -1,0 +1,126 @@
+.bins-page-container {
+  width: 100%;
+  padding: 1.5rem; 
+  box-sizing: border-box; 
+}
+
+.recepcion-card {
+    width: 100%; 
+    background-color: #ffffff; /* bg-white */
+    padding: 1.5rem; /* p-6 (24px) */
+    border-radius: 0.25rem; /* rounded (4px) */
+    box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1); 
+    margin-bottom: 1rem; /* mb-4 (16px) */
+}
+
+/* Tarjeta secundaria (lista de bins) */
+.recepcion-card-recent {
+    width: 100%; 
+    background-color: #ffffff; /* bg-white */
+    padding: 1rem; /* p-4 (16px) */
+    border-radius: 0.25rem; /* rounded (4px) */
+    /* shadow (sombra suave de Tailwind) */
+    box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+}
+
+/* Títulos de las tarjetas */
+.recepcion-card h3.recepcion-card-title {
+    font-weight: 600; /* font-semibold */
+    margin-bottom: 1rem; /* mb-4 (16px) */
+    color: var(--primary-color, #2e7d32); /* Añadido para consistencia */
+    font-size: 1.125rem; 
+}
+.recepcion-card-recent h4.recepcion-card-title {
+    font-weight: 600; /* font-semibold */
+    margin-bottom: 0.5rem; /* mb-2 (8px) */
+    color: var(--primary-color, #2e7d32); /* Añadido para consistencia */
+    font-size: 1.125rem;
+}
+
+/* Grid del formulario */
+.recepcion-form {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr)); /* grid-cols-2 */
+    gap: 1rem; /* gap-4 (16px) */
+    width: 100%; /* <-- AÑADIDO: Forzar el ancho al 100% */
+}
+
+/* Modificador para que ocupe todo el ancho del grid */
+.recepcion-form-group.full-width {
+    grid-column: span 2 / span 2; /* col-span-2 */
+}
+
+/* Etiquetas del formulario */
+.recepcion-form-label {
+    display: block; 
+    font-size: 1rem;
+    line-height: 1.25rem;
+    color: #4b5563; 
+    margin-bottom: 0.5rem;
+}
+
+/* Inputs y Textarea del formulario */
+.recepcion-form-input {
+    width: 100%; /* w-full */
+    border: 1px solid #e5e7eb; /* border (color por defecto gray-200) */
+    padding: 0.75rem 0.5rem; /* <-- MODIFICADO: Más padding vertical (era 0.5rem) */
+    border-radius: 0.25rem; /* rounded (4px) */
+    box-sizing: border-box; /* Asegura que el padding no afecte el ancho */
+    font-size: 1rem; /* <-- AÑADIDO: Letra más grande (16px) */
+}
+/* Aumentamos la altura de la textarea también */
+.recepcion-form-input[rows="2"] {
+    min-height: 80px; /* <-- AÑADIDO: Altura mínima para textarea */
+}
+
+.recepcion-form-input:focus {
+    border-color: var(--primary-color, #2e7d32);
+    outline: 1px solid var(--primary-color, #2e7d32);
+}
+
+/* Contenedor de botones del formulario */
+.recepcion-form-actions {
+    grid-column: span 2 / span 2; /* col-span-2 */
+    text-align: right; /* text-right */
+    margin-top: 0.5rem; /* <-- AÑADIDO: Espacio extra antes del botón */
+}
+
+/* Botón principal del formulario */
+.recepcion-form-button {
+    /* Usando la variable de color de tu CSS original (--primary-color) */
+    background-color: var(--primary-color, #2e7d32); /* bg-green-600 */
+    color: #ffffff; /* text-white */
+    padding-left: 1.5rem; 
+    padding-right: 1.5rem;
+    padding-top: 0.75rem; 
+    padding-bottom: 0.75rem; 
+    border-radius: 9px;
+    border: none;
+    cursor: pointer;
+    transition: opacity 0.2s;
+    font-size: 0.9rem; 
+    font-weight: 600; 
+}
+.recepcion-form-button:hover {
+    opacity: 0.9;
+}
+
+/* Lista de bins recientes */
+.recepcion-bins-list {
+    font-size: 15px; /* text-sm (14px) */
+    line-height: 1.25rem;
+    color: #374151; /* text-gray-700 */
+    list-style: none; /* Quitamos los puntos de la lista */
+    padding-left: 0; /* Quitamos el padding por defecto de ul */
+}
+
+/* AÑADIDO: Estilo para los items de la lista de bins */
+.recepcion-bins-list li {
+    padding: 0.75rem 0.25rem; /* Más padding vertical */
+    border-bottom: 1px solid #e5e7eb; /* Borde inferior (como en la imagen) */
+    font-size: 0.9rem; /* Letra más grande */
+}
+
+.recepcion-bins-list li:last-child {
+    border-bottom: none; /* Quitamos el borde del último item */
+}

@@ -13,7 +13,11 @@
     "axios": "^1.13.2",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
+<<<<<<< HEAD
     "react-icons": "^5.5.0",
+=======
+    "react-leaflet": "^5.0.0",
+>>>>>>> bec0a36c1477c0d7b7bd208edb509c26ed5272e3
     "react-router-dom": "^7.9.6",
     "zustand": "^5.0.8"
   },
