@@ -1,24 +1,51 @@
-# Logs
-logs
+# ########## Archivos de dependencias ##########
+# La carpeta node_modules contiene todas las librerías de terceros.
+# Se reinstala con 'npm install' y nunca debe subirse al repositorio.
+node_modules/
+
+# ########## Archivos de entorno ##########
+# Este archivo contiene variables sensibles como contraseñas de la base de datos,
+# API keys y secretos de JWT. ¡NUNCA lo subas!
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# ########## Archivos de log y reportes ##########
+# Archivos de logs generados por la aplicación o por npm/yarn.
+logs/
 *.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-pnpm-debug.log*
-lerna-debug.log*
+lcov.info
 
-node_modules
-dist
-dist-ssr
-*.local
+# ########## Reportes de testing ##########
+# Directorio para los reportes de cobertura de código.
+coverage/
+lcov-report/
 
-# Editor directories and files
-.vscode/*
-!.vscode/extensions.json
-.idea
+# ########## Archivos de sistema operativo ##########
+# Archivos de metadatos específicos de macOS y Windows.
 .DS_Store
-*.suo
-*.ntvs*
-*.njsproj
-*.sln
-*.sw?
+Thumbs.db
+
+# ########## Archivos de configuración de editores e IDEs ##########
+# Evita subir configuraciones personales de tu editor de código.
+.idea/
+.vscode/
+*.sublime-project
+*.sublime-workspace
+
+# ########## Directorios de build ##########
+# Si en el futuro usas un transpilador como TypeScript o Babel,
+# los archivos compilados se guardarán aquí.
+dist/
+build/
+.out/
+
+# ########## Archivos temporales ##########
+*.tmp
+*.swp
+*.bak
