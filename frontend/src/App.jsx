@@ -20,11 +20,13 @@ import BinsPage from "./page/Bins/BinsPage";
 import LineaDeProceso from "./page/LineaProceso/LineaDeProceso";
 import Pallet from "./page/Pallet/Pallet";
 import CamaraFrio from "./page/CamaraFrio/CamaraFrio";
+import MonitoringsPage from "./page/Monitoring/MonitoringsPage";
 
 // ---------------------------------------------------
 
 const routeToItemMap = {
   "/dashboard": "dashboard",
+  "/monitoreo": "monitoreo",
   "/bins": "bins",
   "/linea-de-proceso": "linea",
   "/armado-pallet": "pallet",
@@ -33,6 +35,7 @@ const routeToItemMap = {
 
 const itemToPathMap = {
   dashboard: "/dashboard",
+  monitoreo: "/monitoreo",
   linea: "/linea-de-proceso",
   bins: "/bins",
   pallet: "/armado-pallet",
@@ -80,6 +83,7 @@ const AppContent = () => {
         <Route path="/linea-de-proceso" element={<LineaDeProceso />} />
         <Route path="/armado-pallet" element={<Pallet />} />
         <Route path="/camara" element={<CamaraFrio />} />
+        <Route path="/monitoreo" element={<MonitoringsPage />} />
 
         {/* Cualquier ruta desconocida en privado va al dashboard */}
         <Route path="*" element={<Navigate to="/dashboard" replace />} />
