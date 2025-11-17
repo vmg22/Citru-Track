@@ -4,6 +4,13 @@ const LineaDeProceso = () => {
   return (
     // Contenedor principal para esta página
     <div className="linea-proceso-container" id="linea">
+      <div className="dashboard-header">
+          <h2>Línea de Proceso</h2>
+          <div className="dashboard-user-info">
+            <i className="fas fa-user-circle"></i>
+            <span>Administrador</span>
+          </div>
+        </div>
       
       {/* Tarjeta de Vista por Lote */}
       <div className="linea-proceso-card">

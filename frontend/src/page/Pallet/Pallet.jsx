@@ -108,6 +108,13 @@ const Pallet = () => {
 
   return (
     <div className="pallet-container" id="pallet">
+      <div className="dashboard-header">
+          <h2>Armado de Pallet</h2>
+          <div className="dashboard-user-info">
+            <i className="fas fa-user-circle"></i>
+            <span>Administrador</span>
+          </div>
+        </div>
       <div className="pallet-card">
         
         {/* Mensaje de estado */}
@@ -115,10 +122,7 @@ const Pallet = () => {
           <div className="pallet-message">
             {message}
           </div>
-        )}
-
-        <h3 className="pallet-title">Armado de Pallet</h3>
-        
+        )}        
         <div className="pallet-main-grid">
           
           {/* Columna Izquierda: Cajas Disponibles */}

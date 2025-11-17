@@ -12,7 +12,13 @@ const CamaraFrio = () => {
     return (
     // Contenedor principal para esta página
     <div className="camara-container" id="camara">
-      
+      <div className="dashboard-header">
+          <h2>Cámaras</h2>
+          <div className="dashboard-user-info">
+            <i className="fas fa-user-circle"></i>
+            <span>Administrador</span>
+          </div>
+        </div>
       {/* Tarjeta principal */}
       <div className="camara-card">
         <h3 className="camara-title">Mapa de Cámaras</h3>
