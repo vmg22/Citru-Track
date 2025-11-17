@@ -2,8 +2,7 @@ const express = require('express');
 const router = express.Router();
 const ctrl = require('../controllers/usuariosController');
 
-// --- RUTAS DE AUTENTICACIÓN ---
-router.post('/validar-credenciales', ctrl.validarCredenciales);
+
 
 // --- RUTAS ESPECÍFICAS ---
 router.get('/inactivos/todos', ctrl.obtenerUsuariosInactivos);

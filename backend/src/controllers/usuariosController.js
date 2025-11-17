@@ -350,6 +350,9 @@ exports.actualizarUsuarioParcial = async (req, res) => {
   }
 };
 
+
+
+// Actualiza el campo de último login del usuario
 exports.actualizarUltimoLogin = async (req, res) => {
   try {
     const { id } = req.params;
@@ -366,6 +369,8 @@ exports.actualizarUltimoLogin = async (req, res) => {
   }
 };
 
+
+// Elimina (desactiva) un usuario cambiando su estado a inactivo
 exports.eliminarUsuario = async (req, res) => {
   try {
     const { id } = req.params;
@@ -386,6 +391,8 @@ exports.eliminarUsuario = async (req, res) => {
   }
 };
 
+
+// Restaura un usuario cambiando su estado a activo
 exports.restaurarUsuario = async (req, res) => {
   try {
     const { id } = req.params;
@@ -414,6 +421,8 @@ exports.restaurarUsuario = async (req, res) => {
   }
 };
 
+
+// Elimina permanentemente un usuario de la base de datos
 exports.eliminarUsuarioPermanente = async (req, res) => {
   try {
     const { id } = req.params;
@@ -433,48 +442,3 @@ exports.eliminarUsuarioPermanente = async (req, res) => {
   }
 };
 
-exports.validarCredenciales = async (req, res) => {
-  try {
-    const { email, password } = req.body;
-    
-    if (!email || !password) {
-      return res.status(400).json({ 
-        error: 'Email y contraseña son obligatorios' 
-      });
-    }
-    
-    const [[usuario]] = await db.query(
-      'SELECT user_id, username, email, hashed_password, nombre, telefono, activo FROM users WHERE email = ?',
-      [email]
-    );
-    
-    if (!usuario) {
-      return res.status(401).json({ error: 'Credenciales inválidas' });
-    }
-
-    if (!usuario.activo) {
-      return res.status(403).json({ error: 'Usuario inactivo' });
-    }
-
-    const passwordValida = await bcrypt.compare(password, usuario.hashed_password);
-    
-    if (!passwordValida) {
-      return res.status(401).json({ error: 'Credenciales inválidas' });
-    }
-
-    await db.query(
-      'UPDATE users SET last_login = CURRENT_TIMESTAMP WHERE user_id = ?',
-      [usuario.user_id]
-    );
-
-    const { hashed_password, ...usuarioSinPassword } = usuario;
-    
-    res.json({
-      message: 'Credenciales válidas',
-      usuario: usuarioSinPassword
-    });
-  } catch (error) {
-    console.error('Error al validar credenciales:', error);
-    res.status(500).json({ error: 'Error al validar credenciales' });
-  }
-};

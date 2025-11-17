@@ -6,6 +6,8 @@ const productosRoutes = require('./routes/productos.routes');
 const lotesRoutes = require('./routes/lotes.routes');
 const palletsRoutes = require('./routes/pallets.routes');
 const transporteRoutes = require('./routes/transporte.routes');
+const mailRoutes = require('./routes/mail.routes');
+
 
 const app = express();
 app.use(cors());
@@ -18,6 +20,7 @@ app.use('/api/productos', productosRoutes);
 app.use('/api/lotes', lotesRoutes);
 app.use('/api/pallets', palletsRoutes);
 app.use('/api/transporte', transporteRoutes);
+app.use('/api/mail', mailRoutes);
 
 // health
 app.get('/health', (req, res) => res.json({ ok: true, env: process.env.NODE_ENV || 'dev' }));
