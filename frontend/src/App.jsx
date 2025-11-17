@@ -9,6 +9,9 @@ import { useState, useEffect } from "react";
 import DashboardPrincipal from "./page/Dashboard/components/DashboardPrincipal"; // Asumo que esta ruta es correcta
 import BinsPage from "./page/Bins/BinsPage"; // Asumo que esta ruta es correcta
 import Layout from "./components/layout/Layout";
+import LineaDeProceso from "./page/LineaProceso/LineaDeProceso";
+import Pallet from "./page/Pallet/Pallet";
+import CamaraFrio from "./page/CamaraFrio/CamaraFrio";
 
 // --- Mapas de Navegación ---
 // Nos ayudan a traducir de IDs de item a rutas de URL y viceversa.
@@ -18,6 +21,9 @@ const routeToItemMap = {
   "/": "dashboard",
   "/dashboard": "dashboard",
   "/bins": "bins",
+  "/linea-de-proceso": "linea",
+  "/armado-pallet": "pallet",
+  "/camara": "camara",
   "/monitoreo": "monitoreo",
   "/lotes": "lotes",
   "/logistica": "logistica",
@@ -27,8 +33,11 @@ const routeToItemMap = {
 
 // 2. Del ID del ITEM a la RUTA (para navegar al hacer clic)
 const itemToPathMap = {
-  dashboard: "/dashboard", // O "/" si prefieres que el dashboard sea la raíz
+  dashboard: "/dashboard", 
+  linea: "/linea-de-proceso", 
   bins: "/bins",
+  pallet: "/armado-pallet",
+  camara: "/camara",
   monitoreo: "/monitoreo", // Asegúrate de tener estas rutas en <Routes>
   lotes: "/lotes", // Asegúrate de tener estas rutas en <Routes>
   logistica: "/logistica", // Asegúrate de tener estas rutas en <Routes>
@@ -79,11 +88,9 @@ const AppContent = () => {
         <Route path="/" element={<DashboardPrincipal />} />
         <Route path="/dashboard" element={<DashboardPrincipal />} />
         <Route path="/bins" element={<BinsPage />} />
-        {/* AÑADE AQUÍ EL RESTO DE TUS RUTAS 
-          <Route path="/monitoreo" element={<MonitoreoPage />} />
-          <Route path="/lotes" element={<LotesPage />} />
-          ... etc
-        */}
+        <Route path="/linea-de-proceso" element={<LineaDeProceso />} />
+        <Route path="/armado-pallet" element={<Pallet />} />
+        <Route path="/camara" element={<CamaraFrio />} />
       </Routes>
     </Layout>
   );

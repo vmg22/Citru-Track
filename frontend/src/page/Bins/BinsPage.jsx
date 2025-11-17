@@ -3,11 +3,8 @@ import "../../style/bins.css"
 
 const BinsPage = () => {
   return (
-    // Cambiamos 'class="panel hidden"' por 'className="bins-page-container"'
     <div className="bins-page-container" id="recepcion">
-    
-        {/* Usamos className en lugar de class */}
-        <div className="recepcion-card">
+            <div className="recepcion-card">
             <h3 className="recepcion-card-title">Recepción de Bin</h3>
             
             <form id="binForm" className="recepcion-form">
