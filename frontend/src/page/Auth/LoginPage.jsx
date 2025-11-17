@@ -1,4 +1,4 @@
-import LoginForm from "./components/LoginForm";
+import AuthForm from "./components/AuthForm";
 
 export default function LoginPage() {
   return (
@@ -7,12 +7,11 @@ export default function LoginPage() {
         display: "flex",
         justifyContent: "center",
         alignItems: "center",
-        minHeight: "100vh", // Ocupa toda la altura de la pantalla
-        // Asegúrate que 'bg_orchard.png' esté en la carpeta /public
+        minHeight: "100vh",
         background: "linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url('/bg_orchard.png') center/cover no-repeat",
       }}
     >
-      <LoginForm />
+      <AuthForm />
     </div>
   );
 }
