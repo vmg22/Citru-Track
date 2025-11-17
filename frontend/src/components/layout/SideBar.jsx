@@ -42,6 +42,7 @@ const Sidebar = ({ activeItem, onItemClick, appName = "CitrusTrack", appIcon = "
         { id: "lotes", icon: "fas fa-boxes", text: "Lotes" },
         { id: "reporte", icon: "fa-regular fa-lemon", text: "Productos" },
         { id: "logistica", icon: "fas fa-truck", text: "Logística" },
+        { id: "gestion-pedidos", icon: "fas fa-clipboard-list", text: "Gestión de Pedidos" },
       ]
     },
     {

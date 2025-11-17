@@ -19,6 +19,7 @@ import BinsPage from "./page/Bins/BinsPage";
 import LineaDeProceso from "./page/LineaProceso/LineaDeProceso";
 import Pallet from "./page/Pallet/Pallet";
 import CamaraFrio from "./page/CamaraFrio/CamaraFrio";
+import GestionPedidos from "./page/pedidos/GestionPedidos";
 
 // ---------------------------------------------------
 // MAPAS DE RUTA <-> ITEM
@@ -30,6 +31,7 @@ const routeToItemMap = {
   "/linea-de-proceso": "linea",
   "/armado-pallet": "pallet",
   "/camara": "camara",
+  "/gestion-pedidos": "gestion-pedidos",
 };
 
 const itemToPathMap = {
@@ -38,6 +40,8 @@ const itemToPathMap = {
   bins: "/bins",
   pallet: "/armado-pallet",
   camara: "/camara",
+  "gestion-pedidos": "/gestion-pedidos",
+
 };
 
 // ---------------------------------------------------
@@ -77,6 +81,7 @@ const AppContent = () => {
         <Route path="/linea-de-proceso" element={<LineaDeProceso />} />
         <Route path="/armado-pallet" element={<Pallet />} />
         <Route path="/camara" element={<CamaraFrio />} />
+        <Route path="/gestion-pedidos" element={<GestionPedidos />} />
 
         {/* Redirección de raíz → dashboard */}
         <Route path="/" element={<DashboardPrincipal />} />
