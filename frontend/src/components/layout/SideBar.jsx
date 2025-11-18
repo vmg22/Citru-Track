@@ -44,8 +44,7 @@ const Sidebar = ({
         { id: "reporte", icon: "fa-regular fa-lemon", text: "Productos" },
         { id: "logistica", icon: "fas fa-truck", text: "Logística" },
         { id: "gestion-pedidos", icon: "fas fa-clipboard-list", text: "Gestión de Pedidos" },
-      ]
-      
+      ],
     },
     {
       title: "Admin",
