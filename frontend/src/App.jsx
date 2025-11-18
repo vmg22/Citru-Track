@@ -21,6 +21,8 @@ import LineaDeProceso from "./page/LineaProceso/LineaDeProceso";
 import Pallet from "./page/Pallet/Pallet";
 import CamaraFrio from "./page/CamaraFrio/CamaraFrio";
 import MonitoringsPage from "./page/Monitoring/MonitoringsPage";
+// Importamos la página de Gestión de Pedidos
+import GestionPedidos from "./page/pedidos/GestionPedidos"; 
 
 // ---------------------------------------------------
 
@@ -42,7 +44,6 @@ const itemToPathMap = {
   pallet: "/armado-pallet",
   camara: "/camara",
   "gestion-pedidos": "/gestion-pedidos",
-
 };
 
 // ---------------------------------------------------
@@ -55,19 +56,18 @@ const AppContent = () => {
 
   const [activeItem, setActiveItem] = useState("dashboard");
 
-  // Si alguien entra a /* directamente → lo llevo a /dashboard
-  useEffect(() => {
-    if (location.pathname === "/") {
-      navigate("/dashboard", { replace: true });
-    }
-  }, [location.pathname]);
-
+  // Este useEffect actualiza el ítem activo del sidebar cuando
+  // la URL cambia (ej: usando los botones de "atrás/adelante" del navegador)
   useEffect(() => {
     const currentItem = routeToItemMap[location.pathname];
     if (currentItem && currentItem !== activeItem) {
       setActiveItem(currentItem);
     }
-  }, [location.pathname]);
+    // Corregido: Si la ruta es solo "/", activa 'dashboard'
+    else if (location.pathname === "/") {
+        setActiveItem("dashboard");
+    }
+  }, [location.pathname, activeItem]);
 
   // FUNCIÓN: Navegar al hacer clic en el Sidebar
   const handleNavigation = (itemId) => {
@@ -83,30 +83,40 @@ const AppContent = () => {
   return (
     <Layout activeItem={activeItem} onItemClick={handleNavigation}>
       <Routes>
+        {/* Ruta principal que redirige al dashboard */}
+        <Route path="/" element={<Navigate to="/dashboard" replace />} />
+        
         <Route path="/dashboard" element={<DashboardPrincipal />} />
         <Route path="/bins" element={<BinsPage />} />
         <Route path="/linea-de-proceso" element={<LineaDeProceso />} />
         <Route path="/armado-pallet" element={<Pallet />} />
         <Route path="/camara" element={<CamaraFrio />} />
+
+        {/* --- RUTAS FALTANTES AÑADIDAS --- */}
+        <Route path="/monitoreo" element={<MonitoringsPage />} />
+        <Route path="/gestion-pedidos" element={<GestionPedidos />} />
       </Routes>
     </Layout>
   );
 };
 
 // ---------------------------------------------------
-// APP PRINCIPAL
+// APP PRINCIPAL (ESTRUCTURA CORREGIDA)
 // ---------------------------------------------------
 
 export default function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<DashboardPage />} />
+        {/* Rutas Públicas (sin Layout) */}
         <Route path="/login" element={<LoginPage />} />
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
         <Route path="/reset-password" element={<ResetPasswordPage />} />
 
-        
+        {/* Rutas Privadas (con Layout) 
+            Usamos "/*" para indicar que cualquier otra ruta 
+            (incluyendo "/") debe ser manejada por AppContent */}
+        <Route path="/*" element={<AppContent />} />
       </Routes>
     </BrowserRouter>
   );
