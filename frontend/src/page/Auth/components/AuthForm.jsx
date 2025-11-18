@@ -294,7 +294,7 @@ export default function AuthForm() {
           </span>
           <input
             type="email"
-            placeholder="Ingresa tu usuario"
+            placeholder="Ingresa tu Correo Electrónico"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             disabled={loading}
@@ -310,7 +310,7 @@ export default function AuthForm() {
           </span>
           <input
             type="password"
-            placeholder="Ingresa tu contraseña"
+            placeholder="Ingresa tu password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             disabled={loading}

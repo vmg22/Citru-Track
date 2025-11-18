@@ -1,5 +1,5 @@
 import React from "react";
-import Logout from "../layout/logout"; // 👉 IMPORTANTE
+import Logout from "../layout/logout"; 
 import "../../style/sidebar.css";
 
 const NavItem = ({ icon, text, active, onClick }) => {
@@ -43,7 +43,9 @@ const Sidebar = ({
         { id: "lotes", icon: "fas fa-boxes", text: "Lotes" },
         { id: "reporte", icon: "fa-regular fa-lemon", text: "Productos" },
         { id: "logistica", icon: "fas fa-truck", text: "Logística" },
-      ],
+        { id: "gestion-pedidos", icon: "fas fa-clipboard-list", text: "Gestión de Pedidos" },
+      ]
+      
     },
     {
       title: "Admin",
