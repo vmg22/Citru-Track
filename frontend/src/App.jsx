@@ -2,6 +2,7 @@ import {
   BrowserRouter,
   Routes,
   Route,
+  Navigate,
   useNavigate,
   useLocation,
 } from "react-router-dom";
@@ -19,14 +20,13 @@ import BinsPage from "./page/Bins/BinsPage";
 import LineaDeProceso from "./page/LineaProceso/LineaDeProceso";
 import Pallet from "./page/Pallet/Pallet";
 import CamaraFrio from "./page/CamaraFrio/CamaraFrio";
-import GestionPedidos from "./page/pedidos/GestionPedidos";
+import MonitoringsPage from "./page/Monitoring/MonitoringsPage";
 
-// ---------------------------------------------------
-// MAPAS DE RUTA <-> ITEM
 // ---------------------------------------------------
 
 const routeToItemMap = {
   "/dashboard": "dashboard",
+  "/monitoreo": "monitoreo",
   "/bins": "bins",
   "/linea-de-proceso": "linea",
   "/armado-pallet": "pallet",
@@ -36,6 +36,7 @@ const routeToItemMap = {
 
 const itemToPathMap = {
   dashboard: "/dashboard",
+  monitoreo: "/monitoreo",
   linea: "/linea-de-proceso",
   bins: "/bins",
   pallet: "/armado-pallet",
@@ -54,7 +55,13 @@ const AppContent = () => {
 
   const [activeItem, setActiveItem] = useState("dashboard");
 
-  // Sincronizar activo con la ruta
+  // Si alguien entra a /* directamente → lo llevo a /dashboard
+  useEffect(() => {
+    if (location.pathname === "/") {
+      navigate("/dashboard", { replace: true });
+    }
+  }, [location.pathname]);
+
   useEffect(() => {
     const currentItem = routeToItemMap[location.pathname];
     if (currentItem && currentItem !== activeItem) {
@@ -62,7 +69,7 @@ const AppContent = () => {
     }
   }, [location.pathname]);
 
-  // Navegación desde el sidebar
+  // FUNCIÓN: Navegar al hacer clic en el Sidebar
   const handleNavigation = (itemId) => {
     const path = itemToPathMap[itemId];
     if (!path) return;
@@ -81,10 +88,6 @@ const AppContent = () => {
         <Route path="/linea-de-proceso" element={<LineaDeProceso />} />
         <Route path="/armado-pallet" element={<Pallet />} />
         <Route path="/camara" element={<CamaraFrio />} />
-        <Route path="/gestion-pedidos" element={<GestionPedidos />} />
-
-        {/* Redirección de raíz → dashboard */}
-        <Route path="/" element={<DashboardPrincipal />} />
       </Routes>
     </Layout>
   );
@@ -98,13 +101,12 @@ export default function App() {
   return (
     <BrowserRouter>
       <Routes>
-        {/* Rutas públicas sin layout */}
+        <Route path="/" element={<DashboardPage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
         <Route path="/reset-password" element={<ResetPasswordPage />} />
 
-        {/* Todo lo privado va dentro de AppContent */}
-        <Route path="/*" element={<AppContent />} />
+        
       </Routes>
     </BrowserRouter>
   );
