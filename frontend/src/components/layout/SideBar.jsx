@@ -50,7 +50,7 @@ const Sidebar = ({
       title: "Admin",
       items: [
         { id: "kpis", icon: "fas fa-chart-line", text: "KPIs" },
-        { id: "config", icon: "fas fa-cog", text: "Ajustes" },
+        { id: "ajustes", icon: "fas fa-cog", text: "Ajustes" },
       ],
     },
   ];
