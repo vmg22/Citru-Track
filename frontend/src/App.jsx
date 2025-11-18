@@ -23,12 +23,8 @@ import CamaraFrio from "./page/CamaraFrio/CamaraFrio";
 import MonitoringsPage from "./page/Monitoring/MonitoringsPage";
 // Importamos la página de Gestión de Pedidos
 import GestionPedidos from "./page/pedidos/GestionPedidos"; 
-<<<<<<< HEAD
 import KPIsPage from "./page/KPIs/KPIsPage";
-
-=======
 import Ajustes from "./page/Settings/Ajustes";
->>>>>>> 503e437f26fa59886d18aee2d363dffb50285045
 // ---------------------------------------------------
 
 const routeToItemMap = {
