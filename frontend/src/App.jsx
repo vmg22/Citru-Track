@@ -23,6 +23,7 @@ import CamaraFrio from "./page/CamaraFrio/CamaraFrio";
 import MonitoringsPage from "./page/Monitoring/MonitoringsPage";
 // Importamos la página de Gestión de Pedidos
 import GestionPedidos from "./page/pedidos/GestionPedidos"; 
+import KPIsPage from "./page/KPIs/KPIsPage";
 
 // ---------------------------------------------------
 
@@ -34,6 +35,7 @@ const routeToItemMap = {
   "/armado-pallet": "pallet",
   "/camara": "camara",
   "/gestion-pedidos": "gestion-pedidos",
+  "/kpis": "kpis",
 };
 
 const itemToPathMap = {
@@ -43,6 +45,7 @@ const itemToPathMap = {
   bins: "/bins",
   pallet: "/armado-pallet",
   camara: "/camara",
+  kpis: "/kpis",
   "gestion-pedidos": "/gestion-pedidos",
 };
 
@@ -95,6 +98,7 @@ const AppContent = () => {
         {/* --- RUTAS FALTANTES AÑADIDAS --- */}
         <Route path="/monitoreo" element={<MonitoringsPage />} />
         <Route path="/gestion-pedidos" element={<GestionPedidos />} />
+        <Route path="/kpis" element={<KPIsPage />} />
       </Routes>
     </Layout>
   );
