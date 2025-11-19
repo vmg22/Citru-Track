@@ -643,7 +643,7 @@ const MonitoreoTiempoReal = () => {
             <div className="monitoreo-panel">
               <div className="monitoreo-section-title">
                 <i className="fas fa-thermometer-half"></i>
-                Condiciones Ambientales
+                Sensores Ambientales de Camara N1
               </div>
               <div className="monitoreo-sensor-grid">
                 <SensorCard
@@ -653,10 +653,11 @@ const MonitoreoTiempoReal = () => {
                 />
                 <SensorCard name="Humedad" value="68%" range="Rango: 65-75%" />
                 <SensorCard
-                  name="Vibración"
-                  value="0.8g"
-                  range="Límite: 0.5g"
-                  alert={true}
+                  name="Capacidad"
+                  value="500 palent" // Texto exacto de la imagen
+                  range="Límite: 600 unidades"
+                  alert={true} // Esto activa el fondo rojo
+                  icon="" // Sin icono específico, solo valor grande
                 />
                 <SensorCard name="Presión" value="101.3 kPa" range="Normal" />
               </div>
@@ -665,7 +666,61 @@ const MonitoreoTiempoReal = () => {
             <div className="monitoreo-panel">
               <div className="monitoreo-section-title">
                 <i className="fas fa-microchip"></i>
-                Sensores IoT - Estado
+                Sensores IoT - Estado Camara N1 
+              </div>
+              <div className="monitoreo-sensor-grid">
+                <SensorCard
+                  name={`Sensor ${config.planta}-${config.linea}1`}
+                  icon="fas fa-check monitoreo-icon-good"
+                  range="Activo"
+                />
+                <SensorCard
+                  name={`Sensor ${config.planta}-${config.linea}2`}
+                  icon="fas fa-check monitoreo-icon-good"
+                  range="Activo"
+                />
+                <SensorCard
+                  name={`Sensor ${config.planta}-${config.linea}3`}
+                  icon="fas fa-exclamation-triangle monitoreo-icon-bad"
+                  range="Fallando"
+                  alert={true}
+                />
+                <SensorCard
+                  name={`Sensor ${config.planta}-${config.linea}4`}
+                  icon="fas fa-sync-alt monitoreo-icon-warning"
+                  range="Calibrando"
+                />
+              </div>
+            </div>
+          </div>
+          <div className="monitoreo-panels-container">
+            <div className="monitoreo-panel">
+              <div className="monitoreo-section-title">
+                <i className="fas fa-thermometer-half"></i>
+                Sensores Ambientales de Camara N2
+              </div>
+              <div className="monitoreo-sensor-grid">
+                <SensorCard
+                  name="Temperatura"
+                  value={metrics.temperaturaMedia}
+                  range={`Rango: ${config.temperatura}`}
+                />
+                <SensorCard name="Humedad" value="68%" range="Rango: 65-75%" />
+                <SensorCard
+                  name="Capacidad"
+                  value="500 palent" // Texto exacto de la imagen
+                  range="Límite: 600 unidades"
+                  alert={true} // Esto activa el fondo rojo
+                  icon="" // Sin icono específico, solo valor grande
+                />
+                <SensorCard name="Presión" value="101.3 kPa" range="Normal" />
+              </div>
+            </div>
+
+            <div className="monitoreo-panel">
+              <div className="monitoreo-section-title">
+                <i className="fas fa-microchip"></i>
+                Sensores IoT - Estado Camara N2
               </div>
               <div className="monitoreo-sensor-grid">
                 <SensorCard
