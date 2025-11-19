@@ -179,11 +179,6 @@ body {
     gap: 10px;
 }
 
-/* Formularios de Configuración */
-.form-configuracion {
-    max-width: 800px;
-}
-
 .form-section {
     margin-bottom: 30px;
     padding-bottom: 20px;
@@ -318,10 +313,6 @@ body {
 
 .usuarios-list {
     margin-top: 20px;
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-    gap: 20px;
-    width: 100%;
 }
 
 .usuario-card {
@@ -522,6 +513,11 @@ input:checked + .toggle-slider:before {
 
 .btn-danger:hover {
     background-color: #d32f2f;
+}
+
+.btn-warning {
+    background-color: #f8c42a;
+    color: white;
 }
 
 .btn-sm {

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import "../../style/configuracion.css";
-import { getAllUsers } from "./services/settingsServices";
+import { deleteUserById, getAllUsers } from "./services/settingsServices";
 
 const Ajustes = () => {
   const t = {
@@ -122,7 +122,20 @@ const Ajustes = () => {
     traerUsuarios();
   }, []);
 
-  // Estados para configuraciones - Limpieza de idioma, color y zona horaria
+  const handleAgregarUsuario = () =>{
+    console.log("agregar")
+  }
+
+  const handleEliminarUsuario = (idUser) => {
+    console.log("eliminar", idUser)
+    confirm("¿Estás seguro de que deseas eliminar este usuario?")
+    if(confirm){
+      deleteUserById(idUser)
+    }
+    else{
+      console.log("cancelado")
+    }
+  }
   const [config, setConfig] = useState({
     nombreSistema: "CitrusTrack",
     version: "v2.1.0",
@@ -152,13 +165,6 @@ const Ajustes = () => {
     setConfig((prev) => ({ ...prev, [key]: value }));
   };
 
-  const guardarConfiguracion = () => {
-    // Guardar en localStorage
-    Object.keys(config).forEach((key) => {
-      localStorage.setItem(key, config[key]);
-    });
-    alert(t.configSaved);
-  };
 
   const renderPanelContent = () => {
     switch (activePanel) {
@@ -490,13 +496,26 @@ const Ajustes = () => {
         return (
           <div className="form-configuracion">
             <div className="form-section">
-              <h4>
-                <i className="fas fa-users"></i> {t.userManagement}
-              </h4>
-
+                <div
+                  style={{
+                    marginTop: "20px",
+                    display: "flex",
+                    justifyContent: "flex-end",
+                  }}
+                >
+                  <button className="btn btn-primary" onClick={handleAgregarUsuario()}>
+                    <i className="fas fa-user-plus"></i> {t.addUser}
+                  </button>
+                  <button
+                    className="btn btn-secondary"
+                    style={{ marginLeft: "10px" }}
+                  >
+                    <i className="fas fa-file-export"></i> {t.exportList}
+                  </button>
+                </div>
               <div className="usuarios-list">
                 {usuarios.map((user) => (
-                  <div key={user.id} className="usuario-card">
+                  <div key={user.user_id} className="usuario-card">
                     <div className="usuario-avatar">
                       {user.nombre?.charAt(0)}
                       {user.apellido?.charAt(0)}
@@ -511,20 +530,20 @@ const Ajustes = () => {
                       <div className="usuario-email" title={user.email}>
                         {user.email}
                       </div>
-                      <div className="usuario-rol">{user.rol}</div>
                     </div>
                     <div className="usuario-acciones">
                       <button
-                        className="btn btn-primary btn-sm"
+                        className="btn btn-warning btn-sm"
                         title="Editar usuario"
                       >
-                        <i className="fas fa-edit"></i>
+                        <i className="fas fa-edit"></i>Editar
                       </button>
                       <button
-                        className="btn btn-secondary btn-sm"
-                        title="Cambiar contraseña"
+                        className="btn btn-danger btn-sm"
+                        title="Eliminar usuario"
+                        onClick={()=>handleEliminarUsuario(user.user_id)}
                       >
-                        <i className="fas fa-key"></i>
+                        <i class="fa-solid fa-trash"></i>Eliminar
                       </button>
                     </div>
                   </div>
@@ -784,17 +803,6 @@ const Ajustes = () => {
         <div className="panel-configuracion">
           <div className="panel-header">
             <h3 dangerouslySetInnerHTML={{ __html: getPanelTitle() }}></h3>
-                          <div style={{ marginTop: "20px" }}>
-                <button className="btn btn-primary">
-                  <i className="fas fa-user-plus"></i> {t.addUser}
-                </button>
-                <button
-                  className="btn btn-secondary"
-                  style={{ marginLeft: "10px" }}
-                >
-                  <i className="fas fa-file-export"></i> {t.exportList}
-                </button>
-              </div>
           </div>
 
           <div id="panel-contenido">{renderPanelContent()}</div>
