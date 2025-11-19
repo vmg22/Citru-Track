@@ -8,7 +8,7 @@ const palletsRoutes = require('./routes/pallets.routes');
 const transporteRoutes = require('./routes/transporte.routes');
 const mailRoutes = require('./routes/mail.routes');
 const kpiRoutes = require('./routes/kpi.routes');
-
+const binloteRoutes = require('./routes/binlote.routes');
 const app = express();
 app.use(cors());
 app.use(express.json());
@@ -22,6 +22,8 @@ app.use('/api/pallets', palletsRoutes);
 app.use('/api/transporte', transporteRoutes);
 app.use('/api/mail', mailRoutes);
 app.use("/api/kpi", kpiRoutes);
+app.use("/api/binlote", binloteRoutes);
+
 // health
 app.get('/health', (req, res) => res.json({ ok: true, env: process.env.NODE_ENV || 'dev' }));
 
