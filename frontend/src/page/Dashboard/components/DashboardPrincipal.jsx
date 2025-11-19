@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import MapaLogistica from "./MapaLogistica";
 import "../../../style/DashboardPrincipal.css";
+import { Link } from "react-router-dom";
 
 // Componente Button Reutilizable
 const Button = ({ children, onClick, className = "", icon }) => {
@@ -273,6 +274,7 @@ const DashboardPrincipal = () => {
         </div>
 
         <div className="dashboard-cards-container">
+          <Link to="/monitoreo" className="dashboard-card-link" style={{textDecoration:"none"}}>
           <Card
             title="Monitoreo en Tiempo Real"
             icon="fas fa-eye"
@@ -284,6 +286,8 @@ const DashboardPrincipal = () => {
             </p>
             <Conveyor />
           </Card>
+          </Link>
+          
 
           <Card
             title="Gestión de Lotes"
@@ -399,18 +403,6 @@ const DashboardPrincipal = () => {
                   status="good"
                 />
                 <KPIItem value="12" label="Alertas Críticas" status="bad" />
-              </div>
-            </div>
-
-            <div className="dashboard-info-card">
-              <h3>Escaneo QR</h3>
-              <div className="dashboard-qr-section">
-                <i className="fas fa-qrcode dashboard-qr-icon"></i>
-                <p>
-                  Escanea el código QR de una caja para ver su trazabilidad
-                  completa
-                </p>
-                <Button icon="fas fa-camera">Escanear QR</Button>
               </div>
             </div>
           </div>
