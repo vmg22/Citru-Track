@@ -87,7 +87,7 @@ const AppContent = () => {
     <Layout activeItem={activeItem} onItemClick={handleNavigation}>
       <Routes>
         {/* Ruta principal que redirige al dashboard */}
-        <Route path="/" element={<Navigate to="/dashboard" replace />} />
+        <Route path="/" element={<Navigate to="/login" replace />} />
         
         <Route path="/dashboard" element={<DashboardPrincipal />} />
         <Route path="/bins" element={<BinsPage />} />
