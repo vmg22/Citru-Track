@@ -7,6 +7,8 @@ const lotesRoutes = require('./routes/lotes.routes');
 const palletsRoutes = require('./routes/pallets.routes');
 const transporteRoutes = require('./routes/transporte.routes');
 const mailRoutes = require('./routes/mail.routes');
+const choferRoutes = require('./routes/chofer.routes');
+const productorRoutes = require('./routes/productores.routes');
 
 
 const app = express();
@@ -19,7 +21,9 @@ app.use('/api/usuarios', usuariosRoutes);
 app.use('/api/productos', productosRoutes);
 app.use('/api/lotes', lotesRoutes);
 app.use('/api/pallets', palletsRoutes);
+app.use('/api/choferes', choferRoutes);
 app.use('/api/transporte', transporteRoutes);
+app.use('/api/productores', productorRoutes);
 app.use('/api/mail', mailRoutes);
 
 // health
