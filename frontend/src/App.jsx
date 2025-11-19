@@ -23,6 +23,7 @@ import CamaraFrio from "./page/CamaraFrio/CamaraFrio";
 import MonitoringsPage from "./page/Monitoring/MonitoringsPage";
 // Importamos la página de Gestión de Pedidos
 import GestionPedidos from "./page/pedidos/GestionPedidos"; 
+import KPIsPage from "./page/KPIs/KPIsPage";
 import Ajustes from "./page/Settings/Ajustes";
 import Kpi from "./page/KPIs/KPIsPage"; 
 // ---------------------------------------------------
@@ -50,7 +51,7 @@ const itemToPathMap = {
   ajustes:"/ajustes",
   kpis: "/kpis",
   "gestion-pedidos": "/gestion-pedidos",
-  
+    
 };
 
 // ---------------------------------------------------
@@ -102,6 +103,7 @@ const AppContent = () => {
         {/* --- RUTAS FALTANTES AÑADIDAS --- */}
         <Route path="/monitoreo" element={<MonitoringsPage />} />
         <Route path="/gestion-pedidos" element={<GestionPedidos />} />
+        <Route path="/kpis" element={<KPIsPage />} />
         <Route path="/ajustes" element={<Ajustes />} />
         <Route path="/kpis" element={<Kpi />} />
       </Routes>

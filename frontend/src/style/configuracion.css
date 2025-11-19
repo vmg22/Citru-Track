@@ -179,11 +179,6 @@ body {
     gap: 10px;
 }
 
-/* Formularios de Configuración */
-.form-configuracion {
-    max-width: 800px;
-}
-
 .form-section {
     margin-bottom: 30px;
     padding-bottom: 20px;
@@ -316,7 +311,6 @@ body {
     margin-bottom: 15px;
 }
 
-/* Configuración de Usuarios */
 .usuarios-list {
     margin-top: 20px;
 }
@@ -324,49 +318,92 @@ body {
 .usuario-card {
     display: flex;
     align-items: center;
-    padding: 15px;
+    padding: 20px;
     border: 1px solid #e0e0e0;
     border-radius: var(--border-radius);
-    margin-bottom: 10px;
-    transition: background-color 0.3s;
+    background: white;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    height: fit-content;
 }
 
 .usuario-card:hover {
     background-color: var(--light-color);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+    transform: translateY(-2px);
 }
 
 .usuario-avatar {
     width: 50px;
     height: 50px;
     border-radius: 50%;
-    background-color: var(--secondary-color);
+    background: linear-gradient(135deg, var(--secondary-color), var(--primary-color));
     display: flex;
     align-items: center;
     justify-content: center;
     color: white;
     font-weight: 600;
     margin-right: 15px;
+    flex-shrink: 0;
 }
 
 .usuario-info {
     flex: 1;
+    min-width: 0; /* Permite que el texto se trunque correctamente */
 }
 
 .usuario-nombre {
     font-weight: 600;
     color: var(--dark-color);
+    font-size: 16px;
+    margin-bottom: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.usuario-email {
+    font-size: 14px;
+    color: #666;
+    margin-bottom: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .usuario-rol {
-    font-size: 14px;
+    font-size: 12px;
     color: var(--text-color);
+    background: #f8f9fa;
+    padding: 4px 8px;
+    border-radius: 12px;
+    display: inline-block;
 }
 
 .usuario-acciones {
     display: flex;
-    gap: 10px;
+    gap: 8px;
+    flex-shrink: 0;
 }
 
+/* Versión alternativa para pantallas más pequeñas */
+@media (max-width: 768px) {
+    .usuarios-list {
+        grid-template-columns: 1fr;
+        gap: 15px;
+    }
+    
+    .usuario-card {
+        padding: 15px;
+    }
+}
+
+/* Versión para pantallas muy grandes */
+@media (min-width: 1200px) {
+    .usuarios-list {
+        grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+    }
+}
 /* Configuración de Alertas */
 .alertas-config {
     margin-top: 20px;
@@ -476,6 +513,11 @@ input:checked + .toggle-slider:before {
 
 .btn-danger:hover {
     background-color: #d32f2f;
+}
+
+.btn-warning {
+    background-color: #f8c42a;
+    color: white;
 }
 
 .btn-sm {

@@ -369,7 +369,7 @@ exports.actualizarUltimoLogin = async (req, res) => {
   }
 };
 
-
+ 
 // Elimina (desactiva) un usuario cambiando su estado a inactivo
 exports.eliminarUsuario = async (req, res) => {
   try {
