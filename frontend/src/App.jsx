@@ -24,6 +24,7 @@ import MonitoringsPage from "./page/Monitoring/MonitoringsPage";
 // Importamos la página de Gestión de Pedidos
 import GestionPedidos from "./page/pedidos/GestionPedidos"; 
 import Ajustes from "./page/Settings/Ajustes";
+import Kpi from "./page/KPIs/KPIsPage"; 
 // ---------------------------------------------------
 
 const routeToItemMap = {
@@ -35,6 +36,8 @@ const routeToItemMap = {
   "/camara": "camara",
   "/gestion-pedidos": "gestion-pedidos",
   "/ajustes": "ajustes",
+  "/kpis": "kpis",
+  
 };
 
 const itemToPathMap = {
@@ -45,6 +48,7 @@ const itemToPathMap = {
   pallet: "/armado-pallet",
   camara: "/camara",
   ajustes:"/ajustes",
+  kpis: "/kpis",
   "gestion-pedidos": "/gestion-pedidos",
   
 };
@@ -99,6 +103,7 @@ const AppContent = () => {
         <Route path="/monitoreo" element={<MonitoringsPage />} />
         <Route path="/gestion-pedidos" element={<GestionPedidos />} />
         <Route path="/ajustes" element={<Ajustes />} />
+        <Route path="/kpis" element={<Kpi />} />
       </Routes>
     </Layout>
   );
