@@ -9,6 +9,7 @@ const transporteRoutes = require('./routes/transporte.routes');
 const mailRoutes = require('./routes/mail.routes');
 const choferRoutes = require('./routes/chofer.routes');
 const productorRoutes = require('./routes/productores.routes');
+const camaraRoutes = require('./routes/camara.routes');
 
 
 const app = express();
@@ -25,6 +26,7 @@ app.use('/api/choferes', choferRoutes);
 app.use('/api/transporte', transporteRoutes);
 app.use('/api/productores', productorRoutes);
 app.use('/api/mail', mailRoutes);
+app.use('/api/camaras', camaraRoutes);
 
 // health
 app.get('/health', (req, res) => res.json({ ok: true, env: process.env.NODE_ENV || 'dev' }));

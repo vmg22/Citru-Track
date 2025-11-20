@@ -1,5 +1,5 @@
 /* Estilos específicos para Productores */
-.table-header-section h2 {
+.productor-table-header h2 {
     color: #2c3e50;
     font-size: 24px;
     font-weight: 600;
@@ -9,7 +9,7 @@
     gap: 12px;
 }
 
-.cuit-badge {
+.productor-cuit-badge {
     background: linear-gradient(135deg, #3498db, #2980b9);
     color: white;
     padding: 4px 8px;
@@ -19,7 +19,7 @@
     font-family: 'Courier New', monospace;
 }
 
-.address-text {
+.productor-address-text {
     background: #f8f9fa;
     padding: 4px 8px;
     border-radius: 4px;
@@ -29,7 +29,7 @@
     max-width: 200px;
 }
 
-.contacts-text {
+.productor-contacts-text {
     background: #fff3cd;
     padding: 4px 8px;
     border-radius: 4px;
@@ -40,7 +40,7 @@
 }
 
 /* Estados específicos para productores */
-.productores-table-container .empty-state {
+.productor-table-wrapper .productor-empty-state {
     padding: 40px 20px;
     text-align: center;
     color: #6c757d;
@@ -51,36 +51,36 @@
 }
 
 /* Iconos específicos */
-.table-header-section h2 i {
+.productor-table-header h2 i {
     font-size: 20px;
     color: #27ae60;
 }
 
 /* Responsive para productores */
 @media (max-width: 768px) {
-    .table-header-section {
+    .productor-table-header {
         flex-direction: column;
         gap: 15px;
         align-items: flex-start;
     }
     
-    .table-header-section h2 {
+    .productor-table-header h2 {
         font-size: 20px;
     }
     
-    .address-text,
-    .contacts-text {
+    .productor-address-text,
+    .productor-contacts-text {
         max-width: 120px;
         font-size: 11px;
     }
     
-    .cuit-badge {
+    .productor-cuit-badge {
         font-size: 10px;
         padding: 3px 6px;
     }
 }
 
 /* Asegurar consistencia con las otras tablas */
-.productores-table-container .usuarios-table-container {
+.productor-table-wrapper .productor-table-wrapper {
     margin: 0;
 }

@@ -3,9 +3,11 @@ import ConfigNavbar from "./components/ConfigNavbar";
 import UsuariosTable from "./components/UsuariosTable";
 import ChoferTransporte from "./components/ChoferTransporte";
 import Productores from "./components/Productores";
+import Camara from "./components/Camara";
+import ProductoVariedades from "./components/ProductoVariedades";
 
 const Ajustes = () => {
-  const [activePanel, setActivePanel] = useState("sensores");
+  const [activePanel, setActivePanel] = useState("camaras");
 
   //  manejar el cambio de panel
   const handlePanelChange = (panelId) => {
@@ -16,16 +18,16 @@ const Ajustes = () => {
   // renderizar el panel activo
   const renderPanelContent = () => {
     switch (activePanel) {
-      case "sensores":
-        return <h2>Gestión de Sensores (Panel Activo)</h2>;
-      case "umbrales":
-        return <h2>Umbrales y Alertas (Panel Activo)</h2>;
       case "usuarios":
         return <UsuariosTable />;
       case "transporte":
         return <ChoferTransporte />;
-case "productores":
+      case "productores":
         return <Productores />;
+      case "camaras":
+        return <Camara />;
+      case "productos":
+        return <ProductoVariedades />;
       default:
         return <h2>Configuración para el panel: {activePanel}</h2>;
     }
