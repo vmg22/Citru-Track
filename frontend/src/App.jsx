@@ -26,6 +26,7 @@ import GestionPedidos from "./page/pedidos/GestionPedidos";
 import KPIsPage from "./page/KPIs/KPIsPage";
 import Ajustes from "./page/Settings/Ajustes";
 import Kpi from "./page/KPIs/KPIsPage"; 
+import Logistica from "./page/Logitics/LogisticsPage";
 // ---------------------------------------------------
 
 const routeToItemMap = {
@@ -38,6 +39,7 @@ const routeToItemMap = {
   "/gestion-pedidos": "gestion-pedidos",
   "/ajustes": "ajustes",
   "/kpis": "kpis",
+  "/logistica": "logistica",
   
 };
 
@@ -50,6 +52,7 @@ const itemToPathMap = {
   camara: "/camara",
   ajustes:"/ajustes",
   kpis: "/kpis",
+  logistica: "/logistica",
   "gestion-pedidos": "/gestion-pedidos",
     
 };
@@ -106,6 +109,7 @@ const AppContent = () => {
         <Route path="/kpis" element={<KPIsPage />} />
         <Route path="/ajustes" element={<Ajustes />} />
         <Route path="/kpis" element={<Kpi />} />
+        <Route path="/logistica" element={<Logistica />} />
       </Routes>
     </Layout>
   );

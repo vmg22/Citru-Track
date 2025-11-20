@@ -8,6 +8,10 @@ const palletsRoutes = require('./routes/pallets.routes');
 const transporteRoutes = require('./routes/transporte.routes');
 const mailRoutes = require('./routes/mail.routes');
 const kpiRoutes = require('./routes/kpi.routes');
+const camionesRoutes = require("./routes/camiones.routes");
+const transportistasRoutes = require("./routes/transportistas.routes");
+const choferesRoutes = require("./routes/choferes.routes");
+const ordenesRoutes = require("./routes/ordenes.routes");
 
 const app = express();
 app.use(cors());
@@ -22,6 +26,10 @@ app.use('/api/pallets', palletsRoutes);
 app.use('/api/transporte', transporteRoutes);
 app.use('/api/mail', mailRoutes);
 app.use("/api/kpi", kpiRoutes);
+app.use("/api/camiones", camionesRoutes);
+app.use("/api/transportistas", transportistasRoutes);
+app.use("/api/choferes", choferesRoutes);
+app.use("/api/ordenes-despacho", ordenesRoutes);
 // health
 app.get('/health', (req, res) => res.json({ ok: true, env: process.env.NODE_ENV || 'dev' }));
 
