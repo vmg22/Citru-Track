@@ -9,66 +9,72 @@
 
 /* Tarjeta principal */
 .camara-card {
-    background-color: #ffffff; /* bg-white */
-    padding: 1.5rem; /* p-4 (agrandado) */
-    border-radius: 0.25rem; /* rounded */
-    box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1); /* shadow */
-    margin-bottom: 1rem; /* mb-4 */
+    background-color: #ffffff;
+    padding: 2rem; /* Más padding */
+    border-radius: 0.5rem; /* Bordes más redondeados */
+    box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1); /* Sombra más pronunciada */
+    margin-bottom: 1rem;
     width: 100%;
     box-sizing: border-box;
 }
 
 /* Título principal */
 .camara-title {
-    font-weight: 600; /* font-semibold */
-    font-size: 1.125rem; /* 18px (de bins.css) */
+    font-weight: 600;
+    font-size: 1.5rem; /* Título más grande */
     color: var(--primary-color, #2e7d32);
-    margin-bottom: 1rem; /* mt-3 (agrandado) */
+    margin-bottom: 1.5rem;
 }
 
-/* Grid de las cámaras */
+/* Grid de las cámaras - 3 columnas fijas */
 .camara-grid {
     display: grid;
-    /* 3 columnas en desktop, 1 en móvil */
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 1rem; /* gap-4 */
-    margin-top: 0.75rem; /* mt-3 */
+    grid-template-columns: repeat(3, 1fr); /* 3 columnas fijas */
+    gap: 1.5rem; /* Espacio más grande entre cards */
+    margin-top: 1rem;
 }
 
-/* Caja individual de cada cámara */
+/* Caja individual de cada cámara - MÁS GRANDE */
 .camara-box {
-    padding: 1.25rem; /* p-3 (agrandado) */
-    border: 1px solid #e5e7eb; /* border */
-    border-radius: 0.25rem; /* rounded */
-    background-color: #f9fafb; /* bg-gray-50 */
-    transition: box-shadow 0.2s, border-color 0.2s;
+    padding: 1.5rem; /* Más padding */
+    border: 1px solid #e5e7eb;
+    border-radius: 0.5rem; /* Bordes más redondeados */
+    background-color: #f9fafb;
+    transition: all 0.3s ease;
+    min-height: 200px; /* Altura mínima */
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
 }
 .camara-box:hover {
-    box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+    box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+    transform: translateY(-2px); /* Efecto de elevación */
 }
 
-/* Título de la cámara (Cámara 1) */
+/* Título de la cámara - MÁS GRANDE */
 .camara-box-title {
-    font-weight: 600; /* font-medium (un poco más grueso) */
-    font-size: 1.1rem; /* (de linea-proceso.css) */
+    font-weight: 600;
+    font-size: 1.25rem; /* Texto más grande */
     color: var(--primary-color, #2e7d32);
-    margin-bottom: 0.75rem;
+    margin-bottom: 1rem;
 }
 
-/* Info (Temp, Pallets) */
+/* Info (Temp, Pallets) - MÁS GRANDE */
 .camara-box-info {
-    font-size: 0.9rem; /* text-sm (de bins.css) */
-    color: #4b5563; /* text-gray-600 */
-    margin-bottom: 0.5rem; /* Espaciado */
+    font-size: 1rem; /* Texto más grande */
+    color: #4b5563;
+    margin-bottom: 0.75rem; /* Más espacio */
     display: flex;
     align-items: center;
+    padding: 0.25rem 0;
 }
 
 .camara-box-info i {
-    margin-right: 8px;
-    color: #6b7280; /* text-gray-500 */
-    width: 20px; /* Para alinear */
+    margin-right: 10px; /* Más espacio para iconos */
+    color: #6b7280;
+    width: 24px; /* Iconos más grandes */
     text-align: center;
+    font-size: 1.1rem;
 }
 
 .camara-box-info:last-child {
@@ -77,15 +83,45 @@
 
 /* Estilo de alerta para temperatura alta */
 .camara-box.status-alerta {
-    background-color: #fffbeb; /* Amarillo muy claro */
-    border-color: #f6e05e; /* Amarillo */
+    background-color: #fef2f2; /* Rojo muy claro */
+    border-color: #fecaca; /* Rojo claro */
+    border-left: 4px solid #ef4444; /* Borde izquierdo rojo */
 }
 .camara-box.status-alerta .camara-box-title {
-    color: #d97706; /* Naranja/Amarillo oscuro */
+    color: #dc2626; /* Rojo */
 }
 .camara-box.status-alerta .camara-box-info {
-    color: #b45309;
+    color: #991b1b;
 }
 .camara-box.status-alerta .camara-box-info i {
-    color: #d97706;
+    color: #dc2626;
+}
+
+/* Loading */
+.loading {
+    text-align: center;
+    padding: 3rem;
+    font-size: 1.2rem;
+    color: #6b7280;
+}
+
+/* Responsive */
+@media (max-width: 1200px) {
+    .camara-grid {
+        grid-template-columns: repeat(2, 1fr); /* 2 columnas en tablets grandes */
+    }
+}
+
+@media (max-width: 768px) {
+    .camara-grid {
+        grid-template-columns: 1fr; /* 1 columna en móviles */
+    }
+    
+    .camara-container {
+        padding: 1rem;
+    }
+    
+    .camara-card {
+        padding: 1.5rem;
+    }
 }

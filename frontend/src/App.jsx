@@ -23,9 +23,12 @@ import CamaraFrio from "./page/CamaraFrio/CamaraFrio";
 import MonitoringsPage from "./page/Monitoring/MonitoringsPage";
 // Importamos la página de Gestión de Pedidos
 import GestionPedidos from "./page/pedidos/GestionPedidos"; 
+import KPIsPage from "./page/KPIs/KPIsPage";
 import Ajustes from "./page/Settings/Ajustes";
 import Kpi from "./page/KPIs/KPIsPage"; 
 import Logistica from "./page/Logitics/LogisticsPage";
+import Camara from "./page/Settings/components/Camara";
+import ProductoVariedades from "./page/Settings/components/ProductoVariedades";
 // ---------------------------------------------------
 
 const routeToItemMap = {
@@ -39,6 +42,8 @@ const routeToItemMap = {
   "/ajustes": "ajustes",
   "/kpis": "kpis",
   "/logistica": "logistica",
+  
+  "/productos": "productos",
 };
 
 const itemToPathMap = {
@@ -52,7 +57,7 @@ const itemToPathMap = {
   kpis: "/kpis",
   logistica: "/logistica",
   "gestion-pedidos": "/gestion-pedidos",
-  
+  productos:"/productos",  
 };
 
 // ---------------------------------------------------
@@ -100,13 +105,16 @@ const AppContent = () => {
         <Route path="/linea-de-proceso" element={<LineaDeProceso />} />
         <Route path="/armado-pallet" element={<Pallet />} />
         <Route path="/camara" element={<CamaraFrio />} />
+        <Route path="/camara-config" element={<Camara />} />
 
         {/* --- RUTAS FALTANTES AÑADIDAS --- */}
         <Route path="/monitoreo" element={<MonitoringsPage />} />
         <Route path="/gestion-pedidos" element={<GestionPedidos />} />
+        <Route path="/kpis" element={<KPIsPage />} />
         <Route path="/ajustes" element={<Ajustes />} />
         <Route path="/kpis" element={<Kpi />} />
         <Route path="/logistica" element={<Logistica />} />
+        <Route path="/productos" element={<ProductoVariedades />} />
       </Routes>
     </Layout>
   );
