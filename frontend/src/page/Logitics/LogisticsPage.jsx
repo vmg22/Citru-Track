@@ -262,7 +262,7 @@ const Logistica = () => {
         {/* CONTROL */}
         {tab === "control" && (
           <div className="logi-control">
-            <h4>Control de Carga</h4>
+            <h4>Control de Ordenes</h4>
             <p>Total órdenes: {safeArray(ordenes).length}</p>
             <div className="logi-table-container">
               <table className="logi-table">
