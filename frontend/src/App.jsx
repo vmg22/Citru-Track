@@ -25,6 +25,7 @@ import MonitoringsPage from "./page/Monitoring/MonitoringsPage";
 import GestionPedidos from "./page/pedidos/GestionPedidos"; 
 import KPIsPage from "./page/KPIs/KPIsPage";
 import Ajustes from "./page/Settings/Ajustes";
+import Kpi from "./page/KPIs/KPIsPage"; 
 import Camara from "./page/Settings/components/Camara";
 import ProductoVariedades from "./page/Settings/components/ProductoVariedades";
 // ---------------------------------------------------
@@ -37,8 +38,9 @@ const routeToItemMap = {
   "/armado-pallet": "pallet",
   "/camara": "camara",
   "/gestion-pedidos": "gestion-pedidos",
-  "/kpis": "kpis",
   "/ajustes": "ajustes",
+  "/kpis": "kpis",
+  
   "/productos": "productos",
 };
 
@@ -49,6 +51,7 @@ const itemToPathMap = {
   bins: "/bins",
   pallet: "/armado-pallet",
   camara: "/camara",
+  ajustes:"/ajustes",
   kpis: "/kpis",
   "gestion-pedidos": "/gestion-pedidos",
   ajustes:"/ajustes",  
@@ -93,7 +96,7 @@ const AppContent = () => {
     <Layout activeItem={activeItem} onItemClick={handleNavigation}>
       <Routes>
         {/* Ruta principal que redirige al dashboard */}
-        <Route path="/" element={<Navigate to="/dashboard" replace />} />
+        <Route path="/" element={<Navigate to="/login" replace />} />
         
         <Route path="/dashboard" element={<DashboardPrincipal />} />
         <Route path="/bins" element={<BinsPage />} />
@@ -107,6 +110,7 @@ const AppContent = () => {
         <Route path="/gestion-pedidos" element={<GestionPedidos />} />
         <Route path="/kpis" element={<KPIsPage />} />
         <Route path="/ajustes" element={<Ajustes />} />
+        <Route path="/kpis" element={<Kpi />} />
         <Route path="/productos" element={<ProductoVariedades />} />
       </Routes>
     </Layout>
