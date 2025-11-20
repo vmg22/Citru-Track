@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import MapaLogistica from "./MapaLogistica";
 import "../../../style/DashboardPrincipal.css";
+import { Link } from "react-router-dom";
 
 // Componente Button Reutilizable
 const Button = ({ children, onClick, className = "", icon }) => {
@@ -231,10 +232,7 @@ const DashboardPrincipal = () => {
 
   return (
     <>
-      {/* Estos links es mejor moverlos al index.html 
-        o cargarlos en App.js para que no se recarguen
-        en cada cambio de página.
-      */}
+
       <link
         rel="stylesheet"
         href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
@@ -244,35 +242,21 @@ const DashboardPrincipal = () => {
         href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
       />
 
-      {/* Este div "dashboard-container" es el del Layout, 
-        y "dashboard-main-content" también.
-        Tu componente de página no debería re-declararlos.
-        
-        El Layout ya provee:
-        <div className="dashboard-container">
-          <Sidebar />
-          <div className="dashboard-main-content">
-             ... (Aquí se renderiza DashboardPrincipal) ...
-          </div>
-        </div>
+ <div className="monitoreo-container">
+        <div className="monitoreo-main-content">
 
-        Por lo tanto, DashboardPrincipal SÓLO debe renderizar 
-        el contenido de la página.
-      */}
-      
-      {/* Quitamos <div className="dashboard-container">
-        Quitamos <div className="dashboard-main-content">
-      */}
-      
-        <div className="dashboard-header">
-          <h2>Dashboard Principal</h2>
-          <div className="dashboard-user-info">
-            <i className="fas fa-user-circle"></i>
-            <span>Administrador</span>
+<div className="monitoreo-header">
+            <h2>
+              <i className="fas fa-tachometer-alt"></i> Dashboard Principal
+            </h2>
+            <div className="monitoreo-user-info">
+              <i className="fas fa-user-circle"></i>
+              <span>Supervisor de Planta</span>
+            </div>
           </div>
-        </div>
 
         <div className="dashboard-cards-container">
+          <Link to="/monitoreo" className="dashboard-card-link" style={{textDecoration:"none"}}>
           <Card
             title="Monitoreo en Tiempo Real"
             icon="fas fa-eye"
@@ -284,6 +268,8 @@ const DashboardPrincipal = () => {
             </p>
             <Conveyor />
           </Card>
+          </Link>
+          
 
           <Card
             title="Gestión de Lotes"
@@ -401,23 +387,12 @@ const DashboardPrincipal = () => {
                 <KPIItem value="12" label="Alertas Críticas" status="bad" />
               </div>
             </div>
-
-            <div className="dashboard-info-card">
-              <h3>Escaneo QR</h3>
-              <div className="dashboard-qr-section">
-                <i className="fas fa-qrcode dashboard-qr-icon"></i>
-                <p>
-                  Escanea el código QR de una caja para ver su trazabilidad
-                  completa
-                </p>
-                <Button icon="fas fa-camera">Escanear QR</Button>
-              </div>
-            </div>
           </div>
         </div>
-      {/* Se quitan los </div> de cierre de 
-        'dashboard-main-content' y 'dashboard-container'
-      */}
+        </div>
+        
+      </div>
+      
     </>
   );
 };
