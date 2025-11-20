@@ -3,10 +3,12 @@ const router = express.Router();
 const { 
   createTransportista, 
   createCamion, 
-  registrarTrackingEvento 
+  registrarTrackingEvento, 
+  getTransportistas
 } = require('../controllers/transporteController');
 
 // Rutas para transportistas
+router.get('/', getTransportistas);
 router.post('/transportistas', createTransportista);
 router.post('/camiones', createCamion);
 router.post('/tracking/evento', registrarTrackingEvento);

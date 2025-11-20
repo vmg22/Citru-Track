@@ -14,6 +14,18 @@ async function createTransportista(req, res) {
   }
 }
 
+async function getTransportistas(req, res) {
+  try {
+    const [r] = await db.query(
+      'select * from transportistas ORDER BY transportista_id DESC', 
+    );
+    res.json(r);
+  } catch (error) {
+    console.error('Error al traer transportistas:', error);
+    res.status(500).json({ error: 'Error interno del servidor' });
+  }
+}
+
 async function createCamion(req, res) {
   try {
     const { transportista_id, patente, patente_acoplado, tipo_camion, temp_min, temp_max } = req.body;
@@ -49,7 +61,8 @@ async function registrarTrackingEvento(req, res) {
 }
 
 module.exports = { 
-  createTransportista, 
+  createTransportista,
+  getTransportistas,
   createCamion, 
   registrarTrackingEvento 
 };
