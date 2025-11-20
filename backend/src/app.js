@@ -9,7 +9,7 @@ const transporteRoutes = require('./routes/transporte.routes');
 const mailRoutes = require('./routes/mail.routes');
 const choferRoutes = require('./routes/chofer.routes');
 const productorRoutes = require('./routes/productores.routes');
-
+const camaraRoutes = require('./routes/camara.routes');
 const kpiRoutes = require('./routes/kpi.routes');
 const binloteRoutes = require('./routes/binlote.routes');
 const camionesRoutes = require("./routes/camiones.routes");
@@ -33,6 +33,7 @@ app.use('/api/productores', productorRoutes);
 app.use('/api/mail', mailRoutes);
 app.use("/api/kpi", kpiRoutes);
 app.use("/api/binlote", binloteRoutes);
+app.use('/api/camaras', camaraRoutes);
 
 app.use("/api/camiones", camionesRoutes);
 app.use("/api/transportistas", transportistasRoutes);

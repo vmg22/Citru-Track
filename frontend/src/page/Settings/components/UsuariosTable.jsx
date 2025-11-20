@@ -69,26 +69,28 @@ const UsuariosTable = () => {
 
   if (loading) {
     return (
-      <div style={{ padding: "20px", textAlign: "center" }}>
-        Cargando usuarios...
+      <div className="camara-config-container">
+        <div className="camara-loading-state">
+          Cargando usuarios...
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="form-configuracion">
-      <div className="form-section">
-        <div className="table-header-section">
+    <div className="camara-config-container">
+      <div className="camara-config-section">
+        <div className="camara-table-header">
           <h2>
             <i className="fas fa-user-friends"></i>
             Gestión de Usuarios
           </h2>
-          <div className="table-actions">
-            <button className="btn btn-primary" onClick={openModal}>
+          <div className="camara-table-actions">
+            <button className="camara-btn camara-btn-primary" onClick={openModal}>
               <i className="fas fa-plus"></i> Agregar Usuario
             </button>
             <button
-              className="btn btn-secondary"
+              className="camara-btn camara-btn-secondary"
               style={{ marginLeft: "10px" }}
             >
               <i className="fas fa-file-export"></i> Exportar Lista
@@ -96,74 +98,71 @@ const UsuariosTable = () => {
           </div>
         </div>
 
-        {/* Tabla de Usuarios (código omitido por brevedad, el mismo que tenías) */}
-        <div className="usuarios-table-container">
-          <table>
+        {/* Tabla de Usuarios */}
+        <div className="camara-table-wrapper">
+          <table className="camara-table">
             <thead>
               <tr>
-                <th className="tableHeaderStyle">ID</th>
-                <th className="tableHeaderStyle">Nombre</th>
-                <th className="tableHeaderStyle">Usuario</th>
-                <th className="tableHeaderStyle">Email</th>
-                <th className="tableHeaderStyle">Teléfono</th>
-                <th className="tableHeaderStyle">Activo</th>
-                <th className="tableHeaderStyle">Creado</th>
-                <th className="tableHeaderStyle">Acciones</th>
+                <th className="camara-table-header-cell">ID</th>
+                <th className="camara-table-header-cell">Nombre</th>
+                <th className="camara-table-header-cell">Usuario</th>
+                <th className="camara-table-header-cell">Email</th>
+                <th className="camara-table-header-cell">Teléfono</th>
+                <th className="camara-table-header-cell">Activo</th>
+                <th className="camara-table-header-cell">Creado</th>
+                <th className="camara-table-header-cell">Acciones</th>
               </tr>
             </thead>
             <tbody>
               {usuarios.length === 0 ? (
                 <tr>
-                  <td
-                    colSpan="8"
-                    style={{
-                      padding: "20px",
-                      textAlign: "center",
-                      color: "#6c757d",
-                    }}
-                  >
+                  <td colSpan="8" className="camara-empty-state">
                     No se encontraron usuarios.
                   </td>
                 </tr>
               ) : (
                 usuarios.map((user) => (
                   <tr key={user.user_id}>
-                    <td className="tableCellStyle">{user.user_id}</td>
-                    <td className="tableCellStyle">{user.nombre}</td>
-                    <td className="tableCellStyle">{user.username}</td>
-                    <td className="tableCellStyle">{user.email}</td>
-                    <td className="tableCellStyle">{user.telefono || "N/A"}</td>
-                    <td className="tableCellStyle">
+                    <td className="camara-table-cell">{user.user_id}</td>
+                    <td className="camara-table-cell">{user.nombre}</td>
+                    <td className="camara-table-cell">{user.username}</td>
+                    <td className="camara-table-cell">{user.email}</td>
+                    <td className="camara-table-cell">
+                      {user.telefono ? (
+                        <span className="camara-temperature-badge camara-status-normal">
+                          <i className="fas fa-phone"></i>
+                          {user.telefono}
+                        </span>
+                      ) : (
+                        "N/A"
+                      )}
+                    </td>
+                    <td className="camara-table-cell">
                       <span
-                        className={
+                        className={`camara-status-badge ${
                           user.activo === 1
-                            ? "status-active"
-                            : "status-inactive"
-                        }
+                            ? "camara-status-normal"
+                            : "camara-status-alerta"
+                        }`}
                       >
-                        {user.activo === 1 ? "Sí" : "No"}
+                        {user.activo === 1 ? "Activo" : "Inactivo"}
                       </span>
                     </td>
-                    <td className="tableCellStyle">
+                    <td className="camara-table-cell">
                       {formatDate(user.created_at)}
                     </td>
-                    <td className="tableCellStyle">
+                    <td className="camara-table-cell">
                       <button
-                        className="btn-warning actionButtonStyle"
+                        className="camara-btn-warning camara-action-btn"
                         title="Editar"
-                        style={{ backgroundColor: "#ffc107", color: "black" }}
                         // onClick={() => handleEditar(user)}
                       >
                         <i className="fas fa-edit"></i>
                       </button>
                       <button
-                        className="btn-danger actionButtonStyle"
+                        className="camara-btn-danger camara-action-btn"
                         title="Eliminar"
-                        style={{
-                          backgroundColor: "#dc3545",
-                          color: "white",
-                          marginLeft: "5px",
-                        }}
+                        style={{ marginLeft: "5px" }}
                         onClick={() => handleEliminarUsuario(user.user_id)}
                       >
                         <i className="fa-solid fa-trash"></i>
@@ -176,7 +175,7 @@ const UsuariosTable = () => {
           </table>
         </div>
 
-        {/* 3. Renderizar el Modal */}
+        {/* Renderizar el Modal */}
         <AddUserModal
           isOpen={isModalOpen}
           onClose={closeModal}

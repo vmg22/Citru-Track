@@ -28,10 +28,10 @@
 }
 
 .modal-header {
-    background: linear-gradient(135deg, #2ecc71, #27ae60);
+    background-color: #d1fae5;
+    color: #065f46;
     padding: 24px 30px;
     border-radius: 12px 12px 0 0;
-    color: white;
     position: relative;
 }
 
@@ -179,8 +179,8 @@
 }
 
 .modal-btn-submit {
-    background: linear-gradient(135deg, #2ecc71, #27ae60);
-    color: white;
+    background-color: #d1fae5;
+    color: #065f46;
 }
 
 .modal-btn-submit:hover:not(:disabled) {
