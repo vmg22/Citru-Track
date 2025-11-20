@@ -6,8 +6,8 @@ import { Form, Button, Row, Col, Card, Alert } from 'react-bootstrap';
 // import { saveOrder } from '../../services/pedidosService'; 
 // import { fetchClientes } from '../../services/clientesService'; 
 import "../../style/gestionpedidos.css"
-
-const NuevoPedidoForm = ({ onOrderSaved, onCancel }) => {
+// onOrderSaved, onCancel
+const NuevoPedidoForm = () => {
     // --- Estado para el formulario ---
     const [formData, setFormData] = useState({
         clienteId: '',
@@ -228,7 +228,8 @@ const NuevoPedidoForm = ({ onOrderSaved, onCancel }) => {
                 </Form.Group>
 
                 <div className="d-flex justify-content-end">
-                    <Button variant="secondary" onClick={onCancel} className="me-2">
+                    {/* onClick={onCancel}  */}
+                    <Button variant="secondary"className="me-2">    
                         Cancelar
                     </Button>
                     <Button variant="success" type="submit" disabled={isLoading}>
