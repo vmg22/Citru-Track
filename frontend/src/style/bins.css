@@ -1,17 +1,19 @@
-/* RecepcionBin.css */
+/* bins.css - Estilos para la página de recepción de bins */
 
 .recepcion-bin-container {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 20px;
+  padding: 30px 40px;
   background-color: #f5f5f5;
+  min-height: 100vh;
+  margin-left: 0; /* Se ajusta automáticamente con el sidebar */
 }
 
 .recepcion-bin-container h2 {
-  color: #2d5016;
-  font-size: 28px;
+  color: #4a7c2f;
+  font-size: 26px;
   font-weight: 600;
   margin-bottom: 30px;
+  padding-bottom: 15px;
+  border-bottom: 2px solid #e5e7eb;
 }
 
 /* ============================================
@@ -25,6 +27,7 @@
   justify-content: space-between;
   align-items: center;
   font-weight: 500;
+  animation: fadeIn 0.3s ease-out;
 }
 
 .alert button {
@@ -34,6 +37,7 @@
   cursor: pointer;
   opacity: 0.7;
   transition: opacity 0.2s;
+  color: inherit;
 }
 
 .alert button:hover {
@@ -90,11 +94,13 @@
 .form-group label .error-text {
   color: #c33;
   font-size: 12px;
+  font-weight: 600;
 }
 
 .form-group label .success-text {
   color: #3a3;
   font-size: 12px;
+  font-weight: 600;
 }
 
 .form-group input,
@@ -193,13 +199,16 @@
   border-radius: 8px;
   border-left: 4px solid #4a7c2f;
   transition: all 0.2s;
+  animation: fadeIn 0.4s ease-out;
 }
 
 .bins-recientes li:hover {
   background-color: #f3f4f6;
   transform: translateX(5px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
 
+/* Header del bin (ID + Badge de lote) */
 .bin-header {
   display: flex;
   justify-content: space-between;
@@ -220,8 +229,10 @@
   border-radius: 12px;
   font-size: 12px;
   font-weight: 600;
+  display: inline-block;
 }
 
+/* Información del producto */
 .bin-info {
   color: #374151;
   font-size: 15px;
@@ -229,16 +240,18 @@
   font-weight: 500;
 }
 
+/* Detalles (remito y peso) */
 .bin-details {
   color: #6b7280;
   font-size: 14px;
-  margin-bottom: 6px;
+  margin-bottom: 8px;
 }
 
+/* Metadata (fecha de ingreso) */
 .bin-meta {
-  padding-top: 6px;
+  padding-top: 8px;
   border-top: 1px solid #e5e7eb;
-  margin-top: 6px;
+  margin-top: 8px;
 }
 
 .bin-meta small {
@@ -271,6 +284,16 @@
   .recepcion-bin-container h2 {
     font-size: 24px;
   }
+
+  .bin-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .lote-badge {
+    align-self: flex-start;
+  }
 }
 
 /* ============================================
@@ -287,12 +310,15 @@
   }
 }
 
-.alert {
-  animation: fadeIn 0.3s ease-out;
-}
-
-.bins-recientes li {
-  animation: fadeIn 0.4s ease-out;
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
 }
 
 /* ============================================
@@ -300,10 +326,12 @@
    ============================================ */
 .form-group input.error {
   border-color: #ef4444;
+  background-color: #fef2f2;
 }
 
 .form-group input.success {
   border-color: #10b981;
+  background-color: #f0fdf4;
 }
 
 /* Loading spinner para el botón */
@@ -323,4 +351,40 @@
   to {
     transform: rotate(360deg);
   }
+}
+
+/* ============================================
+   UTILIDADES
+   ============================================ */
+.text-center {
+  text-align: center;
+}
+
+.mt-20 {
+  margin-top: 20px;
+}
+
+.mb-20 {
+  margin-bottom: 20px;
+}
+
+/* ============================================
+   SCROLLBAR PERSONALIZADO (opcional)
+   ============================================ */
+.bins-recientes ul::-webkit-scrollbar {
+  width: 8px;
+}
+
+.bins-recientes ul::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 10px;
+}
+
+.bins-recientes ul::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 10px;
+}
+
+.bins-recientes ul::-webkit-scrollbar-thumb:hover {
+  background: #555;
 }
