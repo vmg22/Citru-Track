@@ -1,5 +1,5 @@
 import React from "react";
-import Logout from "../layout/logout"; // 👉 IMPORTANTE
+import Logout from "../layout/logout";
 import "../../style/sidebar.css";
 
 const NavItem = ({ icon, text, active, onClick }) => {
