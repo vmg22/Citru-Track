@@ -196,7 +196,7 @@ const createBinYLote = async (req, res) => {
     // Obtener userId del token JWT (si existe)
     const created_by = req.user ? req.user.user_id : null;
 
-    // 2. Insertar BIN
+    // 2. Insertar BIN (fecha_ingreso_deposito se registra automáticamente)
     await connection.query(`
       INSERT INTO bins (
         bin_id, 
