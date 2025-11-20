@@ -74,7 +74,7 @@ exports.getVolume = async (req, res) => {
 
     res.json({ perDay, byProductor, byFinca });
   } catch (err) {
-    console.error(err);
+    console.error("getVolume error:", err);
     res.status(500).json({ error: err.message });
   }
 };
@@ -156,7 +156,7 @@ exports.getRendimientoPorLote = async (req, res) => {
 
     res.json({ rows, byCalibre });
   } catch (err) {
-    console.error(err);
+    console.error("getRendimientoPorLote error:", err);
     res.status(500).json({ error: err.message });
   }
 };
@@ -245,11 +245,11 @@ exports.getEficienciaEmpaque = async (req, res) => {
     res.json({
       cajasPorOperario,
       palletsPorDia,
-      pesoPromedio: pesoPromedio[0].peso_promedio || 0,
+      pesoPromedio: pesoPromedio[0] ? pesoPromedio[0].peso_promedio || 0 : 0,
       tipoCaja,
     });
   } catch (err) {
-    console.error(err);
+    console.error("getEficienciaEmpaque error:", err);
     res.status(500).json({ error: err.message });
   }
 };
@@ -261,38 +261,56 @@ exports.getEficienciaEmpaque = async (req, res) => {
  * - pallets por estado
  */
 exports.getCamarasKPIs = async (req, res) => {
-  const {} = parseFilters(req);
+  parseFilters(req);
   try {
-    // tiempo promedio en cámara: need to find ingreso_camara and salida_camara per pallet
+
+    // --- 1) tiempo por pallet (evitar pallets NULL)
     const [times] = await pool.query(
-      `SELECT cm_ing.pallet_id,
-              TIMESTAMPDIFF(MINUTE, cm_ing.fecha_movimiento, cm_sal.fecha_movimiento) AS minutos_en_camara
-       FROM camaras_movimientos cm_ing
-       JOIN camaras_movimientos cm_sal ON cm_ing.pallet_id = cm_sal.pallet_id
-         AND cm_ing.tipo_movimiento = 'ingreso_camara'
-         AND cm_sal.tipo_movimiento = 'salida_camara'
-         AND cm_sal.fecha_movimiento > cm_ing.fecha_movimiento
-       GROUP BY cm_ing.pallet_id
-       HAVING minutos_en_camara IS NOT NULL`
+      `SELECT 
+           t.pallet_id,
+           TIMESTAMPDIFF(MINUTE, t.ingreso, t.salida) AS minutos_en_camara
+       FROM (
+           SELECT 
+               cm_ing.pallet_id,
+               cm_ing.fecha_movimiento AS ingreso,
+               (
+                   SELECT cm2.fecha_movimiento
+                   FROM camaras_movimientos cm2
+                   WHERE cm2.pallet_id = cm_ing.pallet_id
+                     AND cm2.tipo_movimiento = 'salida_camara'
+                     AND cm2.fecha_movimiento > cm_ing.fecha_movimiento
+                   ORDER BY cm2.fecha_movimiento ASC
+                   LIMIT 1
+               ) AS salida
+           FROM camaras_movimientos cm_ing
+           WHERE cm_ing.tipo_movimiento = 'ingreso_camara'
+             AND cm_ing.pallet_id IS NOT NULL
+       ) t
+       WHERE t.salida IS NOT NULL
+         AND t.pallet_id IS NOT NULL`
     );
 
-    // promedio minutos
     const promedioMinutos = times.length
       ? times.reduce((a, b) => a + (b.minutos_en_camara || 0), 0) / times.length
       : 0;
 
-    // ocupación por cámara (conteo pallets en estado 'en_camara' using pallets.ubicacion_camara)
+    // --- 2) ocupación (evitar pallets sin ubicación o estado NULL)
     const [ocupacion] = await pool.query(
-      `SELECT c.camara_id, c.nombre, c.capacidad_pallets, COUNT(p.pallet_id) AS pallets_en_camara
+      `SELECT c.camara_id, c.nombre, c.capacidad_pallets,
+              COUNT(p.pallet_id) AS pallets_en_camara
        FROM camaras c
-       LEFT JOIN pallets p ON p.ubicacion_camara = c.nombre AND p.estado = 'en_camara'
+       LEFT JOIN pallets p
+         ON p.ubicacion_camara = c.nombre
+        AND p.estado = 'en_camara'
+        AND p.pallet_id IS NOT NULL
        GROUP BY c.camara_id, c.nombre, c.capacidad_pallets`
     );
 
-    // pallets por estado
+    // --- 3) pallets por estado (evitar NULL)
     const [porEstado] = await pool.query(
       `SELECT estado, COUNT(*) AS cantidad
        FROM pallets
+       WHERE estado IS NOT NULL
        GROUP BY estado`
     );
 
@@ -302,7 +320,7 @@ exports.getCamarasKPIs = async (req, res) => {
       porEstado,
     });
   } catch (err) {
-    console.error(err);
+    console.error("getCamarasKPIs error:", err);
     res.status(500).json({ error: err.message });
   }
 };
@@ -331,6 +349,9 @@ exports.getDespachoKPIs = async (req, res) => {
     }
 
     // tiempo armado -> carga: difference between pallet.fecha_armado and od_pallets.hora_carga
+    // avoid double WHERE: append condition to where string
+    let whereOD2 = whereOD + " AND op.hora_carga IS NOT NULL ";
+
     const [times] = await pool.query(
       `SELECT op.pallet_id,
               TIMESTAMPDIFF(MINUTE, p.fecha_armado, op.hora_carga) AS minutos_armado_a_carga,
@@ -338,8 +359,7 @@ exports.getDespachoKPIs = async (req, res) => {
        FROM od_pallets op
        JOIN pallets p ON op.pallet_id = p.pallet_id
        JOIN orden_despacho od ON op.od_id = od.od_id
-       ${whereOD}
-       WHERE op.hora_carga IS NOT NULL`,
+       ${whereOD2}`,
       params
     );
 
@@ -385,23 +405,23 @@ exports.getDespachoKPIs = async (req, res) => {
     );
 
     // % entregas a tiempo vs retrasadas: compare orden_despacho.fecha_programada with ultima tracking (fin)
-    // Build map from tiemposViaje
+    // Note: frontend can compute exact "on time" with fecha_programada; here we send raw tiemposViaje
     const entregaOnTimeCount = tiemposViaje.filter((r) => {
       if (!r.fin || !r.inicio) return false;
-      // we don't have actual delivery timestamp field; assume last tracking near delivery
-      return new Date(r.fin) <= new Date(r.fin); // placeholder always true, better to compare with orden_despacho.fecha_programada if available
+      // placeholder: need orden_despacho.fecha_programada to compare; keep as false by default
+      return false;
     }).length;
 
-    // For simplicity send the raw data for frontend to compute better metrics
     res.json({
       minutosArmadoACarga,
       minutosCargaAProgramado,
       tempIssues,
       pctFueraRango,
       tiemposViaje,
+      entregaOnTimeCount,
     });
   } catch (err) {
-    console.error(err);
+    console.error("getDespachoKPIs error:", err);
     res.status(500).json({ error: err.message });
   }
 };
@@ -458,7 +478,7 @@ exports.getMovimientosKPIs = async (req, res) => {
 
     res.json({ movPorOperario, reubicados, inconsistencias });
   } catch (err) {
-    console.error(err);
+    console.error("getMovimientosKPIs error:", err);
     res.status(500).json({ error: err.message });
   }
 };
@@ -516,7 +536,7 @@ exports.getAuditKPIs = async (req, res) => {
 
     res.json({ byUser, sospechosas, horarios });
   } catch (err) {
-    console.error(err);
+    console.error("getAuditKPIs error:", err);
     res.status(500).json({ error: err.message });
   }
 };
@@ -531,7 +551,7 @@ exports.getProductos = async (req, res) => {
     );
     res.json(rows);
   } catch (err) {
-    console.error(err);
+    console.error("getProductos error:", err);
     res.status(500).json({ error: err.message });
   }
 };

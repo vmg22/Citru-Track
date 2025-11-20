@@ -12,6 +12,11 @@ const productorRoutes = require('./routes/productores.routes');
 const camaraRoutes = require('./routes/camara.routes');
 const kpiRoutes = require('./routes/kpi.routes');
 const binloteRoutes = require('./routes/binlote.routes');
+const camionesRoutes = require("./routes/camiones.routes");
+const transportistasRoutes = require("./routes/transportistas.routes");
+const choferesRoutes = require("./routes/choferes.routes");
+const ordenesRoutes = require("./routes/ordenes.routes");
+
 const app = express();
 app.use(cors());
 app.use(express.json());
@@ -30,6 +35,10 @@ app.use("/api/kpi", kpiRoutes);
 app.use("/api/binlote", binloteRoutes);
 app.use('/api/camaras', camaraRoutes);
 
+app.use("/api/camiones", camionesRoutes);
+app.use("/api/transportistas", transportistasRoutes);
+app.use("/api/choferes", choferesRoutes);
+app.use("/api/ordenes-despacho", ordenesRoutes);
 // health
 app.get('/health', (req, res) => res.json({ ok: true, env: process.env.NODE_ENV || 'dev' }));
 
