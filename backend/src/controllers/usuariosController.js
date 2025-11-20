@@ -4,7 +4,7 @@ const bcrypt = require('bcrypt');
 exports.obtenerTodosUsuarios = async (req, res) => {
   try {
     const [usuarios] = await db.query(
-      'SELECT user_id, username, email, nombre, telefono, activo, created_at, updated_at, last_login FROM users WHERE activo = TRUE ORDER BY user_id DESC'
+      'SELECT user_id, username, email, nombre, telefono, activo, created_at, updated_at, last_login FROM users WHERE activo = TRUE ORDER BY created_at DESC'
     );
     res.json(usuarios);
   } catch (error) {
@@ -369,7 +369,7 @@ exports.actualizarUltimoLogin = async (req, res) => {
   }
 };
 
- 
+
 // Elimina (desactiva) un usuario cambiando su estado a inactivo
 exports.eliminarUsuario = async (req, res) => {
   try {

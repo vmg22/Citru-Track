@@ -7,7 +7,7 @@ const Layout = ({ children, activeItem, onItemClick }) => {
       {/* El Sidebar simplemente recibe el estado activo y la función de click */}
       <Sidebar activeItem={activeItem} onItemClick={onItemClick} />
       
-      <div>
+      <div className="dashboard-main-content">
         {/* 'children' será el componente de la ruta activa (ej: BinsPage) */}
         {children}
       </div>

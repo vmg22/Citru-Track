@@ -7,14 +7,13 @@ const lotesRoutes = require('./routes/lotes.routes');
 const palletsRoutes = require('./routes/pallets.routes');
 const transporteRoutes = require('./routes/transporte.routes');
 const mailRoutes = require('./routes/mail.routes');
-const choferRoutes = require('./routes/chofer.routes');
-const productorRoutes = require('./routes/productores.routes');
-
 const kpiRoutes = require('./routes/kpi.routes');
 const camionesRoutes = require("./routes/camiones.routes");
 const transportistasRoutes = require("./routes/transportistas.routes");
 const choferesRoutes = require("./routes/choferes.routes");
 const ordenesRoutes = require("./routes/ordenes.routes");
+const clienteRoutes = require("./routes/clientes.routes");
+
 
 const app = express();
 app.use(cors());
@@ -26,15 +25,15 @@ app.use('/api/usuarios', usuariosRoutes);
 app.use('/api/productos', productosRoutes);
 app.use('/api/lotes', lotesRoutes);
 app.use('/api/pallets', palletsRoutes);
-app.use('/api/choferes', choferRoutes);
 app.use('/api/transporte', transporteRoutes);
-app.use('/api/productores', productorRoutes);
 app.use('/api/mail', mailRoutes);
 app.use("/api/kpi", kpiRoutes);
 app.use("/api/camiones", camionesRoutes);
 app.use("/api/transportistas", transportistasRoutes);
 app.use("/api/choferes", choferesRoutes);
 app.use("/api/ordenes-despacho", ordenesRoutes);
+app.use("/api/clientes", clienteRoutes);
+
 // health
 app.get('/health', (req, res) => res.json({ ok: true, env: process.env.NODE_ENV || 'dev' }));
 
