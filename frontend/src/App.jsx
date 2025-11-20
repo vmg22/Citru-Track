@@ -54,7 +54,6 @@ const itemToPathMap = {
   ajustes:"/ajustes",
   kpis: "/kpis",
   "gestion-pedidos": "/gestion-pedidos",
-  ajustes:"/ajustes",  
   productos:"/productos",  
 };
 
