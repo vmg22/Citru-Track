@@ -169,10 +169,10 @@ async function deleteCliente(req, res) {
     const { id } = req.params;
 
     // Opción A: borrado físico (descomentar si querés usar)
-    const [result] = await pool.query(`DELETE FROM clientes WHERE cliente_id = ?`, [id]);
+    // const [result] = await pool.query(`DELETE FROM clientes WHERE cliente_id = ?`, [id]);
 
     // Si preferís borrado lógico (recomendado en producción), podés cambiar por:
-    // await pool.query("UPDATE clientes SET acceso_sistema = 0 WHERE cliente_id = ?", [id]);
+    await pool.query("UPDATE clientes SET acceso_sistema = 0 WHERE cliente_id = ?", [id]);
     // o agregar columna deleted_at y usar: UPDATE clientes SET deleted_at = NOW() WHERE cliente_id = ?
 
     if (result.affectedRows === 0) return res.status(404).json({ error: "Cliente no encontrado" });
