@@ -1,55 +1,90 @@
-import React from 'react'
+import React, { useState, useEffect } from 'react'
 import "../../style/camara.css"; 
-
-// Hacemos los datos dinámicos para que sea más fácil de gestionar
-const cameraData = [
-  { id: 1, nombre: "Cámara 1", temp: "9.0°C", pallets: 12, status: "normal" },
-  { id: 2, nombre: "Cámara 2", temp: "9.2°C", pallets: 24, status: "normal" },
-  { id: 3, nombre: "Cámara 3", temp: "12.1°C", pallets: 8, status: "alerta" }, // Status 'alerta' para la temp alta
-];
+import { getAllCamaras } from './service/camaraService';
 
 const CamaraFrio = () => {
+  const [camaras, setCamaras] = useState([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const data = await getAllCamaras();
+        setCamaras(data);
+      } catch (error) {
+        console.error("Error al cargar datos de las cámaras:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, []);
+
+  // Función para determinar el estado basado en la temperatura
+  const getStatus = (temperatura) => {
+    const temp = parseFloat(temperatura);
+    return temp > 20 ? 'alerta' : 'normal';
+  };
+
+  if (loading) {
     return (
-    // Contenedor principal para esta página
-    <div className="camara-container" id="camara">
-      <div className="dashboard-header">
+      <div className="camara-container">
+        <div className="dashboard-header">
           <h2>Cámaras</h2>
           <div className="dashboard-user-info">
             <i className="fas fa-user-circle"></i>
             <span>Administrador</span>
           </div>
         </div>
-      {/* Tarjeta principal */}
+        <div className="loading">Cargando cámaras...</div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="camara-container" id="camara">
+      <div className="monitoreo-header">
+            <h2>
+              <i className="fa-solid fa-snowflake"></i> Cámaras de Frío
+            </h2>
+            <div className="monitoreo-user-info">
+              <i className="fas fa-user-circle"></i>
+              <span>Supervisor de Planta</span>
+            </div>
+          </div>
+      
       <div className="camara-card">
         <h3 className="camara-title">Mapa de Cámaras</h3>
         
-        {/* Grid para las cajas de información */}
         <div className="camara-grid">
-          
-          {/* Mapeamos los datos de las cámaras */}
-          {cameraData.map((camara) => (
+          {camaras.map((camara) => (
             <div 
-              key={camara.id} 
-              // Aplicamos la clase de alerta condicionalmente
-              className={`camara-box ${camara.status === 'alerta' ? 'status-alerta' : ''}`}
+              key={camara.camara_id} 
+              className={`camara-box ${getStatus(camara.temperatura_aproximada) === 'alerta' ? 'status-alerta' : ''}`}
             >
               <div className="camara-box-title">{camara.nombre}</div>
               <div className="camara-box-info">
-                {/* Añadimos iconos para más claridad */}
                 <i className="fas fa-thermometer-half"></i> 
-                Temp: {camara.temp}
+                Temp: {camara.temperatura_aproximada}°C
               </div>
               <div className="camara-box-info">
                 <i className="fas fa-pallet"></i> 
-                Pallets: {camara.pallets}
+                Pallets: {camara.capacidad_pallets}
+              </div>
+              <div className="camara-box-info">
+                <i className="fas fa-map-marker-alt"></i> 
+                {camara.ubicacion}
+              </div>
+              <div className="camara-box-info">
+                <i className="fas fa-calendar"></i> 
+                Creada: {new Date(camara.created_at).toLocaleDateString()}
               </div>
             </div>
           ))}
-
         </div>
       </div>
     </div>
   );
 }
 
-export default CamaraFrio
+export default CamaraFrio;
