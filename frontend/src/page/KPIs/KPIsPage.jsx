@@ -1,4 +1,4 @@
-// src/components/KpiDashboard.jsx
+const API = import.meta.env.VITE_API || "http://localhost:4000";
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import {
@@ -19,20 +19,18 @@ export default function KpiDashboard() {
   const [movimientos, setMovimientos] = useState(null);
   const [auditoria, setAuditoria] = useState(null);
 
-  const API = import.meta.env.VITE_API || "http://localhost:4000/api/kpi";
+
 
   // Cargar productos
   useEffect(() => {
-    axios.get(`${API}/productos`)
+    axios.get(`${API}/api/kpi/productos`)
       .then(r => setProductos(r.data))
       .catch(console.error);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Cargar KPIs cuando cambia producto o fechas
+  // Cargar KPIs cuando cambia producto o filtros
   useEffect(() => {
     if (!producto) {
-      // Reset
       setVolume(null);
       setRendimiento(null);
       setEmpaque(null);
@@ -44,31 +42,30 @@ export default function KpiDashboard() {
 
     const params = { producto_id: producto, ...filters };
 
-    axios.get(`${API}/volume`, { params })
+    axios.get(`${API}/api/kpi/volume`, { params })
       .then(r => setVolume(r.data))
       .catch(console.error);
 
-    axios.get(`${API}/rendimiento`, { params })
+    axios.get(`${API}/api/kpi/rendimiento`, { params })
       .then(r => setRendimiento(r.data))
       .catch(console.error);
 
-    axios.get(`${API}/empaque`, { params })
+    axios.get(`${API}/api/kpi/empaque`, { params })
       .then(r => setEmpaque(r.data))
       .catch(console.error);
 
-    axios.get(`${API}/camaras`, { params })
+    axios.get(`${API}/api/kpi/camaras`, { params })
       .then(r => setCamaras(r.data))
       .catch(console.error);
 
-    axios.get(`${API}/movimientos`, { params })
+    axios.get(`${API}/api/kpi/movimientos`, { params })
       .then(r => setMovimientos(r.data))
       .catch(console.error);
 
-    axios.get(`${API}/auditoria`, { params })
+    axios.get(`${API}/api/kpi/auditoria`, { params })
       .then(r => setAuditoria(r.data))
       .catch(console.error);
 
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [producto, filters]);
 
   return (
@@ -258,7 +255,7 @@ export default function KpiDashboard() {
 
           <div className="kpi-graficos">
             <div className="grafico-box">
-              <h4>Cajas por operario (ej.)</h4>
+              <h4>Cajas por dia (ej.)</h4>
               <ResponsiveContainer width="100%" height={260}>
                 <BarChart
                   data={empaque.cajasPorOperario
