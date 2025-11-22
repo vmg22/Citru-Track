@@ -6,6 +6,7 @@ const TRANSPORTE_URL = `${API}/transporte`
 const CHOFER_URL = `${API}/choferes`
 const PRODUCTOR_URL = `${API}/productores`
 const PRODUCTOS_URL = `${API}/productos`
+const ROLES_URL = `${API}/roles`
 
 export const getAllUsers = async () => {
   const response = await axios.get(USER_URL);
@@ -21,6 +22,16 @@ export const createUser = async(userData) =>{
   const response = await axios.post(USER_URL, userData)
   return response.data;
 }
+
+// settingsServices.js
+export const editUser = async(id,userData) =>{
+  // Usamos PUT o PATCH, según la implementación del backend. 
+  // Si el backend usa 'exports.actualizarUsuario' o 'exports.actualizarUsuarioParcial', 
+  // 'axios.put' o 'axios.patch' son más apropiados que 'axios.post'.
+  const response = await axios.patch(`${USER_URL}/${id}`, userData) 
+  return response.data;
+}
+
 
 export const getAllTransportes = async () => {
   const response = await axios.get(TRANSPORTE_URL);
@@ -40,6 +51,11 @@ export const getAllProductsWithVarieties = async () => {
     const response = await axios.get(`${PRODUCTOS_URL}/all-with-varieties`);
     return response.data;
 };
+
+export const getAllRoles = async () => {
+  const response = await axios.get(ROLES_URL);
+  return response.data;
+}
 
 /**
  * Crea un nuevo producto.

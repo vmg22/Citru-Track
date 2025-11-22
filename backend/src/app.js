@@ -18,6 +18,7 @@ const choferesRoutes = require("./routes/choferes.routes");
 const ordenesRoutes = require("./routes/ordenes.routes");
 const clientesRoutes = require("./routes/clientes.routes");
 const routingRoutes = require("./routes/routing.routes");
+const rolesRoutes = require("./routes/roles.routes");
 
 const app = express();
 app.use(cors());
@@ -43,6 +44,7 @@ app.use("/api/choferes", choferesRoutes);
 app.use("/api/ordenes-despacho", ordenesRoutes);
 app.use("/api/clientes", clientesRoutes);
 app.use("/api/routing", routingRoutes);
+app.use("/api/roles", rolesRoutes);
 // health
 app.get('/health', (req, res) => res.json({ ok: true, env: process.env.NODE_ENV || 'dev' }));
 
