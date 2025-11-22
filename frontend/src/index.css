@@ -3,3 +3,16 @@ body {
   padding: 0;
   box-sizing: border-box;
 }
+
+/* Ocultar el panel de instrucciones de leaflet-routing-machine */
+.leaflet-routing-container {
+  display: none !important;
+}
+
+.leaflet-routing-container-hidden {
+  display: none !important;
+}
+
+.leaflet-top.leaflet-right {
+  display: none !important;
+}
