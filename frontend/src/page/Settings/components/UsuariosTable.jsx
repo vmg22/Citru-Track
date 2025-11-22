@@ -37,27 +37,74 @@ const UsuariosTable = () => {
   }, []);
 
   const handleEliminarUsuario = async (id_user, username) => {
-    // Usar toast.promise para mostrar el estado de la operación
     toast.promise(
       new Promise(async (resolve, reject) => {
-        // Mostrar confirmación con toast
-        const confirmar = window.confirm(
-          `¿Estás seguro que deseas eliminar al usuario "${username}"?`
+        toast.warn(
+          ({ closeToast }) => (
+            <div style={{ padding: "10px" }}>
+              <p style={{ fontWeight: "bold", marginBottom: "8px" }}>
+                Confirmar Eliminación
+              </p>
+              <p style={{ fontSize: "0.9em" }}>
+                ¿Estás seguro que quieres eliminar al usuario:{" "}
+                <strong>{username}</strong>?
+              </p>
+
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "flex-end",
+                  gap: "10px",
+                  marginTop: "10px",
+                }}
+              >
+                <button
+                  style={{
+                    padding: "5px 10px",
+                    borderRadius: "4px",
+                    border: "none",
+                    cursor: "pointer",
+                    backgroundColor: "#ccc",
+                  }}
+                  onClick={() => {
+                    closeToast();
+                    reject(new Error("Operación cancelada"));
+                  }}
+                >
+                  Cancelar
+                </button>
+
+                <button
+                  style={{
+                    padding: "5px 10px",
+                    borderRadius: "4px",
+                    border: "none",
+                    cursor: "pointer",
+                    backgroundColor: "#dc3545",
+                    color: "white",
+                  }}
+                  onClick={async () => {
+                    closeToast();
+                    try {
+                      await deleteUserById(id_user);
+                      await fetchUsuarios();
+                      resolve();
+                    } catch (error) {
+                      reject(error);
+                    }
+                  }}
+                >
+                  Eliminar
+                </button>
+              </div>
+            </div>
+          ),
+          {
+            closeButton: false,
+            autoClose: false,
+            position: "top-center",
+          }
         );
-
-        if (!confirmar) {
-          reject(new Error("Operación cancelada"));
-          return;
-        }
-
-        try {
-          await deleteUserById(id_user);
-          await fetchUsuarios();
-          resolve();
-        } catch (error) {
-          console.error("Error al eliminar usuario:", error);
-          reject(error);
-        }
       }),
       {
         pending: "Eliminando usuario...",
@@ -96,14 +143,38 @@ const UsuariosTable = () => {
     fetchUsuarios();
   };
 
-  // Formato de fecha simple
+  // Formato de fecha mejorado
   const formatDate = (dateString) => {
     if (!dateString) return "N/A";
+    
+    // Opción 1: Formato corto (10/11/2025)
+    // const date = new Date(dateString);
+    // return date.toLocaleDateString("es-AR");
+    
+    // Opción 2: Formato completo (10 de noviembre de 2025)
+    // const date = new Date(dateString);
+    // return date.toLocaleDateString("es-AR", {
+    //   year: "numeric",
+    //   month: "long",
+    //   day: "numeric",
+    // });
+    
+    // Opción 3: Formato con hora (10/11/2025 00:00)
+    // const date = new Date(dateString);
+    // return date.toLocaleString("es-AR", {
+    //   year: "numeric",
+    //   month: "2-digit",
+    //   day: "2-digit",
+    //   hour: "2-digit",
+    //   minute: "2-digit",
+    // });
+    
+    // Opción 4: Formato medio (10 nov 2025) - RECOMENDADO
     const date = new Date(dateString);
     return date.toLocaleDateString("es-AR", {
       year: "numeric",
       month: "short",
-      day: "numeric",
+      day: "2-digit",
     });
   };
 

@@ -23,11 +23,7 @@ export const createUser = async(userData) =>{
   return response.data;
 }
 
-// settingsServices.js
 export const editUser = async(id,userData) =>{
-  // Usamos PUT o PATCH, según la implementación del backend. 
-  // Si el backend usa 'exports.actualizarUsuario' o 'exports.actualizarUsuarioParcial', 
-  // 'axios.put' o 'axios.patch' son más apropiados que 'axios.post'.
   const response = await axios.patch(`${USER_URL}/${id}`, userData) 
   return response.data;
 }
@@ -36,6 +32,21 @@ export const editUser = async(id,userData) =>{
 export const getAllTransportes = async () => {
   const response = await axios.get(TRANSPORTE_URL);
   return response.data;
+}
+
+export const createChofer = async(choferData) =>{
+  const response = await axios.post(CHOFER_URL, choferData)
+  return response.data;
+}
+
+export const editChofer = async(id_chofer,choferData) =>{
+  const response = await axios.patch(`${CHOFER_URL}/${id_chofer}`, choferData)
+  return response.data;
+}
+
+export const eliminarChofer = async(id_chofer) =>{
+  const response = await axios.put(`${CHOFER_URL}/${id_chofer}`)
+  return response.data;
 }
 
 export const getAllChoferes = async () => {
