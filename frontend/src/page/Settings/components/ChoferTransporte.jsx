@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import {
   eliminarChofer,
+  eliminarTransportista,
   getAllChoferes,
   getAllTransportes,
 } from "../services/settingsServices";
@@ -8,6 +9,8 @@ import "../../../style/chofertransporte.css";
 import { toast } from "react-toastify";
 import AddChoferModal from "./AddChoferModal";
 import EditChoferModal from "./EditChoferModal";
+import AddTransportistaModal from "./AddTransportistaModal";
+import EditTransportistaModal from "./EditTransportistaModal";
 
 const ChoferTransporte = () => {
   const [choferes, setChoferes] = useState([]);
@@ -18,6 +21,12 @@ const ChoferTransporte = () => {
 
   const [isEditChoferModalOpen, setIsEditChoferModalOpen] = useState(false);
   const [choferToEdit, setChoferToEdit] = useState(null);
+
+  const [isTransportistaModalOpen, setIsTransportistaModalOpen] =
+    useState(false);
+  const [isEditTransportistaModalOpen, setIsEditTransportistaModalOpen] =
+    useState(false);
+  const [transportistaToEdit, setTransportistaToEdit] = useState(null);
 
   const fetchChoferes = async () => {
     try {
@@ -63,6 +72,22 @@ const ChoferTransporte = () => {
   };
 
   const handleChoferAction = () => {
+    fetchChoferes();
+  };
+
+  const openTransportistaModal = () => setIsTransportistaModalOpen(true);
+  const closeTransportistaModal = () => setIsTransportistaModalOpen(false);
+  const openEditTransportistaModal = (transporte) => {
+    setTransportistaToEdit(transporte);
+    setIsEditTransportistaModalOpen(true);
+  };
+  const closeEditTransportistaModal = () => {
+    setIsEditTransportistaModalOpen(false);
+    setTransportistaToEdit(null);
+  };
+
+  const handleTransportistaAction = () => {
+    fetchTransportes();
     fetchChoferes();
   };
 
@@ -179,7 +204,7 @@ const ChoferTransporte = () => {
                 Confirmar Eliminación
               </p>
               <p style={{ fontSize: "0.9em" }}>
-                ¿Estás seguro que quieres desactivar al transportista:{" "}
+                ¿Estás seguro que quieres eliminar al transportista:{" "}
                 <strong>{nombreTransportista}</strong>?
               </p>
 
@@ -219,7 +244,8 @@ const ChoferTransporte = () => {
                   onClick={async () => {
                     closeToast();
                     try {
-                      await fetchTransportes();
+                      await eliminarTransportista(transportista_id);
+                      handleTransportistaAction();
                       resolve();
                     } catch (error) {
                       reject(error);
@@ -235,11 +261,10 @@ const ChoferTransporte = () => {
             pending: "Esperando confirmación...",
             success: "Transportista eliminado correctamente",
             error: {
-              render({ data }) {
-                return data.message === "Operación cancelada"
+              render: ({ data }) =>
+                data.message === "Operación cancelada"
                   ? "Eliminación cancelada"
-                  : "Error al eliminar el transportista";
-              },
+                  : "Error al eliminar el transportista",
             },
             closeButton: false,
             autoClose: false,
@@ -251,12 +276,10 @@ const ChoferTransporte = () => {
         pending: "Eliminando transportista...",
         success: "Transportista eliminado correctamente",
         error: {
-          render({ data }) {
-            if (data.message === "Operación cancelada") {
-              return "Eliminación cancelada";
-            }
-            return "Error al eliminar el transportista";
-          },
+          render: ({ data }) =>
+            data.message === "Operación cancelada"
+              ? "Eliminación cancelada"
+              : "Error al eliminar el transportista",
         },
       }
     );
@@ -277,13 +300,13 @@ const ChoferTransporte = () => {
       <div className="camara-config-section">
         <div className="camara-table-header">
           <h2>
-            <i className="fas fa-truck-moving"></i>
-            Gestión de Transporte y Logística
+            <i className="fa-solid fa-clipboard-user"></i>
+            Gestión de Choferes y Transportistas
           </h2>
         </div>
 
         <div className="camara-table-header">
-          <h3>Conductores ({choferes.length})</h3>
+          <h3>Choferes ({choferes.length})</h3>
           <div className="camara-table-actions">
             <button
               className="camara-btn camara-btn-primary"
@@ -388,23 +411,20 @@ const ChoferTransporte = () => {
           </div>
         </div>
 
-        <div
-          className="camara-table-header"
-          style={{ marginTop: "20px" }}
-        >
+        <div className="camara-table-header" style={{ marginTop: "20px" }}>
           <h3>Transportistas ({transportes.length})</h3>
 
           <div className="camara-table-actions">
-            <button className="camara-btn camara-btn-primary">
+            <button
+              className="camara-btn camara-btn-primary"
+              onClick={openTransportistaModal}
+            >
               <i className="fas fa-plus"></i> Agregar Transportista
             </button>
           </div>
         </div>
 
-        <div
-          className="camara-table-wrapper"
-          style={{ marginTop: "2rem" }}
-        >
+        <div className="camara-table-wrapper" style={{ marginTop: "2rem" }}>
           <div className="camara-table-wrapper">
             <table className="camara-table">
               <thead>
@@ -436,14 +456,7 @@ const ChoferTransporte = () => {
                       </td>
 
                       <td className="camara-table-cell">
-                        {transporte.cuit ? (
-                          <span className="camara-capacity-badge">
-                            <i className="fas fa-id-card"></i>
-                            {transporte.cuit}
-                          </span>
-                        ) : (
-                          "N/A"
-                        )}
+                        {transporte.cuit || "N/A"}
                       </td>
 
                       <td className="camara-table-cell">
@@ -472,6 +485,7 @@ const ChoferTransporte = () => {
                         <button
                           className="camara-btn-warning camara-action-btn"
                           title="Editar transportista"
+                          onClick={() => openEditTransportistaModal(transporte)}
                         >
                           <i className="fas fa-edit"></i>
                         </button>
@@ -510,6 +524,19 @@ const ChoferTransporte = () => {
         onClose={closeEditChoferModal}
         onChoferUpdated={handleChoferAction}
         initialChoferData={choferToEdit}
+      />
+
+      <AddTransportistaModal
+        isOpen={isTransportistaModalOpen}
+        onClose={closeTransportistaModal}
+        onTransportistaAdded={handleTransportistaAction}
+      />
+
+      <EditTransportistaModal
+        isOpen={isEditTransportistaModalOpen}
+        onClose={closeEditTransportistaModal}
+        onTransportistaUpdated={handleTransportistaAction}
+        initialTransportistaData={transportistaToEdit}
       />
     </div>
   );

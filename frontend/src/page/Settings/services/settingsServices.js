@@ -34,6 +34,20 @@ export const getAllTransportes = async () => {
   return response.data;
 }
 
+export const createTransportista = async (transportistaData) => {
+  const response = await axios.post(TRANSPORTE_URL, transportistaData);
+  return response.data;
+}
+
+export const editTransportista = async (id_transportista, transportistaData) => {
+  const response = await axios.patch(`${TRANSPORTE_URL}/${id_transportista}`, transportistaData);
+  return response.data;
+}
+export const eliminarTransportista = async (id_transportista) => {
+  const response = await axios.put(`${TRANSPORTE_URL}/${id_transportista}`);
+  return response.data;
+}
+
 export const createChofer = async(choferData) =>{
   const response = await axios.post(CHOFER_URL, choferData)
   return response.data;
