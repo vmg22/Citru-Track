@@ -5,6 +5,7 @@ import ChoferTransporte from "./components/ChoferTransporte";
 import Productores from "./components/Productores";
 import Camara from "./components/Camara";
 import ProductoVariedades from "./components/ProductoVariedades";
+import Camion from "./components/Camion";
 
 const Ajustes = () => {
   const [activePanel, setActivePanel] = useState("camaras");
@@ -28,6 +29,8 @@ const Ajustes = () => {
         return <Camara />;
       case "productos":
         return <ProductoVariedades />;
+        case "camion":
+        return <Camion />;
       default:
         return <h2>Configuración para el panel: {activePanel}</h2>;
     }

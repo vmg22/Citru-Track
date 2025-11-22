@@ -7,6 +7,7 @@ const CHOFER_URL = `${API}/choferes`
 const PRODUCTOR_URL = `${API}/productores`
 const PRODUCTOS_URL = `${API}/productos`
 const ROLES_URL = `${API}/roles`
+const CAMIONES_URL = `${API}/camiones`
 
 export const getAllUsers = async () => {
   const response = await axios.get(USER_URL);
@@ -80,6 +81,26 @@ export const getAllProductsWithVarieties = async () => {
 export const getAllRoles = async () => {
   const response = await axios.get(ROLES_URL);
   return response.data;
+}
+
+export const getAllCamiones = async () => {
+  const response = await axios.get(CAMIONES_URL);
+  return response.data;
+}
+
+export const createCamion = async(camionData) =>{
+  const response = await axios.post(CAMIONES_URL, camionData)
+  return response.data;
+}
+
+export const editCamion = async(id_camion,camionData) =>{
+  const response = await axios.patch(`${CAMIONES_URL}/${id_camion}`, camionData)
+  return response.data;
+}
+
+export const eliminarCamion = async(id_camion) =>{
+  const response = await axios.put(`${CAMIONES_URL}/${id_camion}`)
+  return response.data;
 }
 
 /**
