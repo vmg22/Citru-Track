@@ -2,97 +2,142 @@ import {
   BrowserRouter,
   Routes,
   Route,
+  Navigate,
   useNavigate,
   useLocation,
 } from "react-router-dom";
 import { useState, useEffect } from "react";
-import DashboardPrincipal from "./page/Dashboard/components/DashboardPrincipal"; // Asumo que esta ruta es correcta
-import BinsPage from "./page/Bins/BinsPage"; // Asumo que esta ruta es correcta
+
+// Páginas públicas
+import LoginPage from "./page/Auth/LoginPage";
+import ForgotPasswordPage from "./page/Auth/ForgotPasswordPage";
+import ResetPasswordPage from "./page/Auth/ResetPasswordPage";
+
+// Layout y páginas internas
 import Layout from "./components/layout/Layout";
+import DashboardPrincipal from "./page/Dashboard/components/DashboardPrincipal";
+import BinsPage from "./page/Bins/BinsPage";
+import LineaDeProceso from "./page/LineaProceso/LineaDeProceso";
+import Pallet from "./page/Pallet/Pallet";
+import CamaraFrio from "./page/CamaraFrio/CamaraFrio";
+import MonitoringsPage from "./page/Monitoring/MonitoringsPage";
+// Importamos la página de Gestión de Pedidos
+import GestionPedidos from "./page/pedidos/GestionPedidos"; 
+import KPIsPage from "./page/KPIs/KPIsPage";
+import Ajustes from "./page/Settings/Ajustes";
+import Kpi from "./page/KPIs/KPIsPage"; 
+import Logistica from "./page/Logitics/LogisticsPage";
+import Camara from "./page/Settings/components/Camara";
+import ProductoVariedades from "./page/Settings/components/ProductoVariedades";
+// ---------------------------------------------------
 
-// --- Mapas de Navegación ---
-// Nos ayudan a traducir de IDs de item a rutas de URL y viceversa.
-
-// 1. De la RUTA (URL) al ID del ITEM (para resaltar el item correcto)
 const routeToItemMap = {
-  "/": "dashboard",
   "/dashboard": "dashboard",
-  "/bins": "bins",
   "/monitoreo": "monitoreo",
-  "/lotes": "lotes",
-  "/logistica": "logistica",
+  "/bins": "bins",
+  "/linea-de-proceso": "linea",
+  "/armado-pallet": "pallet",
+  "/camara": "camara",
+  "/gestion-pedidos": "gestion-pedidos",
+  "/ajustes": "ajustes",
   "/kpis": "kpis",
-  "/config": "config",
+  "/logistica": "logistica",
+  
+  "/productos": "productos",
 };
 
-// 2. Del ID del ITEM a la RUTA (para navegar al hacer clic)
 const itemToPathMap = {
-  dashboard: "/dashboard", // O "/" si prefieres que el dashboard sea la raíz
+  dashboard: "/dashboard",
+  monitoreo: "/monitoreo",
+  linea: "/linea-de-proceso",
   bins: "/bins",
-  monitoreo: "/monitoreo", // Asegúrate de tener estas rutas en <Routes>
-  lotes: "/lotes", // Asegúrate de tener estas rutas en <Routes>
-  logistica: "/logistica", // Asegúrate de tener estas rutas en <Routes>
-  kpis: "/kpis", // Asegúrate de tener estas rutas en <Routes>
-  config: "/config", // Asegúrate de tener estas rutas en <Routes>
+  pallet: "/armado-pallet",
+  camara: "/camara",
+  ajustes:"/ajustes",
+  kpis: "/kpis",
+  logistica: "/logistica",
+  "gestion-pedidos": "/gestion-pedidos",
+  productos:"/productos",  
 };
 
-/**
- * Creamos un componente interno para poder usar los hooks
- * (useNavigate, useLocation) ya que App() está por fuera de <BrowserRouter>
- */
+// ---------------------------------------------------
+// COMPONENTE INTERNO PARA USAR HOOKS DENTRO DEL ROUTER
+// ---------------------------------------------------
+
 const AppContent = () => {
   const navigate = useNavigate();
   const location = useLocation();
+
   const [activeItem, setActiveItem] = useState("dashboard");
 
-  // EFECTO: Sincronizar el item activo cuando la URL cambia
-  // (Ej: el usuario usa el botón "atrás" del navegador)
+  // Este useEffect actualiza el ítem activo del sidebar cuando
+  // la URL cambia (ej: usando los botones de "atrás/adelante" del navegador)
   useEffect(() => {
     const currentItem = routeToItemMap[location.pathname];
     if (currentItem && currentItem !== activeItem) {
       setActiveItem(currentItem);
     }
-  }, [location.pathname]); // No incluyas 'activeItem' aquí para evitar loops
+    // Corregido: Si la ruta es solo "/", activa 'dashboard'
+    else if (location.pathname === "/") {
+        setActiveItem("dashboard");
+    }
+  }, [location.pathname, activeItem]);
 
   // FUNCIÓN: Navegar al hacer clic en el Sidebar
   const handleNavigation = (itemId) => {
-    // 1. Obtenemos la ruta a la que queremos ir
     const path = itemToPathMap[itemId];
+    if (!path) return;
 
-    if (path && path !== location.pathname) {
-      // 2. Actualizamos el estado visual (optimista)
+    if (path !== location.pathname) {
       setActiveItem(itemId);
-      // 3. NAVEGAMOS a la nueva ruta
       navigate(path);
-    } else if (path) {
-      // Si ya estamos en la ruta, solo aseguramos el estado
-      setActiveItem(itemId);
-    } else {
-      console.warn("No se encontró una ruta para el item:", itemId);
     }
   };
 
   return (
     <Layout activeItem={activeItem} onItemClick={handleNavigation}>
       <Routes>
-        {/* Es mejor tener DashboardPrincipal en ambas rutas si son lo mismo */}
-        <Route path="/" element={<DashboardPrincipal />} />
+        {/* Ruta principal que redirige al dashboard */}
+        <Route path="/" element={<Navigate to="/login" replace />} />
+        
         <Route path="/dashboard" element={<DashboardPrincipal />} />
         <Route path="/bins" element={<BinsPage />} />
-        {/* AÑADE AQUÍ EL RESTO DE TUS RUTAS 
-          <Route path="/monitoreo" element={<MonitoreoPage />} />
-          <Route path="/lotes" element={<LotesPage />} />
-          ... etc
-        */}
+        <Route path="/linea-de-proceso" element={<LineaDeProceso />} />
+        <Route path="/armado-pallet" element={<Pallet />} />
+        <Route path="/camara" element={<CamaraFrio />} />
+        <Route path="/camara-config" element={<Camara />} />
+
+        {/* --- RUTAS FALTANTES AÑADIDAS --- */}
+        <Route path="/monitoreo" element={<MonitoringsPage />} />
+        <Route path="/gestion-pedidos" element={<GestionPedidos />} />
+        <Route path="/kpis" element={<KPIsPage />} />
+        <Route path="/ajustes" element={<Ajustes />} />
+        <Route path="/kpis" element={<Kpi />} />
+        <Route path="/logistica" element={<Logistica />} />
+        <Route path="/productos" element={<ProductoVariedades />} />
       </Routes>
     </Layout>
   );
 };
 
+// ---------------------------------------------------
+// APP PRINCIPAL (ESTRUCTURA CORREGIDA)
+// ---------------------------------------------------
+
 export default function App() {
   return (
     <BrowserRouter>
-      <AppContent />
+      <Routes>
+        {/* Rutas Públicas (sin Layout) */}
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+        <Route path="/reset-password" element={<ResetPasswordPage />} />
+
+        {/* Rutas Privadas (con Layout) 
+            Usamos "/*" para indicar que cualquier otra ruta 
+            (incluyendo "/") debe ser manejada por AppContent */}
+        <Route path="/*" element={<AppContent />} />
+      </Routes>
     </BrowserRouter>
   );
 }

@@ -1,0 +1,127 @@
+/* Hoja de estilos para CamaraPage */
+
+/* Contenedor principal */
+.camara-container {
+    width: 100%;
+    padding: 1.5rem; 
+    box-sizing: border-box;
+}
+
+/* Tarjeta principal */
+.camara-card {
+    background-color: #ffffff;
+    padding: 2rem; /* Más padding */
+    border-radius: 0.5rem; /* Bordes más redondeados */
+    box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1); /* Sombra más pronunciada */
+    margin-bottom: 1rem;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+/* Título principal */
+.camara-title {
+    font-weight: 600;
+    font-size: 1.5rem; /* Título más grande */
+    color: var(--primary-color, #2e7d32);
+    margin-bottom: 1.5rem;
+}
+
+/* Grid de las cámaras - 3 columnas fijas */
+.camara-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr); /* 3 columnas fijas */
+    gap: 1.5rem; /* Espacio más grande entre cards */
+    margin-top: 1rem;
+}
+
+/* Caja individual de cada cámara - MÁS GRANDE */
+.camara-box {
+    padding: 1.5rem; /* Más padding */
+    border: 1px solid #e5e7eb;
+    border-radius: 0.5rem; /* Bordes más redondeados */
+    background-color: #f9fafb;
+    transition: all 0.3s ease;
+    min-height: 200px; /* Altura mínima */
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+.camara-box:hover {
+    box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+    transform: translateY(-2px); /* Efecto de elevación */
+}
+
+/* Título de la cámara - MÁS GRANDE */
+.camara-box-title {
+    font-weight: 600;
+    font-size: 1.25rem; /* Texto más grande */
+    color: var(--primary-color, #2e7d32);
+    margin-bottom: 1rem;
+}
+
+/* Info (Temp, Pallets) - MÁS GRANDE */
+.camara-box-info {
+    font-size: 1rem; /* Texto más grande */
+    color: #4b5563;
+    margin-bottom: 0.75rem; /* Más espacio */
+    display: flex;
+    align-items: center;
+    padding: 0.25rem 0;
+}
+
+.camara-box-info i {
+    margin-right: 10px; /* Más espacio para iconos */
+    color: #6b7280;
+    width: 24px; /* Iconos más grandes */
+    text-align: center;
+    font-size: 1.1rem;
+}
+
+.camara-box-info:last-child {
+    margin-bottom: 0;
+}
+
+/* Estilo de alerta para temperatura alta */
+.camara-box.status-alerta {
+    background-color: #fef2f2; /* Rojo muy claro */
+    border-color: #fecaca; /* Rojo claro */
+    border-left: 4px solid #ef4444; /* Borde izquierdo rojo */
+}
+.camara-box.status-alerta .camara-box-title {
+    color: #dc2626; /* Rojo */
+}
+.camara-box.status-alerta .camara-box-info {
+    color: #991b1b;
+}
+.camara-box.status-alerta .camara-box-info i {
+    color: #dc2626;
+}
+
+/* Loading */
+.loading {
+    text-align: center;
+    padding: 3rem;
+    font-size: 1.2rem;
+    color: #6b7280;
+}
+
+/* Responsive */
+@media (max-width: 1200px) {
+    .camara-grid {
+        grid-template-columns: repeat(2, 1fr); /* 2 columnas en tablets grandes */
+    }
+}
+
+@media (max-width: 768px) {
+    .camara-grid {
+        grid-template-columns: 1fr; /* 1 columna en móviles */
+    }
+    
+    .camara-container {
+        padding: 1rem;
+    }
+    
+    .camara-card {
+        padding: 1.5rem;
+    }
+}

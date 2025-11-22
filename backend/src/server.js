@@ -1,3 +1,5 @@
+
+
 // Cargar variables de entorno
 require('dotenv').config();
 
@@ -18,10 +20,12 @@ const port = process.env.PORT || 4000;
 // Crear el servidor HTTP
 const server = http.createServer(app);
 
-// Crear la instancia de Socket.io
+// Crear la instancia de Socket.io - ✅ CORS CORREGIDO
 const io = new Server(server, {
   cors: {
-    origin: "*", // Deberías restringir esto en producción
+    origin: ['http://localhost:5173', 'http://127.0.0.1:5173'], // ✅ Mismo que Express
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS']
   },
 });
 

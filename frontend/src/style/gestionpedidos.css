@@ -1,0 +1,426 @@
+/* =========================================
+   1. VARIABLES Y CONFIGURACIÓN BASE
+   ========================================= */
+:root {
+    /* Colores Principales */
+    --citrus-green: #2e7d32;       /* Verde Bosque (Más serio para Enterprise) */
+    --citrus-green-dark: #1b5e20;  /* Títulos fuertes */
+    --citrus-green-light: #e8f5e9; /* Fondos muy suaves */
+    --citrus-accent: #4caf50;      /* Verde brillante para focos/activos */
+    
+    /* Neutros y Estructura */
+    --gray-bg: #f4f6f8;            /* Fondo de pantalla estilo dashboard */
+    --border-color: #e0e0e0;
+    --text-dark: #2c3e50;
+    --text-muted: #6c757d;
+    
+    /* Efectos */
+    --citrus-shadow: 0 4px 12px rgba(0, 0, 0, 0.06); /* Sombra suave moderna */
+}
+
+/* Base Page Styles */
+.gestion-pedidos-page {
+    padding: 24px;
+    background-color: var(--gray-bg); 
+    min-height: 100vh;
+    font-family: 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+}
+
+/* Clases de Utilidad de Texto */
+.text-citrus-dark { color: var(--citrus-green-dark) !important; }
+.text-secondary { color: var(--text-muted) !important; }
+.text-primary { color: var(--citrus-green) !important; } /* Para el total de pallets */
+
+
+/* =========================================
+   2. HEADER Y BARRA SUPERIOR
+   ========================================= */
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: 24px;
+}
+
+.page-header h2 {
+    color: var(--citrus-green-dark);
+    font-size: 1.75rem;
+    font-weight: 700;
+    margin: 0;
+    letter-spacing: -0.5px;
+}
+
+.search-bar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.search-input-group {
+    display: flex;
+    align-items: center;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    padding: 8px 12px;
+    background-color: white;
+    width: 320px;
+    transition: box-shadow 0.2s;
+}
+
+.search-input-group:focus-within {
+    border-color: var(--citrus-accent);
+    box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.1);
+}
+
+.search-input-group svg { color: #999; margin-right: 8px; }
+.search-input-group input { border: none; outline: none; flex-grow: 1; font-size: 0.95rem; }
+
+.btn-filter-icon {
+    border: 1px solid var(--citrus-green);
+    color: var(--citrus-green);
+    background-color: white !important;
+    padding: 8px 16px;
+    font-weight: 600;
+    border-radius: 6px;
+}
+
+.btn-new-op {
+    background-color: var(--citrus-green) !important;
+    border-color: var(--citrus-green) !important;
+    padding: 8px 20px;
+    font-weight: 600;
+    border-radius: 6px;
+    box-shadow: 0 2px 4px rgba(46, 125, 50, 0.2);
+}
+
+/* =========================================
+   3. TARJETAS DE MÉTRICAS (DASHBOARD)
+   ========================================= */
+.metric-cards-container {
+    display: flex;
+    gap: 20px;
+    margin-bottom: 24px;
+}
+
+.metric-card {
+    flex: 1;
+    text-align: center;
+    padding: 20px;
+    background-color: white;
+    border: none;
+    border-radius: 12px;
+    box-shadow: var(--citrus-shadow);
+    transition: transform 0.2s;
+}
+
+.metric-card:hover { transform: translateY(-2px); }
+
+.metric-card h3 {
+    font-size: 2.2rem;
+    font-weight: 800;
+    margin-bottom: 5px;
+    color: var(--citrus-green); /* Números en verde marca */
+}
+
+/* =========================================
+   4. FILTROS Y PESTAÑAS
+   ========================================= */
+.inline-filters-row {
+    display: flex;
+    gap: 15px;
+    align-items: center;
+    padding: 10px 0 20px 0;
+}
+
+.filter-select, .filter-date {
+    border: 1px solid var(--border-color);
+    padding: 8px 12px;
+    border-radius: 6px;
+    background-color: white;
+    color: var(--text-dark);
+}
+/* Asegurarse que el form-control también use estos estilos base para los filtros */
+.inline-filters-row .form-control, 
+.inline-filters-row .form-select {
+    padding: 8px 12px;
+    border-radius: 6px;
+    border: 1px solid var(--border-color);
+    font-size: 0.95rem;
+}
+
+
+.tabs-navigation {
+    display: flex;
+    border-bottom: 2px solid var(--border-color);
+    margin-bottom: 24px;
+}
+
+.tabs-navigation button {
+    background: none;
+    border: none;
+    padding: 12px 24px;
+    font-size: 1rem;
+    cursor: pointer;
+    font-weight: 500;
+    color: var(--text-muted);
+    border-bottom: 3px solid transparent;
+    transition: all 0.2s;
+}
+
+.tabs-navigation .tab-active {
+    color: var(--citrus-green-dark);
+    border-bottom-color: var(--citrus-green);
+    font-weight: 700;
+}
+
+/* =========================================
+   5. ESTILOS DEL FORMULARIO (NuevoPedidoForm)
+   ========================================= */
+
+/* Tarjeta contenedora del formulario */
+.card.shadow-sm {
+    border: none !important;
+    border-radius: 12px;
+    box-shadow: var(--citrus-shadow) !important;
+    background-color: white;
+    padding: 30px !important; /* Aumentar el padding interno de la tarjeta */
+}
+
+/* Título principal del formulario */
+.card h4.text-citrus-dark { /* Más específico para el h4 del formulario */
+    color: var(--citrus-green-dark) !important;
+    font-size: 1.5rem; /* Ajustar tamaño */
+    font-weight: 700;
+    margin-bottom: 24px; /* Más espacio abajo */
+    padding-bottom: 12px;
+    border-bottom: 1px solid #e0e0e0; /* Línea separadora suave */
+    letter-spacing: -0.5px;
+}
+
+/* Labels de los inputs */
+.form-label {
+    font-weight: 600;
+    color: var(--text-dark);
+    font-size: 0.88rem; /* Ligeramente más pequeño */
+    margin-bottom: 6px;
+    display: block; /* Asegura que cada label esté en su propia línea */
+}
+
+/* Inputs y Selects con efecto Foco Cítrico */
+.form-control, .form-select {
+    border-radius: 6px;
+    border: 1px solid #ced4da;
+    padding: 10px 12px;
+    font-size: 0.93rem; /* Ligeramente más pequeño */
+    transition: all 0.2s ease-in-out;
+    background-color: #ffffff; /* Asegura fondo blanco */
+}
+
+.form-control:focus, .form-select:focus {
+    border-color: var(--citrus-accent);
+    box-shadow: 0 0 0 0.25rem rgba(76, 175, 80, 0.25); /* Glow verde */
+}
+
+/* Subtítulos de Secciones dentro del Form (DATOS DEL CLIENTE, ASIGNACIÓN LOGÍSTICA) */
+h5.text-secondary {
+    font-size: 0.9rem; /* Más pequeño para ser un subtítulo claro */
+    text-transform: uppercase;
+    letter-spacing: 1.2px; /* Más espaciado entre letras */
+    color: #8c8c8c !important; /* Gris más suave */
+    border-bottom: none; /* Quitar línea inferior */
+    padding-bottom: 0;
+    margin-top: 30px; /* Más espacio superior */
+    margin-bottom: 15px; /* Más espacio inferior */
+    font-weight: 700; /* Más énfasis */
+}
+
+/* Márgenes para las filas de Form.Group */
+.row.mb-3, .row.mb-4 {
+    margin-bottom: 20px !important; /* Unificar y dar más espacio */
+}
+
+/* --- SECCIÓN PALLETS --- */
+.pallet-list-box {
+    background-color: #fcfdfc;
+    border: 2px dashed #c8e6c9 !important; /* Borde punteado verde suave */
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    padding: 15px; /* Más padding interno */
+    min-height: 100px !important; /* Asegurar altura mínima */
+}
+
+.pallet-list-box:hover {
+    background-color: var(--citrus-green-light);
+    border-color: var(--citrus-accent) !important;
+}
+
+/* Estilo de los Badges (Etiquetas de Pallets) */
+.pallet-list-box .badge {
+    background-color: #e8f5e9 !important; /* Fondo verde muy pálido */
+    color: var(--citrus-green-dark) !important;
+    border: 1px solid #a5d6a7;
+    font-weight: 600;
+    padding: 6px 10px;
+    font-size: 0.82rem; /* Ligeramente más pequeño */
+    border-radius: 4px; /* Bordes menos redondeados para los badges */
+}
+
+/* Texto de "Total de Pallets" */
+.pallet-list-box .text-primary {
+    margin-top: 10px !important; /* Separar del último badge */
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+/* Botón Añadir Pallet */
+.d-flex.align-items-end .btn-outline-primary { /* Más específico para este botón */
+    color: var(--citrus-green);
+    border-color: var(--citrus-green);
+    font-weight: 500;
+    padding: 10px 15px; /* Ajustar padding */
+    font-size: 0.95rem; /* Ajustar tamaño de fuente */
+}
+
+.d-flex.align-items-end .btn-outline-primary:hover {
+    background-color: var(--citrus-green);
+    color: white;
+}
+
+/* Observaciones Textarea */
+.form-group.mb-4 textarea {
+    min-height: 90px; /* Altura mínima para el textarea */
+    resize: vertical; /* Permitir redimensionar verticalmente */
+}
+
+/* --- Botones de Acción al final del formulario --- */
+.d-flex.justify-content-end {
+    padding-top: 20px; /* Separar los botones del contenido superior */
+    border-top: 1px solid #eee; /* Línea sutil sobre los botones */
+    margin-top: 30px;
+}
+
+.btn-success {
+    background-color: var(--citrus-green);
+    border: none;
+    padding: 10px 24px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    border-radius: 6px; /* Asegurar bordes redondeados */
+}
+
+.btn-success:hover {
+    background-color: var(--citrus-green-dark);
+    box-shadow: 0 4px 8px rgba(27, 94, 32, 0.3);
+}
+
+.btn-secondary {
+    background-color: #eceff1;
+    color: #546e7a;
+    border: none;
+    padding: 10px 24px;
+    border-radius: 6px;
+    font-weight: 500;
+}
+.btn-secondary:hover {
+    background-color: #cfd8dc;
+    color: #37474f;
+}
+
+/* Estilos para Alert */
+.alert {
+    border-radius: 8px;
+    padding: 12px 20px;
+    font-size: 0.9rem;
+    margin-bottom: 20px;
+}
+.alert-danger {
+    background-color: #ffebee;
+    color: #c62828;
+    border-color: #ef9a9a;
+}
+.alert-success {
+    background-color: #e8f5e9;
+    color: var(--citrus-green-dark);
+    border-color: #a5d6a7;
+}
+
+/* =========================================
+   ESTILOS DE LA TABLA (LIMPIA Y MODERNA)
+   ========================================= */
+
+/* Contenedor para dar sombras y bordes redondeados a la tabla completa */
+.table-container {
+    background-color: white;
+    border-radius: 12px;
+    box-shadow: var(--citrus-shadow); /* La misma sombra suave del formulario */
+    overflow: hidden; /* Asegura que los bordes redondeados se vean */
+    border: 1px solid rgba(0,0,0,0.05);
+}
+
+/* Clase personalizada para la tabla */
+.custom-table {
+    margin-bottom: 0 !important; /* Quitar margen inferior de bootstrap */
+    vertical-align: middle;
+}
+
+/* Encabezados (Header) */
+.custom-table thead th {
+    background-color: #f8f9fa; /* Gris muy suave */
+    color: #6c757d; /* Texto gris medio */
+    font-weight: 700;
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    letter-spacing: 1px;
+    padding: 16px 16px;
+    border-bottom: 2px solid #e9ecef;
+    border-top: none;
+}
+
+/* Celdas del cuerpo */
+.custom-table tbody td {
+    padding: 16px 16px;
+    color: #2c3e50;
+    font-size: 0.9rem;
+    border-bottom: 1px solid #f1f1f1;
+}
+
+/* Efecto Hover (Pasar el mouse) - Verde Citrus muy suave */
+.custom-table tbody tr:hover {
+    background-color: #f1f8e9 !important; 
+    transition: background-color 0.2s ease;
+}
+
+/* Texto destacado en la tabla (Ej: Código de pedido) */
+.text-highlight {
+    color: var(--citrus-green-dark);
+    font-weight: 600;
+}
+
+/* --- BADGES DE ESTADO (Estilo Píldora Suave) --- */
+.status-pill {
+    padding: 6px 12px;
+    border-radius: 50px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    display: inline-block;
+}
+
+/* Variaciones de color para los estados */
+.status-pill.en_ruta { background-color: #e8f5e9; color: #2e7d32; border: 1px solid #c8e6c9; } /* Verde */
+.status-pill.pendiente { background-color: #fff3e0; color: #ef6c00; border: 1px solid #ffe0b2; } /* Naranja */
+.status-pill.entregado { background-color: #eceff1; color: #455a64; border: 1px solid #cfd8dc; } /* Gris */
+.status-pill.cancelado { background-color: #ffebee; color: #c62828; border: 1px solid #ffcdd2; } /* Rojo */
+
+/* Botones de acción dentro de la tabla */
+.btn-action-table {
+    padding: 4px 8px;
+    color: #90a4ae;
+    transition: color 0.2s;
+}
+.btn-action-table:hover { color: var(--citrus-green); background: none; }

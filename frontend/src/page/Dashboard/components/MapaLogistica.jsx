@@ -1,6 +1,7 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap, Circle } from 'react-leaflet';
 import L from 'leaflet';
+import { calculateRoute, formatDuration, formatDistance } from '../../../services/routingService';
 
 // Fix para los iconos de Leaflet en React
 delete L.Icon.Default.prototype._getIconUrl;
@@ -98,6 +99,10 @@ const MapaLogistica = () => {
   const [locationDetails, setLocationDetails] = useState(null);
   const [locationError, setLocationError] = useState(null);
   const [isTracking, setIsTracking] = useState(false);
+  const [showRoutes, setShowRoutes] = useState(true);
+  const [routeInfo, setRouteInfo] = useState({});
+  const [routeGeometries, setRouteGeometries] = useState({});
+  const [calculatingRoutes, setCalculatingRoutes] = useState(false);
 
   const [trucks] = useState([
     {
@@ -207,6 +212,33 @@ const MapaLogistica = () => {
     return `${degrees}° ${minutes}' ${seconds}" ${direction}`;
   };
 
+  // Calcular información de rutas al cargar
+  useEffect(() => {
+    const calculateAllRoutes = async () => {
+      setCalculatingRoutes(true);
+      const newRouteInfo = {};
+      const newRouteGeometries = {};
+
+      for (const truck of trucks) {
+        try {
+          const route = await calculateRoute(truck.position, truck.destinationPos);
+          newRouteInfo[truck.id] = route;
+          newRouteGeometries[truck.id] = route.geometry;
+          console.log(`Ruta calculada para ${truck.id}:`, route);
+        } catch (error) {
+          console.error(`Error calculando ruta para camión ${truck.id}:`, error);
+        }
+      }
+
+      setRouteInfo(newRouteInfo);
+      setRouteGeometries(newRouteGeometries);
+      setCalculatingRoutes(false);
+      console.log('Todas las rutas calculadas:', newRouteGeometries);
+    };
+
+    calculateAllRoutes();
+  }, []);
+
   return (
     <div>
       {/* BOTONES */}
@@ -237,6 +269,26 @@ const MapaLogistica = () => {
         >
           <i className="fas fa-location-crosshairs"></i>
           {isTracking ? 'Obteniendo ubicación GPS...' : 'Obtener Mi Ubicación GPS'}
+        </button>
+
+        <button
+          onClick={() => setShowRoutes(!showRoutes)}
+          style={{
+            padding: '10px 18px',
+            backgroundColor: showRoutes ? '#1976d2' : '#757575',
+            color: 'white',
+            border: 'none',
+            borderRadius: '6px',
+            cursor: 'pointer',
+            fontSize: '14px',
+            fontWeight: '600',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px'
+          }}
+        >
+          <i className={`fas fa-${showRoutes ? 'route' : 'route'}`}></i>
+          {showRoutes ? 'Ocultar Rutas' : 'Mostrar Rutas'}
         </button>
 
         {myLocation && (
@@ -281,6 +333,24 @@ const MapaLogistica = () => {
         }}>
           <i className="fas fa-exclamation-triangle"></i>
           <span>{locationError}</span>
+        </div>
+      )}
+
+      {/* Indicador de cálculo de rutas */}
+      {calculatingRoutes && (
+        <div style={{
+          padding: '12px',
+          backgroundColor: '#e3f2fd',
+          color: '#1565c0',
+          borderRadius: '6px',
+          marginBottom: '10px',
+          fontSize: '14px',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '10px'
+        }}>
+          <i className="fas fa-spinner fa-spin"></i>
+          <span>Calculando rutas optimizadas...</span>
         </div>
       )}
 
@@ -387,12 +457,31 @@ const MapaLogistica = () => {
           <React.Fragment key={truck.id}>
             <Marker position={truck.position} icon={truckIcon}>
               <Popup>
-                <div style={{ minWidth: '200px' }}>
+                <div style={{ minWidth: '250px' }}>
                   <h4 style={{ margin: '0 0 8px 0' }}>🚚 {truck.id}</h4>
                   <p style={{ margin: '4px 0' }}><strong>Chofer:</strong> {truck.driver}</p>
                   <p style={{ margin: '4px 0' }}><strong>Destino:</strong> {truck.destination}</p>
                   <p style={{ margin: '4px 0' }}><strong>Temp:</strong> {truck.temperature}</p>
                   <p style={{ margin: '4px 0' }}><strong>Estado:</strong> {truck.status}</p>
+                  
+                  {routeInfo[truck.id] && (
+                    <div style={{ 
+                      marginTop: '10px', 
+                      paddingTop: '10px', 
+                      borderTop: '1px solid #e0e0e0' 
+                    }}>
+                      <h5 style={{ margin: '0 0 6px 0', color: '#1976d2' }}>📍 Información de Ruta</h5>
+                      <p style={{ margin: '4px 0', fontSize: '13px' }}>
+                        <strong>Distancia:</strong> {routeInfo[truck.id].distanceKm} km
+                      </p>
+                      <p style={{ margin: '4px 0', fontSize: '13px' }}>
+                        <strong>Tiempo estimado:</strong> {formatDuration(routeInfo[truck.id].duration)}
+                      </p>
+                      <p style={{ margin: '4px 0', fontSize: '13px' }}>
+                        <strong>Velocidad promedio:</strong> {(parseFloat(routeInfo[truck.id].distanceKm) / parseFloat(routeInfo[truck.id].durationHours)).toFixed(0)} km/h
+                      </p>
+                    </div>
+                  )}
                 </div>
               </Popup>
             </Marker>
@@ -402,17 +491,38 @@ const MapaLogistica = () => {
                 <div>
                   <h4 style={{ margin: '0 0 8px 0' }}>📍 {truck.destination}</h4>
                   <p style={{ fontSize: '12px', color: '#666' }}>Punto de entrega</p>
+                  
+                  {routeInfo[truck.id] && (
+                    <div style={{ marginTop: '8px', fontSize: '12px' }}>
+                      <p style={{ margin: '2px 0' }}>
+                        <strong>Distancia desde camión:</strong> {routeInfo[truck.id].distanceKm} km
+                      </p>
+                      <p style={{ margin: '2px 0' }}>
+                        <strong>ETA:</strong> {formatDuration(routeInfo[truck.id].duration)}
+                      </p>
+                    </div>
+                  )}
                 </div>
               </Popup>
             </Marker>
 
-            <Polyline 
-              positions={[truck.position, truck.destinationPos]} 
-              color={truck.status === 'En tránsito' ? '#ff9800' : '#4caf50'}
-              weight={3}
-              opacity={0.7}
-              dashArray="10, 10"
-            />
+            {/* Mostrar ruta optimizada o línea recta */}
+            {showRoutes && routeGeometries[truck.id] ? (
+              <Polyline 
+                positions={routeGeometries[truck.id]} 
+                color={truck.status === 'En tránsito' ? '#ff9800' : '#4caf50'}
+                weight={5}
+                opacity={0.8}
+              />
+            ) : !showRoutes ? (
+              <Polyline 
+                positions={[truck.position, truck.destinationPos]} 
+                color={truck.status === 'En tránsito' ? '#ff9800' : '#4caf50'}
+                weight={3}
+                opacity={0.7}
+                dashArray="10, 10"
+              />
+            ) : null}
           </React.Fragment>
         ))}
       </MapContainer>

@@ -1,12 +1,17 @@
-import { create } from "zustand";
+import AuthForm from "./components/AuthForm";
 
-
-export const useAuthStore = create((set) => ({
-user: null,
-token: null,
-isAuthenticated: false,
-
-
-login: (userData, token) => set({ user: userData, token, isAuthenticated: true }),
-logout: () => set({ user: null, token: null, isAuthenticated: false }),
-}));
+export default function LoginPage() {
+  return (
+    <div
+      style={{
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        minHeight: "100vh",
+        background: "linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url('/bg_orchard.png') center/cover no-repeat",
+      }}
+    >
+      <AuthForm />
+    </div>
+  );
+}

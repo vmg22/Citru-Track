@@ -1,158 +1,470 @@
-// const bcrypt = require('bcrypt');
-// const jwt = require('jsonwebtoken');
-// const userModel = require('../models/userModel');
-// require('dotenv').config();
-
-// async function login(req, res){
-//   const { email, password } = req.body;
-//   if(!email || !password) return res.status(400).json({ error: 'Email y password requeridos' });
-
-//   try{
-//     const user = await userModel.findByEmail(email);
-//     if(!user) return res.status(401).json({ error: 'Credenciales inválidas' });
-//     const match = await bcrypt.compare(password, user.hashed_password);
-//     if(!match) return res.status(401).json({ error: 'Credenciales inválidas' });
-
-//     const roles = await userModel.getUserRoles(user.user_id);
-//     const payload = { userId: user.user_id, username: user.username, roles };
-//     const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: process.env.JWT_EXPIRES_IN || '8h' });
-
-//     return res.json({ token, usuario: { id: user.user_id, username: user.username, nombre: user.nombre, roles } });
-//   } catch(err){
-//     console.error(err);
-//     return res.status(500).json({ error: 'Error interno' });
-//   }
-// }
-
-// async function me(req, res){
-//   const id = req.user.userId;
-//   const user = await userModel.findById(id);
-//   if(!user) return res.status(404).json({ error: 'Usuario no encontrado' });
-//   const roles = await userModel.getUserRoles(id);
-//   res.json({ ...user, roles });
-// }
-
-// module.exports = { login, me };
-
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
-const userModel = require('../models/userModel');
-const { exito, error } = require('../utils/responses'); 
-const dotenv = require('dotenv');
-dotenv.config();
+const db = require('../config/db');
 
-// ==================== FUNCIONES AUXILIARES REQUERIDAS ====================
+const { enviarRecuperacionPassword } = require('../services/emails.service');
+require('dotenv').config();
 
-// Adaptada para usar los campos de tu userModel
-const generarToken = (usuario, roles, tipo = 'auth') => {
+// ==================== FUNCIÓN AUXILIAR ====================
+
+const generarToken = (usuario, roles) => {
   const payload = {
-    id: usuario.user_id, // Usando user_id
+    id: usuario.user_id,
     username: usuario.username,
-    email: usuario.email, // Usando email
-    roles: roles, // Array de roles
-    tipo: tipo
+    email: usuario.email,
+    roles: roles,
+    rol: roles[0] || 'user'
   };
 
   const options = {
-    // Usando el valor de tu `login` original si no está en .env
-    expiresIn: tipo === 'reset_password' ? '15m' : (process.env.JWT_EXPIRES_IN || '8h') 
+    expiresIn: process.env.JWT_EXPIRES_IN || '8h'
   };
 
   return jwt.sign(payload, process.env.JWT_SECRET, options);
 };
 
-// ==================== MÉTODOS DE AUTENTICACIÓN ====================
+// ==================== LOGIN ====================
 
-/**
- * Función de Login.
- * Implementa la lógica de verificación y generación de token.
- * * @param {object} req - Objeto de solicitud de Express.
- * @param {object} res - Objeto de respuesta de Express.
- */
-async function login(req, res){
+async function login(req, res) {
   const { email, password } = req.body;
-  
-  // 1. Validación de campos
+
+  console.log('🔍 === INICIO LOGIN ===');
+  console.log('📧 Email recibido:', email);
+  console.log('🔑 Password recibido:', password);
+  console.log('🔑 Longitud password:', password?.length);
+
   if (!email || !password) {
-    return error(res, 'Email y password son obligatorios', 400);
+    console.log('❌ Faltan credenciales');
+    return res.status(400).json({
+      exito: false,
+      mensaje: 'Email y password son obligatorios'
+    });
   }
 
-  try{
-    // 2. Buscar usuario por email (debe incluir el hash del password)
-    // Se necesita que userModel.findByEmailWithPassword(email) devuelva user.hashed_password
-    const user = await userModel.findByEmailWithPassword(email); 
+  try {
+    console.log('🔍 Buscando usuario en BD...');
+    const [[user]] = await db.query(
+      'SELECT user_id, username, email, hashed_password, nombre, telefono, activo FROM users WHERE email = ?',
+      [email]
+    );
 
-    // 3. Verificación de usuario
+    console.log('👤 Usuario encontrado:', user ? 'SÍ' : 'NO');
+    if (user) {
+      console.log('   - ID:', user.user_id);
+      console.log('   - Username:', user.username);
+      console.log('   - Activo:', user.activo);
+      console.log('   - Hash (primeros 20 chars):', user.hashed_password?.substring(0, 20) + '...');
+    }
+
     if (!user) {
-      return error(res, 'Credenciales inválidas', 401);
+      console.log('❌ Usuario no existe en BD');
+      return res.status(401).json({
+        exito: false,
+        mensaje: 'Credenciales inválidas'
+      });
     }
+
+    if (!user.activo) {
+      console.log('❌ Usuario inactivo');
+      return res.status(403).json({
+        exito: false,
+        mensaje: 'Usuario inactivo. Contacte al administrador.'
+      });
+    }
+
+    console.log('🔐 Comparando passwords...');
+    console.log('   - Password ingresado:', password);
+    console.log('   - Hash completo:', user.hashed_password);
     
-    // 4. Verificación de contraseña
     const match = await bcrypt.compare(password, user.hashed_password);
+    
+    console.log('✅ Resultado comparación:', match);
+
     if (!match) {
-      return error(res, 'Credenciales inválidas', 401);
+      console.log('❌ Password NO coincide');
+      return res.status(401).json({
+        exito: false,
+        mensaje: 'Credenciales inválidas'
+      });
     }
 
-    // 5. Obtener roles
-    const roles = await userModel.getUserRoles(user.user_id);
-    if (!roles || roles.length === 0) {
-      return error(res, 'Usuario sin roles asignados', 403); 
-    }
-    
-    // 6. Generar token JWT
-    const token = generarToken(user, roles, 'auth');
-    
-    // Opcional: Actualizar último login
-    await userModel.updateLastLogin(user.user_id);
+    console.log('✅ Password coincide - Obteniendo roles...');
 
-    // 7. Respuesta exitosa usando 'exito'
-    return exito(res, 'Inicio de sesión exitoso', { 
-      token, 
-      usuario: { 
-        id: user.user_id, 
-        username: user.username, 
-        nombre: user.nombre, // Asegúrate de que tu modelo devuelva 'nombre'
-        email: user.email, 
-        roles 
-      } 
+    const [rolesResult] = await db.query(
+      `SELECT r.name 
+       FROM user_roles ur 
+       INNER JOIN roles r ON ur.role_id = r.role_id 
+       WHERE ur.user_id = ?`,
+      [user.user_id]
+    );
+
+    const roles = rolesResult.map(r => r.name);
+
+    if (roles.length === 0) {
+      roles.push('user');
+    }
+
+    console.log('👔 Roles asignados:', roles);
+
+    const token = generarToken(user, roles);
+
+    console.log('🎫 Token generado (primeros 50 chars):', token.substring(0, 50) + '...');
+
+    await db.query(
+      'UPDATE users SET last_login = CURRENT_TIMESTAMP WHERE user_id = ?',
+      [user.user_id]
+    );
+
+    delete user.hashed_password;
+
+    console.log('✅ LOGIN EXITOSO');
+    console.log('🔍 === FIN LOGIN ===\n');
+
+    return res.status(200).json({
+      exito: true,
+      mensaje: 'Inicio de sesión exitoso',
+      datos: {
+        token,
+        usuario: {
+          id: user.user_id,
+          username: user.username,
+          nombre: user.nombre,
+          email: user.email,
+          telefono: user.telefono,
+          roles
+        }
+      }
     });
 
-  } catch(err){
-    console.error('Error en login:', err);
-    return error(res, 'Error al iniciar sesión', 500, err.message);
+  } catch (err) {
+    console.error('🚨 ERROR EN LOGIN:', err);
+    console.error('Stack:', err.stack);
+    return res.status(500).json({
+      exito: false,
+      mensaje: 'Error al iniciar sesión'
+    });
   }
 }
 
-/**
- * Función para obtener el perfil del usuario autenticado ('me').
- * * @param {object} req - Objeto de solicitud de Express (contiene req.user).
- * @param {object} res - Objeto de respuesta de Express.
- */
-async function me(req, res){
+
+
+ // ==================== VALIDAR TOKEN RESET ====================
+
+const validarTokenReset = async (req, res) => {
   try {
-    // 1. Obtener ID del usuario desde el token decodificado
-    // NOTA: Se asume que tu middleware adjunta el ID como 'req.user.id'
-    const id = req.user.id; 
+    const { token } = req.params;
 
-    // 2. Buscar usuario
-    const user = await userModel.findById(id);
-
-    if(!user) {
-      return error(res, 'Usuario no encontrado', 404);
+    if (!token) {
+      return res.status(400).json({
+        exito: false,
+        mensaje: "Token no proporcionado"
+      });
     }
+
+    let decoded;
+    try {
+      decoded = jwt.verify(token, process.env.JWT_SECRET);
+    } catch (err) {
+      return res.status(401).json({
+        exito: false,
+        mensaje: "Token inválido o expirado"
+      });
+    }
+
+    const userId = decoded.userId;
+
+    // Verificar usuario y token en BD
+    const [rows] = await db.execute(
+      "SELECT user_id, email FROM users WHERE user_id = ? AND token_reset = ? LIMIT 1",
+      [userId, token]
+    );
+
+    if (rows.length === 0) {
+      return res.status(401).json({
+        exito: false,
+        mensaje: "Token inválido o expirado"
+      });
+    }
+
+    return res.status(200).json({
+      exito: true,
+      mensaje: "Token válido",
+      datos: {
+        email: rows[0].email,
+        userId: rows[0].user_id
+      }
+    });
+
+  } catch (err) {
+    console.error("Error en validarTokenReset:", err);
+    return res.status(500).json({
+      exito: false,
+      mensaje: "Error al validar token"
+    });
+  }
+};
+// ==================== CAMBIAR PASSWORD AUTENTICADO ====================
+
+const cambiarPasswordAutenticado = async (req, res) => {
+  try {
+    const { currentPassword, newPassword } = req.body;
+
+    if (!currentPassword || !newPassword) {
+      return res.status(400).json({
+        exito: false,
+        mensaje: "Contraseña actual y nueva contraseña son obligatorias"
+      });
+    }
+
+    const usuario = await servicioUsuarios.obtenerUsuarioConPassword(req.user.id);
+
+    if (!usuario) {
+      return res.status(404).json({ exito: false, mensaje: "Usuario no encontrado" });
+    }
+
+    const passwordValido = await bcrypt.compare(currentPassword, usuario.password_hash);
+
+    if (!passwordValido) {
+      return res.status(401).json({ exito: false, mensaje: "La contraseña actual es incorrecta" });
+    }
+
+    await servicioUsuarios.actualizarUsuarioParcial(req.user.id, {
+      password: newPassword
+    });
+
+    return res.status(200).json({
+      exito: true,
+      mensaje: "Contraseña actualizada exitosamente. Inicia sesión nuevamente."
+    });
+
+  } catch (err) {
+    console.error("Error en cambiar password:", err);
+    return res.status(500).json({ exito: false, mensaje: "Error al cambiar contraseña" });
+  }
+};
+
+
+// ==================== SOLICITAR RESET ====================
+const solicitarReset = async (req, res) => {
+  try {
+    const email_usuario = req.body.email_usuario || req.body.email;
+
+    console.log("📩 Email recibido en backend:", email_usuario);
+
+    const mensajeGenerico =
+      "Si el email existe, recibirás un correo con instrucciones para recuperar tu contraseña";
+
+    if (!email_usuario) {
+      return res.status(400).json({ exito: false, mensaje: "El email es obligatorio" });
+    }
+
+    // Buscar usuario EN LA TABLA USERS
+    const [rows] = await db.execute(
+      "SELECT user_id, email, username FROM users WHERE email = ? LIMIT 1",
+      [email_usuario]
+    );
+
+    console.log("🔍 Resultado búsqueda usuario:", rows);
+
+    if (rows.length === 0) {
+      console.log("❌ Usuario no existe — mensaje genérico");
+      return res.json({ exito: true, mensaje: mensajeGenerico });
+    }
+
+    const userId = rows[0].user_id;
+    const username = rows[0].username || 'Usuario'; // Por si username es null
+
+    // Generar token
+    const token = jwt.sign(
+      { userId },
+      process.env.JWT_SECRET,  // ✅ Corregido
+      { expiresIn: "1h" }
+    );
+
+    console.log("🔑 Token generado:", token);
+
+    // Guardar token en la tabla users
+    await db.execute(
+      "UPDATE users SET token_reset = ? WHERE user_id = ?",
+      [token, userId]
+    );
+
+    console.log("💾 Token guardado en BD para user_id:", userId);
+
+    // Construir el link de reset
+    const resetLink = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/reset-password?token=${token}`;
     
-    // 3. Obtener roles
-    const roles = await userModel.getUserRoles(id);
-    
-    // 4. Respuesta exitosa usando 'exito'
-    return exito(res, 'Perfil obtenido correctamente', { ...user, roles });
+    console.log("🔗 Link generado:", resetLink);
+
+    // ✅ Enviar email con los parámetros correctos
+    const envio = await enviarRecuperacionPassword(email_usuario, resetLink, username);
+
+    console.log("📧 Resultado envío email:", envio);
+
+    return res.json({
+      exito: true,
+      mensaje: "Correo de recuperación enviado",
+    });
+
+  } catch (error) {
+    console.error("🚨 ERROR EN solicitarReset:", error);
+    return res.status(500).json({
+      exito: false,
+      mensaje: "Error al procesar solicitud de recuperación",
+      error: error.message
+    });
+  }
+};
+
+// ==================== PERFIL ====================
+
+async function me(req, res) {
+  try {
+    const userId = req.user.id;
+
+    const [[user]] = await db.query(
+      'SELECT user_id, username, email, nombre, telefono, activo, created_at, last_login FROM users WHERE user_id = ?',
+      [userId]
+    );
+
+    if (!user) {
+      return res.status(404).json({ exito: false, mensaje: 'Usuario no encontrado' });
+    }
+
+    const [rolesResult] = await db.query(
+      `SELECT r.name 
+       FROM user_roles ur 
+       INNER JOIN roles r ON ur.role_id = r.role_id 
+       WHERE ur.user_id = ?`,
+      [userId]
+    );
+
+    const roles = rolesResult.map(r => r.name);
+
+    return res.status(200).json({
+      exito: true,
+      mensaje: 'Perfil obtenido correctamente',
+      datos: { ...user, roles }
+    });
 
   } catch (err) {
     console.error('Error en me:', err);
-    return error(res, 'Error al obtener perfil', 500, err.message);
+    return res.status(500).json({ exito: false, mensaje: 'Error al obtener perfil' });
   }
 }
 
-// Puedes añadir aquí otras funciones (logout, register, etc.) si lo deseas.
+// ==================== LOGOUT ====================
 
-module.exports = { login, me };
+async function logout(req, res) {
+  try {
+    return res.status(200).json({
+      exito: true,
+      mensaje: 'Sesión cerrada exitosamente'
+    });
+  } catch (err) {
+    return res.status(500).json({
+      exito: false,
+      mensaje: 'Error al cerrar sesión'
+    });
+  }
+}
+
+
+const resetPasswordConToken = async (req, res) => {
+  try {
+    const { token, newPassword } = req.body;
+
+    console.log("🔄 === INICIO RESET PASSWORD ===");
+    console.log("🔑 Token recibido:", token?.substring(0, 20) + "...");
+    console.log("🔐 Nueva password longitud:", newPassword?.length);
+
+    // Validaciones básicas
+    if (!token || !newPassword) {
+      console.log("❌ Faltan datos");
+      return res.status(400).json({
+        exito: false,
+        mensaje: "Token y nueva contraseña son obligatorios"
+      });
+    }
+
+    if (newPassword.length < 6) {
+      console.log("❌ Password muy corta");
+      return res.status(400).json({
+        exito: false,
+        mensaje: "La contraseña debe tener al menos 6 caracteres"
+      });
+    }
+
+    // Verificar y decodificar token
+    let decoded;
+    try {
+      decoded = jwt.verify(token, process.env.JWT_SECRET);
+      console.log("✅ Token válido - userId:", decoded.userId);
+    } catch (err) {
+      console.log("❌ Token inválido o expirado:", err.message);
+      return res.status(401).json({
+        exito: false,
+        mensaje: "Token inválido o expirado"
+      });
+    }
+
+    const userId = decoded.userId;
+
+    // Verificar que el token coincida en BD y que no haya sido usado
+    const [rows] = await db.execute(
+      "SELECT user_id, email FROM users WHERE user_id = ? AND token_reset = ? LIMIT 1",
+      [userId, token]
+    );
+
+    console.log("🔍 Usuario encontrado en BD:", rows.length > 0);
+
+    if (rows.length === 0) {
+      console.log("❌ Token no coincide o ya fue usado");
+      return res.status(401).json({
+        exito: false,
+        mensaje: "Token inválido o ya fue utilizado"
+      });
+    }
+
+    // Hash de la nueva contraseña
+    console.log("🔐 Hasheando nueva contraseña...");
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    console.log("✅ Password hasheada (primeros 20 chars):", hashedPassword.substring(0, 20) + "...");
+
+    // Actualizar contraseña y limpiar token
+    await db.execute(
+      "UPDATE users SET hashed_password = ?, token_reset = NULL WHERE user_id = ?",
+      [hashedPassword, userId]
+    );
+
+    console.log("✅ Contraseña actualizada en BD");
+    console.log("🔄 === FIN RESET PASSWORD ===\n");
+
+    return res.status(200).json({
+      exito: true,
+      mensaje: "Contraseña actualizada exitosamente"
+    });
+
+  } catch (error) {
+    console.error("🚨 ERROR EN resetPasswordConToken:", error);
+    console.error("Stack:", error.stack);
+    return res.status(500).json({
+      exito: false,
+      mensaje: "Error al restablecer contraseña"
+    });
+  }
+};
+
+
+// ==================== EXPORTAR ====================
+
+module.exports = {
+  login,
+  me,
+  logout,
+  solicitarReset,
+  validarTokenReset,
+  cambiarPasswordAutenticado,
+  resetPasswordConToken
+  
+};

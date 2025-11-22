@@ -1,47 +1,107 @@
 import React from "react";
-import "../../style/sidebar.css"
+import Logout from "../layout/logout";
+import "../../style/sidebar.css";
 
 const NavItem = ({ icon, text, active, onClick }) => {
   return (
-    <div
-      className={`side-nav-item ${active ? "active" : ""}`}
-      onClick={onClick}
-    >
-      <i className={icon}></i>
-      <span>{text}</span>
+    <div className={`nav-item ${active ? "active" : ""}`} onClick={onClick}>
+      <div className="nav-icon-box">
+        <i className={icon}></i>
+      </div>
+      <span className="nav-text">{text}</span>
+      {active && <div className="active-indicator" />}
     </div>
   );
 };
 
-const Sidebar = ({ activeItem, onItemClick, appName = "CitrusTrack", appIcon = "fas fa-lemon" }) => {
-  const menuItems = [
-    { id: "dashboard", icon: "fas fa-tachometer-alt", text: "Dashboard" },
-    { id: "bins", icon: "fas fa-warehouse", text: "Recepción de Bins" },
-    { id: "monitoreo", icon: "fas fa-eye", text: "Monitoreo en Tiempo Real" },
-    { id: "lotes", icon: "fas fa-boxes", text: "Gestión de Lotes" },
-    { id: "logistica", icon: "fas fa-truck", text: "Logística y Rutas" },
-    { id: "kpis", icon: "fas fa-chart-line", text: "KPIs y Reportes" },
-    { id: "config", icon: "fas fa-cog", text: "Configuración" },
+const Sidebar = ({
+  activeItem,
+  onItemClick,
+  appName = "CitrusTrack",
+  appIcon = "fas fa-lemon",
+}) => {
+  const menuGroups = [
+    {
+      title: "Principal",
+      items: [
+        { id: "dashboard", icon: "fas fa-tachometer-alt", text: "Dashboard" },
+        { id: "monitoreo", icon: "fas fa-eye", text: "Monitoreo Vivo" },
+      ],
+    },
+    {
+      title: "Operaciones",
+      items: [
+        { id: "bins", icon: "fas fa-warehouse", text: "Recepción Bins" },
+        { id: "linea", icon: "fas fa-cogs", text: "Línea Proceso" },
+        { id: "camara", icon: "fas fa-snowflake", text: "Cámaras Frío" },
+        { id: "pallet", icon: "fas fa-pallet", text: "Armado Pallets" },
+      ],
+    },
+    {
+      title: "Gestión",
+      items: [
+        { id: "logistica", icon: "fas fa-truck", text: "Logística" },
+        { id: "gestion-pedidos", icon: "fas fa-clipboard-list", text: "Gestión de Pedidos" },
+      ],
+    },
+    {
+      title: "Admin",
+      items: [
+        { id: "kpis", icon: "fas fa-chart-line", text: "KPIs" },
+        { id: "ajustes", icon: "fas fa-cog", text: "Ajustes" },
+      ],
+    },
   ];
 
   return (
-    <div className="side-sidebar">
-      <div className="side-logo">
-        <i className={appIcon}></i>
-        <h1>{appName}</h1>
+    <aside className="sidebar-container">
+      {/* Header del Sidebar */}
+      <div
+        className="sidebar-header"
+        onClick={() => onItemClick("dashboard")}
+        style={{ cursor: "pointer" }}
+      >
+        <div className="logo-icon">
+          <i className={appIcon}></i>
+        </div>
+        <h1 className="logo-text">{appName}</h1>
       </div>
-      <div className="side-nav-menu">
-        {menuItems.map((item) => (
-          <NavItem
-            key={item.id}
-            icon={item.icon}
-            text={item.text}
-            active={activeItem === item.id}
-            onClick={() => onItemClick(item.id)}
-          />
+
+      {/* Menú */}
+      <div className="sidebar-menu">
+        {menuGroups.map((group, index) => (
+          <div key={index} className="menu-group">
+            <h3 className="group-title">{group.title}</h3>
+            {group.items.map((item) => (
+              <NavItem
+                key={item.id}
+                icon={item.icon}
+                text={item.text}
+                active={activeItem === item.id}
+                onClick={() => onItemClick(item.id)}
+              />
+            ))}
+          </div>
         ))}
       </div>
-    </div>
+
+      {/* Footer — Usuario + Logout */}
+      <div className="sidebar-footer">
+        <div className="user-info">
+          <div className="user-avatar">AD</div>
+          <div className="user-details">
+            <span className="user-name">Admin</span>
+            <span className="user-role">Gerente Planta</span>
+          </div>
+        </div>
+
+        <Logout
+          label={
+            <i className="fas fa-sign-out-alt" style={{ fontSize: "20px" }} />
+          }
+        />
+      </div>
+    </aside>
   );
 };
 

@@ -1,126 +1,390 @@
-.bins-page-container {
-  width: 100%;
-  padding: 1.5rem; 
-  box-sizing: border-box; 
+/* bins.css - Estilos para la página de recepción de bins */
+
+.recepcion-bin-container {
+  padding: 30px 40px;
+  background-color: #f5f5f5;
+  min-height: 100vh;
+  margin-left: 0; /* Se ajusta automáticamente con el sidebar */
 }
 
-.recepcion-card {
-    width: 100%; 
-    background-color: #ffffff; /* bg-white */
-    padding: 1.5rem; /* p-6 (24px) */
-    border-radius: 0.25rem; /* rounded (4px) */
-    box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1); 
-    margin-bottom: 1rem; /* mb-4 (16px) */
+.recepcion-bin-container h2 {
+  color: #4a7c2f;
+  font-size: 26px;
+  font-weight: 600;
+  margin-bottom: 30px;
+  padding-bottom: 15px;
+  border-bottom: 2px solid #e5e7eb;
 }
 
-/* Tarjeta secundaria (lista de bins) */
-.recepcion-card-recent {
-    width: 100%; 
-    background-color: #ffffff; /* bg-white */
-    padding: 1rem; /* p-4 (16px) */
-    border-radius: 0.25rem; /* rounded (4px) */
-    /* shadow (sombra suave de Tailwind) */
-    box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+/* ============================================
+   ALERTAS
+   ============================================ */
+.alert {
+  padding: 15px 20px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-weight: 500;
+  animation: fadeIn 0.3s ease-out;
 }
 
-/* Títulos de las tarjetas */
-.recepcion-card h3.recepcion-card-title {
-    font-weight: 600; /* font-semibold */
-    margin-bottom: 1rem; /* mb-4 (16px) */
-    color: var(--primary-color, #2e7d32); /* Añadido para consistencia */
-    font-size: 1.125rem; 
-}
-.recepcion-card-recent h4.recepcion-card-title {
-    font-weight: 600; /* font-semibold */
-    margin-bottom: 0.5rem; /* mb-2 (8px) */
-    color: var(--primary-color, #2e7d32); /* Añadido para consistencia */
-    font-size: 1.125rem;
+.alert button {
+  background: none;
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
+  opacity: 0.7;
+  transition: opacity 0.2s;
+  color: inherit;
 }
 
-/* Grid del formulario */
-.recepcion-form {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr)); /* grid-cols-2 */
-    gap: 1rem; /* gap-4 (16px) */
-    width: 100%; /* <-- AÑADIDO: Forzar el ancho al 100% */
+.alert button:hover {
+  opacity: 1;
 }
 
-/* Modificador para que ocupe todo el ancho del grid */
-.recepcion-form-group.full-width {
-    grid-column: span 2 / span 2; /* col-span-2 */
+.alert-error {
+  background-color: #fee;
+  color: #c33;
+  border-left: 4px solid #c33;
 }
 
-/* Etiquetas del formulario */
-.recepcion-form-label {
-    display: block; 
-    font-size: 1rem;
-    line-height: 1.25rem;
-    color: #4b5563; 
-    margin-bottom: 0.5rem;
+.alert-success {
+  background-color: #efe;
+  color: #3a3;
+  border-left: 4px solid #3a3;
 }
 
-/* Inputs y Textarea del formulario */
-.recepcion-form-input {
-    width: 100%; /* w-full */
-    border: 1px solid #e5e7eb; /* border (color por defecto gray-200) */
-    padding: 0.75rem 0.5rem; /* <-- MODIFICADO: Más padding vertical (era 0.5rem) */
-    border-radius: 0.25rem; /* rounded (4px) */
-    box-sizing: border-box; /* Asegura que el padding no afecte el ancho */
-    font-size: 1rem; /* <-- AÑADIDO: Letra más grande (16px) */
-}
-/* Aumentamos la altura de la textarea también */
-.recepcion-form-input[rows="2"] {
-    min-height: 80px; /* <-- AÑADIDO: Altura mínima para textarea */
-}
-
-.recepcion-form-input:focus {
-    border-color: var(--primary-color, #2e7d32);
-    outline: 1px solid var(--primary-color, #2e7d32);
+/* ============================================
+   FORMULARIO
+   ============================================ */
+.bin-form {
+  background-color: white;
+  padding: 30px;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
 }
 
-/* Contenedor de botones del formulario */
-.recepcion-form-actions {
-    grid-column: span 2 / span 2; /* col-span-2 */
-    text-align: right; /* text-right */
-    margin-top: 0.5rem; /* <-- AÑADIDO: Espacio extra antes del botón */
+/* Observaciones ocupa toda la fila */
+.bin-form .form-group:nth-last-child(2) {
+  grid-column: 1 / -1;
 }
 
-/* Botón principal del formulario */
-.recepcion-form-button {
-    /* Usando la variable de color de tu CSS original (--primary-color) */
-    background-color: var(--primary-color, #2e7d32); /* bg-green-600 */
-    color: #ffffff; /* text-white */
-    padding-left: 1.5rem; /* <-- MODIFICADO: Más padding (era 1rem) */
-    padding-right: 1.5rem; /* <-- MODIFICADO: Más padding (era 1rem) */
-    padding-top: 0.75rem; /* <-- MODIFICADO: Más padding (era 0.5rem) */
-    padding-bottom: 0.75rem; /* <-- MODIFICADO: Más padding (era 0.5rem) */
-    border-radius: 0.25rem; /* rounded (4px) */
-    border: none;
-    cursor: pointer;
-    transition: opacity 0.2s;
-    font-size: 0.9rem; /* <-- AÑADIDO: Letra más grande */
-    font-weight: 600; /* <-- AÑADIDO: Letra en negrita */
-}
-.recepcion-form-button:hover {
-    opacity: 0.9;
+/* Botón submit ocupa toda la fila */
+.bin-form .btn-submit {
+  grid-column: 1 / -1;
 }
 
-/* Lista de bins recientes */
-.recepcion-bins-list {
-    font-size: 15px; /* text-sm (14px) */
-    line-height: 1.25rem;
-    color: #374151; /* text-gray-700 */
-    list-style: none; /* Quitamos los puntos de la lista */
-    padding-left: 0; /* Quitamos el padding por defecto de ul */
+.form-group {
+  display: flex;
+  flex-direction: column;
 }
 
-/* AÑADIDO: Estilo para los items de la lista de bins */
-.recepcion-bins-list li {
-    padding: 0.75rem 0.25rem; /* Más padding vertical */
-    border-bottom: 1px solid #e5e7eb; /* Borde inferior (como en la imagen) */
-    font-size: 0.9rem; /* Letra más grande */
+.form-group label {
+  font-size: 14px;
+  font-weight: 500;
+  color: #333;
+  margin-bottom: 8px;
 }
 
-.recepcion-bins-list li:last-child {
-    border-bottom: none; /* Quitamos el borde del último item */
+.form-group label .error-text {
+  color: #c33;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.form-group label .success-text {
+  color: #3a3;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+  padding: 12px 15px;
+  font-size: 15px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  background-color: white;
+  transition: all 0.2s;
+  font-family: inherit;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+  outline: none;
+  border-color: #4a7c2f;
+  box-shadow: 0 0 0 3px rgba(74, 124, 47, 0.1);
+}
+
+.form-group input:disabled,
+.form-group select:disabled,
+.form-group textarea:disabled {
+  background-color: #f3f4f6;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.form-group textarea {
+  resize: vertical;
+  min-height: 80px;
+}
+
+/* Botón principal */
+.btn-submit {
+  padding: 15px 30px;
+  font-size: 16px;
+  font-weight: 600;
+  color: white;
+  background-color: #4a7c2f;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s;
+  margin-top: 10px;
+}
+
+.btn-submit:hover:not(:disabled) {
+  background-color: #3a6325;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(74, 124, 47, 0.3);
+}
+
+.btn-submit:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.btn-submit:disabled {
+  background-color: #9ca3af;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+/* ============================================
+   BINS RECIENTES
+   ============================================ */
+.bins-recientes {
+  margin-top: 40px;
+  background-color: white;
+  padding: 25px;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.bins-recientes h3 {
+  color: #2d5016;
+  font-size: 20px;
+  font-weight: 600;
+  margin-bottom: 20px;
+  padding-bottom: 10px;
+  border-bottom: 2px solid #e5e7eb;
+}
+
+.bins-recientes ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.bins-recientes li {
+  padding: 15px;
+  margin-bottom: 12px;
+  background-color: #f9fafb;
+  border-radius: 8px;
+  border-left: 4px solid #4a7c2f;
+  transition: all 0.2s;
+  animation: fadeIn 0.4s ease-out;
+}
+
+.bins-recientes li:hover {
+  background-color: #f3f4f6;
+  transform: translateX(5px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+/* Header del bin (ID + Badge de lote) */
+.bin-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.bin-header strong {
+  color: #4a7c2f;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.lote-badge {
+  background-color: #4a7c2f;
+  color: white;
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+  display: inline-block;
+}
+
+/* Información del producto */
+.bin-info {
+  color: #374151;
+  font-size: 15px;
+  margin-bottom: 6px;
+  font-weight: 500;
+}
+
+/* Detalles (remito y peso) */
+.bin-details {
+  color: #6b7280;
+  font-size: 14px;
+  margin-bottom: 8px;
+}
+
+/* Metadata (fecha de ingreso) */
+.bin-meta {
+  padding-top: 8px;
+  border-top: 1px solid #e5e7eb;
+  margin-top: 8px;
+}
+
+.bin-meta small {
+  color: #9ca3af;
+  font-size: 12px;
+  font-style: italic;
+}
+
+.bins-recientes p {
+  text-align: center;
+  color: #9ca3af;
+  padding: 20px;
+  font-style: italic;
+}
+
+/* ============================================
+   RESPONSIVE
+   ============================================ */
+@media (max-width: 768px) {
+  .bin-form {
+    grid-template-columns: 1fr;
+    padding: 20px;
+  }
+
+  .form-group:nth-last-child(2),
+  .btn-submit {
+    grid-column: 1;
+  }
+
+  .recepcion-bin-container h2 {
+    font-size: 24px;
+  }
+
+  .bin-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .lote-badge {
+    align-self: flex-start;
+  }
+}
+
+/* ============================================
+   ANIMACIONES
+   ============================================ */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* ============================================
+   ESTADOS DE VALIDACIÓN
+   ============================================ */
+.form-group input.error {
+  border-color: #ef4444;
+  background-color: #fef2f2;
+}
+
+.form-group input.success {
+  border-color: #10b981;
+  background-color: #f0fdf4;
+}
+
+/* Loading spinner para el botón */
+.btn-submit.loading::after {
+  content: "";
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  margin-left: 10px;
+  border: 2px solid #ffffff;
+  border-radius: 50%;
+  border-top-color: transparent;
+  animation: spin 0.6s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ============================================
+   UTILIDADES
+   ============================================ */
+.text-center {
+  text-align: center;
+}
+
+.mt-20 {
+  margin-top: 20px;
+}
+
+.mb-20 {
+  margin-bottom: 20px;
+}
+
+/* ============================================
+   SCROLLBAR PERSONALIZADO (opcional)
+   ============================================ */
+.bins-recientes ul::-webkit-scrollbar {
+  width: 8px;
+}
+
+.bins-recientes ul::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 10px;
+}
+
+.bins-recientes ul::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 10px;
+}
+
+.bins-recientes ul::-webkit-scrollbar-thumb:hover {
+  background: #555;
 }
