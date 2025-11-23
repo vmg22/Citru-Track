@@ -20,7 +20,12 @@ const menuItems = {
       },
       {
         id: "transporte",
-        label: "Transportes y Choferes",
+        label: "Transportistas y Choferes",
+        icon: "fa-solid fa-clipboard-user", 
+      },
+      {
+        id: "camion",
+        label: "Camiones",
         icon: "fas fa-truck-moving",
       },
       { id: "productores", label: "Productores", icon: "fas fa-tractor" },

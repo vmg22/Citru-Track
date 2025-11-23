@@ -5,7 +5,7 @@ const controller = require("../controllers/camionesController");
 router.get("/", controller.getAllCamiones);
 router.get("/:id", controller.getCamionById);
 router.post("/", controller.createCamion);
-router.put("/:id", controller.updateCamion);
-router.delete("/:id", controller.deleteCamion);
+router.patch("/:id", controller.updateCamion);
+router.put("/:id", controller.deleteCamion);
 
 module.exports = router;

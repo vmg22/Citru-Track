@@ -1,12 +1,15 @@
 import {
-  BrowserRouter,
-  Routes,
-  Route,
-  Navigate,
-  useNavigate,
-  useLocation,
+    BrowserRouter,
+    Routes,
+    Route,
+    Navigate,
+    useNavigate,
+    useLocation,
 } from "react-router-dom";
 import { useState, useEffect } from "react";
+// Importaciones esenciales de Toastify
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css'; 
 
 // Páginas públicas
 import LoginPage from "./page/Auth/LoginPage";
@@ -32,32 +35,31 @@ import ProductoVariedades from "./page/Settings/components/ProductoVariedades";
 // ---------------------------------------------------
 
 const routeToItemMap = {
-  "/dashboard": "dashboard",
-  "/monitoreo": "monitoreo",
-  "/bins": "bins",
-  "/linea-de-proceso": "linea",
-  "/armado-pallet": "pallet",
-  "/camara": "camara",
-  "/gestion-pedidos": "gestion-pedidos",
-  "/ajustes": "ajustes",
-  "/kpis": "kpis",
-  "/logistica": "logistica",
-  
-  "/productos": "productos",
+    "/dashboard": "dashboard",
+    "/monitoreo": "monitoreo",
+    "/bins": "bins",
+    "/linea-de-proceso": "linea",
+    "/armado-pallet": "pallet",
+    "/camara": "camara",
+    "/gestion-pedidos": "gestion-pedidos",
+    "/ajustes": "ajustes",
+    "/kpis": "kpis",
+    "/logistica": "logistica",
+    "/productos": "productos",
 };
 
 const itemToPathMap = {
-  dashboard: "/dashboard",
-  monitoreo: "/monitoreo",
-  linea: "/linea-de-proceso",
-  bins: "/bins",
-  pallet: "/armado-pallet",
-  camara: "/camara",
-  ajustes:"/ajustes",
-  kpis: "/kpis",
-  logistica: "/logistica",
-  "gestion-pedidos": "/gestion-pedidos",
-  productos:"/productos",  
+    dashboard: "/dashboard",
+    monitoreo: "/monitoreo",
+    linea: "/linea-de-proceso",
+    bins: "/bins",
+    pallet: "/armado-pallet",
+    camara: "/camara",
+    ajustes:"/ajustes",
+    kpis: "/kpis",
+    logistica: "/logistica",
+    "gestion-pedidos": "/gestion-pedidos",
+    productos:"/productos",  
 };
 
 // ---------------------------------------------------
@@ -65,79 +67,93 @@ const itemToPathMap = {
 // ---------------------------------------------------
 
 const AppContent = () => {
-  const navigate = useNavigate();
-  const location = useLocation();
+    const navigate = useNavigate();
+    const location = useLocation();
 
-  const [activeItem, setActiveItem] = useState("dashboard");
+    const [activeItem, setActiveItem] = useState("dashboard");
 
-  // Este useEffect actualiza el ítem activo del sidebar cuando
-  // la URL cambia (ej: usando los botones de "atrás/adelante" del navegador)
-  useEffect(() => {
-    const currentItem = routeToItemMap[location.pathname];
-    if (currentItem && currentItem !== activeItem) {
-      setActiveItem(currentItem);
-    }
-    // Corregido: Si la ruta es solo "/", activa 'dashboard'
-    else if (location.pathname === "/") {
-        setActiveItem("dashboard");
-    }
-  }, [location.pathname, activeItem]);
+    // Este useEffect actualiza el ítem activo del sidebar cuando
+    // la URL cambia (ej: usando los botones de "atrás/adelante" del navegador)
+    useEffect(() => {
+        const currentItem = routeToItemMap[location.pathname];
+        if (currentItem && currentItem !== activeItem) {
+            setActiveItem(currentItem);
+        }
+        // Corregido: Si la ruta es solo "/", activa 'dashboard'
+        else if (location.pathname === "/") {
+            setActiveItem("dashboard");
+        }
+    }, [location.pathname, activeItem]);
 
-  // FUNCIÓN: Navegar al hacer clic en el Sidebar
-  const handleNavigation = (itemId) => {
-    const path = itemToPathMap[itemId];
-    if (!path) return;
+    // FUNCIÓN: Navegar al hacer clic en el Sidebar
+    const handleNavigation = (itemId) => {
+        const path = itemToPathMap[itemId];
+        if (!path) return;
 
-    if (path !== location.pathname) {
-      setActiveItem(itemId);
-      navigate(path);
-    }
-  };
+        if (path !== location.pathname) {
+            setActiveItem(itemId);
+            navigate(path);
+        }
+    };
 
-  return (
-    <Layout activeItem={activeItem} onItemClick={handleNavigation}>
-      <Routes>
-        {/* Ruta principal que redirige al dashboard */}
-        <Route path="/" element={<Navigate to="/login" replace />} />
-        
-        <Route path="/dashboard" element={<DashboardPrincipal />} />
-        <Route path="/bins" element={<BinsPage />} />
-        <Route path="/linea-de-proceso" element={<LineaDeProceso />} />
-        <Route path="/armado-pallet" element={<Pallet />} />
-        <Route path="/camara" element={<CamaraFrio />} />
-        <Route path="/camara-config" element={<Camara />} />
+    return (
+        <Layout activeItem={activeItem} onItemClick={handleNavigation}>
+            <Routes>
+                {/* Ruta principal que redirige al dashboard */}
+                <Route path="/" element={<Navigate to="/login" replace />} />
+                
+                <Route path="/dashboard" element={<DashboardPrincipal />} />
+                <Route path="/bins" element={<BinsPage />} />
+                <Route path="/linea-de-proceso" element={<LineaDeProceso />} />
+                <Route path="/armado-pallet" element={<Pallet />} />
+                <Route path="/camara" element={<CamaraFrio />} />
+                <Route path="/camara-config" element={<Camara />} />
 
-        {/* --- RUTAS FALTANTES AÑADIDAS --- */}
-        <Route path="/monitoreo" element={<MonitoringsPage />} />
-        <Route path="/gestion-pedidos" element={<GestionPedidos />} />
-        <Route path="/kpis" element={<KPIsPage />} />
-        <Route path="/ajustes" element={<Ajustes />} />
-        <Route path="/kpis" element={<Kpi />} />
-        <Route path="/logistica" element={<Logistica />} />
-        <Route path="/productos" element={<ProductoVariedades />} />
-      </Routes>
-    </Layout>
-  );
+                {/* --- RUTAS FALTANTES AÑADIDAS --- */}
+                <Route path="/monitoreo" element={<MonitoringsPage />} />
+                <Route path="/gestion-pedidos" element={<GestionPedidos />} />
+                <Route path="/kpis" element={<KPIsPage />} />
+                <Route path="/ajustes" element={<Ajustes />} />
+                <Route path="/kpis" element={<Kpi />} />
+                <Route path="/logistica" element={<Logistica />} />
+                <Route path="/productos" element={<ProductoVariedades />} />
+
+            </Routes>
+        </Layout>
+    );
 };
-
+        
 // ---------------------------------------------------
 // APP PRINCIPAL (ESTRUCTURA CORREGIDA)
 // ---------------------------------------------------
 
 export default function App() {
-  return (
-    <BrowserRouter>
-      <Routes>
-        {/* Rutas Públicas (sin Layout) */}
-        <Route path="/login" element={<LoginPage />} />
-        <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-        <Route path="/reset-password" element={<ResetPasswordPage />} />
+    return (
+        <BrowserRouter>
+            {/* 💡 CONTENEDOR DE TOASTIFY COLOCADO FUERA DE ROUTES 
+                 PARA QUE ESTÉ DISPONIBLE EN TODAS LAS PÁGINAS (públicas y privadas) */}
+            <ToastContainer 
+                position="top-right" 
+                autoClose={5000}
+                hideProgressBar={false}
+                newestOnTop={false}
+                closeOnClick
+                rtl={false}
+                pauseOnFocusLoss
+                draggable
+                pauseOnHover
+                theme="light"
+            />
+            
+            <Routes>
+                {/* Rutas Públicas (sin Layout) */}
+                <Route path="/login" element={<LoginPage />} />
+                <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+                <Route path="/reset-password" element={<ResetPasswordPage />} />
 
-        {/* Rutas Privadas (con Layout) 
-            Usamos "/*" para indicar que cualquier otra ruta 
-            (incluyendo "/") debe ser manejada por AppContent */}
-        <Route path="/*" element={<AppContent />} />
-      </Routes>
-    </BrowserRouter>
-  );
+                {/* Rutas Privadas (con Layout) */}
+                <Route path="/*" element={<AppContent />} />
+            </Routes>
+        </BrowserRouter>
+    );
 }

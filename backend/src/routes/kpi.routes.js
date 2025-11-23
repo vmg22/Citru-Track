@@ -28,3 +28,5 @@ router.get("/auditoria", ctrl.getAuditKPIs);
 router.get("/productos", ctrl.getProductos);
 
 module.exports = router;
+
+
