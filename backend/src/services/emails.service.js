@@ -1,5 +1,6 @@
 const nodemailer = require("nodemailer");
 const dotenv = require("dotenv");
+const path = require("path"); 
 dotenv.config();
 
 // ===============================================
@@ -65,6 +66,8 @@ const enviarRecuperacionPassword = async (mail, resetLink, username) => {
       throw new Error('El link de reset no contiene un token válido');
     }
 
+    
+  
     const mailOptions = {
       from: `CitrusTrack <${process.env.EMAIL_USER}>`,
       to: mail,
@@ -236,4 +239,100 @@ const enviarRecuperacionPassword = async (mail, resetLink, username) => {
   }
 };
 
-module.exports = {enviarMailTest,enviarRecuperacionPassword};
+
+ const emailGeneraCodigoPedido = async (mail, nombreEmpresa, codigoConfirmacion) => {
+  try {
+    const mailOptions = {
+      from: `CitrusTrack <${process.env.EMAIL_USER}>`,
+      to: mail,
+      subject: "Confirmación de Pedido – CitrusTrack",
+      html: `
+      <div style="font-family: Arial, sans-serif; color: #333; max-width: 650px; margin: 0 auto;">
+        
+        <!-- LOGO -->
+        <div style="text-align: center; margin-bottom: 20px;">
+          <img src="cid:citrustrack-logo" alt="CitrusTrack" style="max-width: 180px; height: auto;">
+        </div>
+
+        <!-- CUERPO PRINCIPAL -->
+        <h1 style="font-size: 22px; color: #1a1a1a; margin-bottom: 10px;">
+          Estimado/a ${nombreEmpresa},
+        </h1>
+
+        <p style="font-size: 15px; line-height: 1.5;">
+          Le informamos que su pedido ha sido <strong>registrado correctamente</strong> en el sistema de gestión 
+          <strong>CitrusTrack</strong>.
+        </p>
+
+        <p style="font-size: 15px; line-height: 1.5;">
+          Para confirmar la <strong>recepción efectiva</strong> de este pedido, deberá utilizar el siguiente 
+          <strong>código de confirmación</strong>:
+        </p>
+
+        <div style="text-align: center; margin: 25px 0;">
+          <span style="
+            display: inline-block;
+            padding: 12px 24px;
+            font-size: 26px;
+            letter-spacing: 4px;
+            font-weight: bold;
+            color: #ffffff;
+            background-color: #7ac143;
+            border-radius: 8px;
+          ">
+            ${codigoConfirmacion}
+          </span>
+        </div>
+
+        <p style="font-size: 15px; line-height: 1.5;">
+          Este código es <strong>único</strong> y está asociado exclusivamente a este pedido. 
+          Deberá ingresarlo en la plataforma CitrusTrack para dejar registrada la recepción por parte de su establecimiento.
+        </p>
+
+        <!-- CONTACTO -->
+        <hr style="border: none; border-top: 1px solid #ddd; margin: 25px 0;" />
+
+        <p style="font-size: 14px; line-height: 1.6; margin: 0 0 10px 0;">
+          Ante cualquier consulta o inconveniente, puede contactarse con nosotros:
+        </p>
+
+        <p style="font-size: 14px; line-height: 1.6; margin: 0;">
+          <strong>Soporte CitrusTrack</strong><br>
+          Email: <a href="mailto:soporte@citrustrack.com" style="color: #4a57d4;">soporte@citrustrack.com</a><br>
+          Teléfono: +54 9 381 000 0000<br>
+          Sitio web: <a href="https://citrustrack.com" style="color: #4a57d4;">https://citrustrack.com</a>
+        </p>
+
+        <!-- DISCLAIMER -->
+        <p style="font-size: 12px; line-height: 1.5; color: #777; margin-top: 25px;">
+          Si usted ha recibido este correo por error, le solicitamos amablemente <strong>desestimarlo</strong> 
+          y, de ser posible, notificar a nuestro equipo de soporte. 
+          No comparta este código con terceros ajenos a su organización.
+        </p>
+
+        <p style="font-size: 12px; line-height: 1.5; color: #777;">
+          Este mensaje fue generado de forma automática por el sistema CitrusTrack.
+        </p>
+
+      </div>
+      `,
+      // Adjuntás el logo para usarlo con cid:citrustrack-logo
+      attachments: [
+         {
+            filename: "citrustrack-logo.png",
+            path: path.join(__dirname, "../../assets/logo/citrustrack-4.png"),
+            cid: "citrustrack-logo",
+       },
+                 ],
+    };
+
+    const info = await transporter.sendMail(mailOptions);
+    return info;
+
+  } catch (error) {
+    console.error("❌ Error al enviar email de confirmación de pedido:", error);
+    throw error;
+  }
+};
+
+module.exports = {enviarMailTest,enviarRecuperacionPassword,emailGeneraCodigoPedido};

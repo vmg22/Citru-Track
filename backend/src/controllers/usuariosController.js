@@ -4,7 +4,32 @@ const bcrypt = require('bcrypt');
 exports.obtenerTodosUsuarios = async (req, res) => {
   try {
     const [usuarios] = await db.query(
-      'SELECT user_id, username, email, nombre, telefono, activo, created_at, updated_at, last_login FROM users WHERE activo = TRUE ORDER BY user_id DESC'
+      `
+      SELECT 
+          u.user_id, 
+          u.username, 
+          u.email, 
+          u.nombre, 
+          u.telefono, 
+          u.activo, 
+          u.created_at, 
+          u.updated_at, 
+          u.last_login,
+          -- Usamos GROUP_CONCAT para listar todos los roles asignados
+          GROUP_CONCAT(r.name SEPARATOR ', ') AS roles_asignados 
+      FROM 
+          users u
+      LEFT JOIN 
+          user_roles ur ON u.user_id = ur.user_id
+      LEFT JOIN 
+          roles r ON ur.role_id = r.role_id
+      WHERE 
+          u.activo = TRUE 
+      GROUP BY
+          u.user_id, u.username, u.email, u.nombre, u.telefono, u.activo, u.created_at, u.updated_at, u.last_login
+      ORDER BY 
+          u.user_id DESC
+      `
     );
     res.json(usuarios);
   } catch (error) {
@@ -87,27 +112,28 @@ exports.crearUsuario = async (req, res) => {
     const hashed_password = await bcrypt.hash(password, salt);
 
     const [result] = await db.query(
-      'INSERT INTO users (username, email, hashed_password, nombre, telefono) VALUES (?, ?, ?, ?, ?)',
-      [username, email, hashed_password, nombre || null, telefono || null]
-    );
+      'INSERT INTO users (username, email, hashed_password, nombre, telefono) VALUES (?, ?, ?, ?, ?)',
+      [username, email, hashed_password, nombre || null, telefono || null]
+    );
 
-    const userId = result.insertId;
+    const userId = result.insertId;
 
-    if (Array.isArray(roles) && roles.length > 0) {
-      for (const roleName of roles) {
-        const [[role]] = await db.query(
-          'SELECT role_id FROM roles WHERE name = ?',
-          [roleName]
-        );
-        
-        if (role) {
-          await db.query(
-            'INSERT INTO user_roles (user_id, role_id) VALUES (?, ?)',
-            [userId, role.role_id]
-          );
-        }
-      }
-    }
+// INICIO DE LA LÓGICA DE ROLES
+    if (Array.isArray(roles) && roles.length > 0) {
+      for (const roleName of roles) {
+        const [[role]] = await db.query(
+          'SELECT role_id FROM roles WHERE name = ?', // Busca el ID del rol por su nombre
+          [roleName]
+        );
+        
+        if (role) {
+          await db.query(
+            'INSERT INTO user_roles (user_id, role_id) VALUES (?, ?)', // Asigna el rol al usuario
+            [userId, role.role_id]
+          );
+        }
+      }
+    }
 
     const [[nuevoUsuario]] = await db.query(
       'SELECT user_id, username, email, nombre, telefono, activo, created_at, updated_at, last_login FROM users WHERE user_id = ?',
