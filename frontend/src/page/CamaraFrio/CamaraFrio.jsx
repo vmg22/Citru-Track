@@ -57,7 +57,7 @@ const CamaraFrio = () => {
         <h3 className="camara-title">Mapa de Cámaras</h3>
         
         <div className="camara-grid">
-          {camaras.map((camara) => (
+          {camaras.data.map((camara) => (
             <div 
               key={camara.camara_id} 
               className={`camara-box ${getStatus(camara.temperatura_aproximada) === 'alerta' ? 'status-alerta' : ''}`}
