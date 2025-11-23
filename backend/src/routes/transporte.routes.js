@@ -4,12 +4,16 @@ const {
   createTransportista, 
   createCamion, 
   registrarTrackingEvento, 
-  getTransportistas
+  getTransportistas,
+  actualizarTransportista,
+  eliminarTransportista
 } = require('../controllers/transporteController');
 
 // Rutas para transportistas
 router.get('/', getTransportistas);
-router.post('/transportistas', createTransportista);
+router.post('/', createTransportista);
+router.patch('/:id', actualizarTransportista); 
+router.put('/:id', eliminarTransportista); 
 router.post('/camiones', createCamion);
 router.post('/tracking/evento', registrarTrackingEvento);
 

@@ -1,14 +1,22 @@
 import React, { useEffect, useState } from "react";
 import { deleteUserById, getAllUsers } from "../services/settingsServices";
+import { toast } from "react-toastify";
 import "../../../style/usuariostable.css";
 // Importar el nuevo modal
 import AddUserModal from "./AddUserModal";
+import EditUserModal from "./EditUserModal";
 
 const UsuariosTable = () => {
   const [usuarios, setUsuarios] = useState([]);
   const [loading, setLoading] = useState(true);
-  // Nuevo estado para controlar la visibilidad del modal
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  
+  // Estado para el modal de AGREGAR
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false); 
+  
+  // Estado para el modal de EDITAR
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  // Estado para guardar los datos del usuario que se va a editar
+  const [userToEdit, setUserToEdit] = useState(null);
 
   // Función para obtener y establecer usuarios (centralizada para reutilizar)
   const fetchUsuarios = async () => {
@@ -18,6 +26,7 @@ const UsuariosTable = () => {
       setUsuarios(data);
     } catch (error) {
       console.error("Error al cargar usuarios:", error);
+      toast.error("Error al cargar la lista de usuarios");
     } finally {
       setLoading(false);
     }
@@ -27,43 +36,145 @@ const UsuariosTable = () => {
     fetchUsuarios();
   }, []);
 
-  const handleEliminarUsuario = async (id_user) => {
-    const confirmacion = window.confirm(
-      "¿Estás seguro que quieres eliminar el usuario?"
-    );
+  const handleEliminarUsuario = async (id_user, username) => {
+    toast.promise(
+      new Promise(async (resolve, reject) => {
+        toast.warn(
+          ({ closeToast }) => (
+            <div style={{ padding: "10px" }}>
+              <p style={{ fontWeight: "bold", marginBottom: "8px" }}>
+                Confirmar Eliminación
+              </p>
+              <p style={{ fontSize: "0.9em" }}>
+                ¿Estás seguro que quieres eliminar al usuario:{" "}
+                <strong>{username}</strong>?
+              </p>
 
-    if (confirmacion) {
-      try {
-        await deleteUserById(id_user);
-        alert("Usuario eliminado correctamente");
-        // Recargar la lista de usuarios
-        fetchUsuarios();
-      } catch (error) {
-        console.error("Error al eliminar usuario:", error);
-        alert("Error al eliminar el usuario");
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "flex-end",
+                  gap: "10px",
+                  marginTop: "10px",
+                }}
+              >
+                <button
+                  style={{
+                    padding: "5px 10px",
+                    borderRadius: "4px",
+                    border: "none",
+                    cursor: "pointer",
+                    backgroundColor: "#ccc",
+                  }}
+                  onClick={() => {
+                    closeToast();
+                    reject(new Error("Operación cancelada"));
+                  }}
+                >
+                  Cancelar
+                </button>
+
+                <button
+                  style={{
+                    padding: "5px 10px",
+                    borderRadius: "4px",
+                    border: "none",
+                    cursor: "pointer",
+                    backgroundColor: "#dc3545",
+                    color: "white",
+                  }}
+                  onClick={async () => {
+                    closeToast();
+                    try {
+                      await deleteUserById(id_user);
+                      await fetchUsuarios();
+                      resolve();
+                    } catch (error) {
+                      reject(error);
+                    }
+                  }}
+                >
+                  Eliminar
+                </button>
+              </div>
+            </div>
+          ),
+          {
+            closeButton: false,
+            autoClose: false,
+            position: "top-center",
+          }
+        );
+      }),
+      {
+        pending: "Eliminando usuario...",
+        success: "Usuario eliminado correctamente",
+        error: {
+          render({ data }) {
+            if (data.message === "Operación cancelada") {
+              return "Eliminación cancelada";
+            }
+            return "Error al eliminar el usuario";
+          }
+        }
       }
-    } else {
-      alert("El usuario no se eliminó");
-    }
+    );
   };
 
-  // Funciones para manejar el modal
-  const openModal = () => setIsModalOpen(true);
-  const closeModal = () => setIsModalOpen(false);
+  const openAddModal = () => setIsAddModalOpen(true);
+  const closeAddModal = () => setIsAddModalOpen(false);
+
+  // Funciones para manejar el modal de EDITAR
+  const openEditModal = (user) => {
+    setUserToEdit(user);
+    setIsEditModalOpen(true);
+  };
+  const closeEditModal = () => {
+    setIsEditModalOpen(false);
+    setUserToEdit(null); // Limpiar el estado al cerrar
+  };
 
   // Función de callback que se pasa al modal para recargar la tabla después de crear un usuario
   const handleUserAdded = () => {
     fetchUsuarios();
   };
 
-  // Formato de fecha simple
+  const handleUserUpdate = () => {
+    fetchUsuarios();
+  };
+
+  // Formato de fecha mejorado
   const formatDate = (dateString) => {
     if (!dateString) return "N/A";
+    
+    // Opción 1: Formato corto (10/11/2025)
+    // const date = new Date(dateString);
+    // return date.toLocaleDateString("es-AR");
+    
+    // Opción 2: Formato completo (10 de noviembre de 2025)
+    // const date = new Date(dateString);
+    // return date.toLocaleDateString("es-AR", {
+    //   year: "numeric",
+    //   month: "long",
+    //   day: "numeric",
+    // });
+    
+    // Opción 3: Formato con hora (10/11/2025 00:00)
+    // const date = new Date(dateString);
+    // return date.toLocaleString("es-AR", {
+    //   year: "numeric",
+    //   month: "2-digit",
+    //   day: "2-digit",
+    //   hour: "2-digit",
+    //   minute: "2-digit",
+    // });
+    
+    // Opción 4: Formato medio (10 nov 2025) - RECOMENDADO
     const date = new Date(dateString);
     return date.toLocaleDateString("es-AR", {
       year: "numeric",
       month: "short",
-      day: "numeric",
+      day: "2-digit",
     });
   };
 
@@ -86,7 +197,7 @@ const UsuariosTable = () => {
             Gestión de Usuarios
           </h2>
           <div className="camara-table-actions">
-            <button className="camara-btn camara-btn-primary" onClick={openModal}>
+            <button className="camara-btn camara-btn-primary" onClick={openAddModal}>
               <i className="fas fa-plus"></i> Agregar Usuario
             </button>
             <button
@@ -107,6 +218,7 @@ const UsuariosTable = () => {
                 <th className="camara-table-header-cell">Nombre</th>
                 <th className="camara-table-header-cell">Usuario</th>
                 <th className="camara-table-header-cell">Email</th>
+                <th className="camara-table-header-cell">Rol(es)</th>
                 <th className="camara-table-header-cell">Teléfono</th>
                 <th className="camara-table-header-cell">Activo</th>
                 <th className="camara-table-header-cell">Creado</th>
@@ -116,7 +228,7 @@ const UsuariosTable = () => {
             <tbody>
               {usuarios.length === 0 ? (
                 <tr>
-                  <td colSpan="8" className="camara-empty-state">
+                  <td colSpan="9" className="camara-empty-state">
                     No se encontraron usuarios.
                   </td>
                 </tr>
@@ -128,8 +240,11 @@ const UsuariosTable = () => {
                     <td className="camara-table-cell">{user.username}</td>
                     <td className="camara-table-cell">{user.email}</td>
                     <td className="camara-table-cell">
+                      {user.roles_asignados || 'Sin Rol'} 
+                    </td>
+                    <td className="camara-table-cell">
                       {user.telefono ? (
-                        <span className="camara-temperature-badge camara-status-normal">
+                        <span className="camara-temperature-badge">
                           <i className="fas fa-phone"></i>
                           {user.telefono}
                         </span>
@@ -155,7 +270,7 @@ const UsuariosTable = () => {
                       <button
                         className="camara-btn-warning camara-action-btn"
                         title="Editar"
-                        // onClick={() => handleEditar(user)}
+                        onClick={() => openEditModal(user)}
                       >
                         <i className="fas fa-edit"></i>
                       </button>
@@ -163,7 +278,7 @@ const UsuariosTable = () => {
                         className="camara-btn-danger camara-action-btn"
                         title="Eliminar"
                         style={{ marginLeft: "5px" }}
-                        onClick={() => handleEliminarUsuario(user.user_id)}
+                        onClick={() => handleEliminarUsuario(user.user_id, user.username)}
                       >
                         <i className="fa-solid fa-trash"></i>
                       </button>
@@ -177,9 +292,17 @@ const UsuariosTable = () => {
 
         {/* Renderizar el Modal */}
         <AddUserModal
-          isOpen={isModalOpen}
-          onClose={closeModal}
-          onUserAdded={handleUserAdded}
+          isOpen={isAddModalOpen}
+          onClose={closeAddModal}
+          onUserAdded={handleUserUpdate}
+        />
+        
+        {/* Renderizar el Modal de Edición */}
+        <EditUserModal
+          isOpen={isEditModalOpen}
+          onClose={closeEditModal}
+          onUserUpdated={handleUserUpdate}
+          initialUserData={userToEdit}
         />
       </div>
     </div>
