@@ -640,9 +640,11 @@ const GestionPedidos = () => {
       setSaveMessage("Guardado exitoso.");
       await loadPedidos();
 
-      if (res && typeof res === "object") {
-        setSelectedPedido((prev) => ({ ...prev, ...res }));
-      }
+      setTimeout(() => {
+      setActiveTab("lista");
+      setSelectedPedido(null);
+    }, 1500);
+      
     } catch (err) {
       console.error("Error guardando detalle:", err);
       const status = err?.status;
