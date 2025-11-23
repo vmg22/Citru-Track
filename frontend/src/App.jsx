@@ -59,7 +59,7 @@ const itemToPathMap = {
     kpis: "/kpis",
     logistica: "/logistica",
     "gestion-pedidos": "/gestion-pedidos",
-    productos:"/productos",  
+    productos:"/productos", 
 };
 
 // ---------------------------------------------------
@@ -122,7 +122,7 @@ const AppContent = () => {
         </Layout>
     );
 };
-        
+
 // ---------------------------------------------------
 // APP PRINCIPAL (ESTRUCTURA CORREGIDA)
 // ---------------------------------------------------
