@@ -3,8 +3,6 @@ const router = express.Router();
 const ctrl = require('../controllers/usuariosController');
 
 
-<<<<<<< HEAD
-=======
 
 // --- RUTAS ESPECÍFICAS ---
 router.get('/inactivos/todos', ctrl.obtenerUsuariosInactivos);
@@ -28,5 +26,4 @@ router.post('/:id/restaurar', ctrl.restaurarUsuario);
 router.delete('/:id/permanente', ctrl.eliminarUsuarioPermanente);
 router.delete('/:id', ctrl.eliminarUsuario);
 
->>>>>>> 182a8617f2ade163f6728154f175c1ee4bd99fad
 module.exports = router;
