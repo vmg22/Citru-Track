@@ -1,459 +1,193 @@
 const db = require('../config/db');
 const { format } = require('date-fns');
 
-/**
- * Genera un ID único para el bin siguiendo el formato:
- * BIN-YYYYMMDD-RANDOM
- */
+// --- HELPER FUNCTIONS ---
 const generateBinId = () => {
   const fecha = format(new Date(), 'yyyyMMdd');
   const caracteres = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
   let randomStr = '';
-  
   for (let i = 0; i < 6; i++) {
     randomStr += caracteres.charAt(Math.floor(Math.random() * caracteres.length));
   }
-  
   return `BIN-${fecha}-${randomStr}`;
 };
 
-/**
- * @desc    Obtener productores con sus fincas
- * @route   GET /api/bins/productores
- * @access  Private
- */
+// --- CONTROLLERS ---
+
 const getProductores = async (req, res) => {
   try {
     const [productores] = await db.query(`
-      SELECT 
-        p.productor_id,
-        p.nombre AS productor_nombre,
-        p.cuit,
-        p.telefono,
-        p.contactos
-      FROM productores p
-      ORDER BY p.nombre
+      SELECT p.productor_id, p.nombre AS productor_nombre, p.cuit 
+      FROM productores p ORDER BY p.nombre
     `);
 
-    // Obtener fincas de cada productor
+  
     for (let productor of productores) {
       const [fincas] = await db.query(`
-        SELECT 
-          finca_id,
-          nombre,
-          ubicacion,
-          coordenadas
-        FROM fincas
-        WHERE productor_id = ?
+        SELECT finca_id, nombre, ubicacion FROM fincas WHERE productor_id = ?
       `, [productor.productor_id]);
-      
       productor.fincas = fincas;
     }
 
-    res.status(200).json({
-      success: true,
-      data: productores,
-      count: productores.length
-    });
-
+    res.status(200).json({ success: true, data: productores });
   } catch (error) {
-    res.status(500).json({ 
-      success: false, 
-      message: "Error al obtener productores", 
-      error: error.message 
-    });
+    console.error(error);
+    res.status(500).json({ success: false, message: "Error al obtener productores" });
   }
 };
 
-/**
- * @desc    Obtener productos con sus variedades
- * @route   GET /api/bins/productos
- * @access  Private
- */
 const getProductos = async (req, res) => {
   try {
     const [productos] = await db.query(`
-      SELECT 
-        p.producto_id,
-        p.nombre AS producto_nombre,
-        p.categoria,
-        p.unidad_base,
-        p.perecedero,
-        p.requiere_frio
-      FROM productos p
-      WHERE p.perecedero = TRUE
-      ORDER BY p.nombre
+      SELECT p.producto_id, p.nombre AS producto_nombre, p.categoria 
+      FROM productos p WHERE p.perecedero = TRUE ORDER BY p.nombre
     `);
 
-    // Obtener variedades de cada producto
     for (let producto of productos) {
       const [variedades] = await db.query(`
-        SELECT 
-          variedad_id,
-          nombre,
-          descripcion
-        FROM variedades
-        WHERE producto_id = ?
+        SELECT variedad_id, nombre FROM variedades WHERE producto_id = ?
       `, [producto.producto_id]);
-      
       producto.variedades = variedades;
     }
 
-    res.status(200).json({
-      success: true,
-      data: productos,
-      count: productos.length
-    });
-
+    res.status(200).json({ success: true, data: productos });
   } catch (error) {
-    res.status(500).json({ 
-      success: false, 
-      message: "Error al obtener productos", 
-      error: error.message 
-    });
+    console.error(error);
+    res.status(500).json({ success: false, message: "Error al obtener productos" });
   }
 };
 
-/**
- * @desc    Validar si un remito ya existe
- * @route   GET /api/bins/validar-remito/:remito
- * @access  Private
- */
 const validarRemito = async (req, res) => {
   try {
     const { remito } = req.params;
-    
-    const [result] = await db.query(
-      'SELECT COUNT(*) as count FROM bins WHERE remito = ?',
-      [remito]
-    );
-    
+    const [result] = await db.query('SELECT COUNT(*) as count FROM bins WHERE remito = ?', [remito]);
     const existe = result[0].count > 0;
-
-    res.status(200).json({
-      success: true,
-      existe: existe,
-      message: existe ? 'El remito ya existe' : 'El remito está disponible'
-    });
-
+    
+    res.status(200).json({ success: true, existe });
   } catch (error) {
-    res.status(500).json({ 
-      success: false, 
-      message: "Error al validar remito", 
-      error: error.message 
-    });
+    console.error(error);
+    res.status(500).json({ success: false, message: "Error al validar remito" });
   }
 };
 
-/**
- * @desc    Crear BIN y LOTE automáticamente (transacción)
- * @route   POST /api/bins
- * @access  Private
- */
-const createBinYLote = async (req, res) => {
+// --- LOGICA PRINCIPAL DE CREACIÓN ---
+const createBin = async (req, res) => {
   const connection = await db.getConnection();
   
   try {
     const { 
-      producto_id, 
-      variedad_id,
-      productor_id, 
-      finca_id, 
-      fecha_cosecha,
-      peso_bruto, 
-      remito, 
-      observaciones,
-      responsable
+      producto_id, variedad_id, productor_id, finca_id, 
+      fecha_cosecha, peso_bruto, remito, observaciones, responsable 
     } = req.body;
 
-    // Validaciones básicas
+    // 1. Validaciones básicas
     if (!producto_id || !fecha_cosecha || !peso_bruto || !remito) {
-      return res.status(400).json({
-        success: false,
-        message: "Faltan campos obligatorios: producto_id, fecha_cosecha, peso_bruto, remito"
-      });
+      connection.release();
+      return res.status(400).json({ success: false, message: "Faltan datos obligatorios" });
     }
 
-    // Validar remito duplicado
-    const [remitoCheck] = await connection.query(
-      'SELECT COUNT(*) as count FROM bins WHERE remito = ?',
-      [remito]
-    );
-
-    if (remitoCheck[0].count > 0) {
-      return res.status(409).json({
-        success: false,
-        message: 'El número de remito ya existe en el sistema'
-      });
-    }
-
-    // Iniciar transacción
+    // 2. Iniciar Transacción
     await connection.beginTransaction();
 
-    // 1. Generar ID único para el BIN
+    // 3. Validar duplicado (Bloqueo pesimista para evitar condiciones de carrera)
+    const [check] = await connection.query('SELECT 1 FROM bins WHERE remito = ? FOR UPDATE', [remito]);
+    if (check.length > 0) {
+      await connection.rollback();
+      connection.release();
+      return res.status(409).json({ success: false, message: 'El remito ya existe' });
+    }
+
+    // 4. Obtener ID del proceso "Recepción" para guardarlo en la tabla bins
+    const [procData] = await connection.query(`SELECT proceso_id FROM procesos_disponibles WHERE nombre = 'Recepción' LIMIT 1`);
+    const procesoId = procData.length > 0 ? procData[0].proceso_id : null;
+
+    // 5. Generar ID e Insertar BIN
     const binId = generateBinId();
+    const userId = req.user?.id || null; // Si usas JWT
 
-    // Obtener userId del token JWT (si existe)
-    const created_by = req.user ? req.user.user_id : null;
-
-    // 2. Insertar BIN (fecha_ingreso_deposito se registra automáticamente)
     await connection.query(`
       INSERT INTO bins (
-        bin_id, 
-        producto_id, 
-        variedad_id,
-        productor_id, 
-        finca_id, 
-        fecha_cosecha,
-        fecha_ingreso_bin,
-        peso_bruto, 
-        remito, 
-        observaciones,
-        registrado_at
-      ) VALUES (?, ?, ?, ?, ?, ?, NOW(), ?, ?, ?, NOW())
+        bin_id, producto_id, variedad_id, productor_id, finca_id, 
+        fecha_cosecha, fecha_ingreso_bin, peso_bruto, remito, observaciones,
+        estado_actual, proceso_actual_id, fecha_ultimo_proceso, registrado_at
+      ) VALUES (?, ?, ?, ?, ?, ?, NOW(), ?, ?, ?, 'Recepción', ?, NOW(), NOW())
     `, [
-      binId,
-      producto_id,
-      variedad_id || null,
-      productor_id || null,
-      finca_id || null,
-      fecha_cosecha,
-      peso_bruto,
-      remito,
-      observaciones || null
+      binId, producto_id, variedad_id || null, productor_id || null, finca_id || null,
+      fecha_cosecha, peso_bruto, remito, observaciones || null, procesoId
     ]);
 
-    // 3. Obtener información del producto y variedad para descripción del lote
-    const [productoInfo] = await connection.query(`
-      SELECT 
-        p.nombre AS producto_nombre,
-        v.nombre AS variedad_nombre
-      FROM productos p
-      LEFT JOIN variedades v ON v.variedad_id = ?
-      WHERE p.producto_id = ?
-    `, [variedad_id, producto_id]);
+    // 6. Registrar en el historial de procesos (bin_procesos)
+    if (procesoId) {
+      await connection.query(`
+        INSERT INTO bin_procesos (
+          bin_id, proceso_id, fecha_inicio, fecha_fin, estado, operario, usuario_id
+        ) VALUES (?, ?, NOW(), NOW(), 'completado', ?, ?)
+      `, [binId, procesoId, responsable || 'Sistema', userId]);
+    }
 
-    const variedadNombre = productoInfo[0]?.variedad_nombre || '';
-    const productoNombre = productoInfo[0]?.producto_nombre || '';
-    
-    // 4. Crear descripción del lote
-    const fechaActual = format(new Date(), 'yyyy-MM-dd');
-    const descripcionLote = `Lote ${productoNombre} ${variedadNombre} - Ingreso ${fechaActual} - BIN: ${binId}`.trim();
-
-    // 5. Insertar LOTE automáticamente
-    const [loteResult] = await connection.query(`
-      INSERT INTO lotes (
-        producto_id,
-        descripcion,
-        bin_id,
-        fecha_ingreso,
-        estado,
-        responsable,
-        created_by,
-        created_at
-      ) VALUES (?, ?, ?, NOW(), 'ingresado', ?, ?, NOW())
-    `, [
-      producto_id,
-      descripcionLote,
-      binId,
-      responsable || 'Sistema',
-      created_by
-    ]);
-
-    const loteId = loteResult.insertId;
-
-    // 6. Registrar en audit_logs
-    await connection.query(`
-      INSERT INTO audit_logs (tabla, registro_id, accion, usuario_id, fecha, detalles)
-      VALUES ('bins', ?, 'CREATE', ?, NOW(), ?)
-    `, [
-      binId,
-      created_by,
-      JSON.stringify({
-        bin_id: binId,
-        producto_id: producto_id,
-        remito: remito,
-        peso_bruto: peso_bruto
-      })
-    ]);
-
-    await connection.query(`
-      INSERT INTO audit_logs (tabla, registro_id, accion, usuario_id, fecha, detalles)
-      VALUES ('lotes', ?, 'CREATE', ?, NOW(), ?)
-    `, [
-      loteId.toString(),
-      created_by,
-      JSON.stringify({
-        lote_id: loteId,
-        bin_id: binId,
-        descripcion: descripcionLote
-      })
-    ]);
-
-    // Commit de la transacción
+    // 7. Commit
     await connection.commit();
 
-    // --- Notificación WebSocket (si está configurado) ---
-    const io = req.app.get('io');
-    if (io) {
-      io.emit('bin_creado', {
-        bin_id: binId,
-        lote_id: loteId,
-        producto_nombre: productoNombre,
-        variedad_nombre: variedadNombre,
-        remito: remito,
-        peso_bruto: peso_bruto,
-        timestamp: Date.now()
-      });
-    }
-    // --- Fin Notificación ---
-
-    // 7. Retornar datos completos
+    // 8. Respuesta Exitosa
     res.status(201).json({
       success: true,
-      message: 'Bin y lote creados exitosamente',
-      data: {
-        bin: {
-          bin_id: binId,
-          producto_id: producto_id,
-          variedad_id: variedad_id,
-          productor_id: productor_id,
-          finca_id: finca_id,
-          fecha_cosecha: fecha_cosecha,
-          peso_bruto: peso_bruto,
-          remito: remito,
-          observaciones: observaciones
-        },
-        lote: {
-          lote_id: loteId,
-          descripcion: descripcionLote,
-          estado: 'ingresado'
-        }
+      message: 'Bin creado correctamente',
+      data: { 
+        bin_id: binId, 
+        remito, 
+        estado: 'Recepción' 
       }
     });
 
   } catch (error) {
-    // Rollback en caso de error
     await connection.rollback();
-    
-    console.error('Error creando bin y lote:', error);
-    res.status(500).json({ 
-      success: false,
-      message: "Error en el servidor al crear bin y lote", 
-      error: error.message 
-    });
-
+    console.error('Error createBin:', error);
+    res.status(500).json({ success: false, message: "Error interno al crear el bin" });
   } finally {
     connection.release();
   }
 };
 
-/**
- * @desc    Obtener bins recientes
- * @route   GET /api/bins/recientes
- * @access  Private
- */
 const getBinsRecientes = async (req, res) => {
   try {
     const limit = parseInt(req.query.limit) || 20;
-
     const [bins] = await db.query(`
       SELECT 
-        b.bin_id,
-        b.fecha_ingreso_bin,
-        b.peso_bruto,
-        b.remito,
-        b.observaciones,
+        b.bin_id, b.fecha_ingreso_bin, b.peso_bruto, b.remito, b.estado_actual,
         p.nombre AS producto_nombre,
-        v.nombre AS variedad_nombre,
-        prod.nombre AS productor_nombre,
-        f.nombre AS finca_nombre,
-        l.lote_id,
-        l.descripcion AS lote_descripcion,
-        l.estado AS lote_estado
+        v.nombre AS variedad_nombre
       FROM bins b
       INNER JOIN productos p ON b.producto_id = p.producto_id
       LEFT JOIN variedades v ON b.variedad_id = v.variedad_id
-      LEFT JOIN productores prod ON b.productor_id = prod.productor_id
-      LEFT JOIN fincas f ON b.finca_id = f.finca_id
-      LEFT JOIN lotes l ON b.bin_id = l.bin_id
       ORDER BY b.fecha_ingreso_bin DESC
       LIMIT ?
     `, [limit]);
 
-    res.status(200).json({
-      success: true,
-      data: bins,
-      count: bins.length
-    });
-
+    res.status(200).json({ success: true, data: bins });
   } catch (error) {
-    res.status(500).json({ 
-      success: false,
-      message: "Error al obtener bins recientes", 
-      error: error.message 
-    });
+    console.error(error);
+    res.status(500).json({ success: false, message: "Error al obtener bins" });
   }
 };
 
-/**
- * @desc    Obtener detalles de un bin específico
- * @route   GET /api/bins/:binId
- * @access  Private
- */
 const getBinById = async (req, res) => {
   try {
     const { binId } = req.params;
+    const [bins] = await db.query(`SELECT * FROM bins WHERE bin_id = ?`, [binId]);
+    
+    if (bins.length === 0) return res.status(404).json({ success: false, message: 'Bin no encontrado' });
 
-    const [bins] = await db.query(`
-      SELECT 
-        b.*,
-        p.nombre AS producto_nombre,
-        p.categoria,
-        v.nombre AS variedad_nombre,
-        prod.nombre AS productor_nombre,
-        prod.cuit AS productor_cuit,
-        f.nombre AS finca_nombre,
-        f.ubicacion AS finca_ubicacion,
-        l.lote_id,
-        l.descripcion AS lote_descripcion,
-        l.estado AS lote_estado
-      FROM bins b
-      INNER JOIN productos p ON b.producto_id = p.producto_id
-      LEFT JOIN variedades v ON b.variedad_id = v.variedad_id
-      LEFT JOIN productores prod ON b.productor_id = prod.productor_id
-      LEFT JOIN fincas f ON b.finca_id = f.finca_id
-      LEFT JOIN lotes l ON b.bin_id = l.bin_id
-      WHERE b.bin_id = ?
-    `, [binId]);
-
-    if (bins.length === 0) {
-      return res.status(404).json({
-        success: false,
-        message: 'Bin no encontrado'
-      });
-    }
-
-    res.status(200).json({
-      success: true,
-      data: bins[0]
-    });
-
+    res.status(200).json({ success: true, data: bins[0] });
   } catch (error) {
-    res.status(500).json({ 
-      success: false,
-      message: "Error al obtener detalles del bin", 
-      error: error.message 
-    });
+    res.status(500).json({ success: false, error: error.message });
   }
 };
 
-// Exportar todas las funciones
 module.exports = {
   getProductores,
   getProductos,
   validarRemito,
-  createBinYLote,
+  createBin,     // <--- NOMBRE CORREGIDO
   getBinsRecientes,
   getBinById
 };
