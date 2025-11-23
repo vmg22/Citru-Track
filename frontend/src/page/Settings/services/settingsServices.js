@@ -73,6 +73,22 @@ export const getAllProductores = async () => {
   const response = await axios.get(PRODUCTOR_URL);
   return response.data;
 }
+
+export const createProductor = async(productorData) =>{
+  const response = await axios.post(PRODUCTOR_URL, productorData)
+  return response.data;
+}
+
+export const editProductor = async(id_productor,productorData) =>{
+  const response = await axios.put(`${PRODUCTOR_URL}/${id_productor}`, productorData)
+  return response.data;
+}
+
+export const eliminarProductor = async(id_productor) =>{
+  const response = await axios.patch(`${PRODUCTOR_URL}/${id_productor}`)
+  return response.data;
+}
+
 export const getAllProductsWithVarieties = async () => {
     const response = await axios.get(`${PRODUCTOS_URL}/all-with-varieties`);
     return response.data;
