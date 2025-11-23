@@ -48,7 +48,7 @@ const getBinsConFiltros = async (req, res) => {
       LEFT JOIN variedades v ON b.variedad_id = v.variedad_id
       LEFT JOIN productores prod ON b.productor_id = prod.productor_id
       LEFT JOIN fincas f ON b.finca_id = f.finca_id
-      LEFT JOIN lotes l ON b.bin_id = l.bin_id
+      LEFT JOIN lotes l ON b.lote_maestro_id = l.lote_id
       LEFT JOIN procesos_disponibles pa ON b.proceso_actual_id = pa.proceso_id
       WHERE 1=1
     `;
@@ -217,7 +217,7 @@ const registrarProcesoBin = async (req, res) => {
     
     // Verificar que el bin existe
     const [binExists] = await connection.query(
-      'SELECT bin_id, producto_id, lote_id FROM bins WHERE bin_id = ?',
+      'SELECT bin_id, producto_id, lote_maestro_id FROM bins WHERE bin_id = ?',
       [binId]
     );
     
@@ -268,7 +268,7 @@ const registrarProcesoBin = async (req, res) => {
     `, [
       binId,
       proceso_id,
-      bin.lote_id,
+      bin.lote_maestro_id,
       operario || 'Sistema',
       usuario_id,
       temperatura || null,

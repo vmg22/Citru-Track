@@ -122,64 +122,7 @@ const binService = {
     }
   },
 
-  // /**
-  //  * Obtener todos los lotes
-  //  */
-  // getLotes: async (filtros = {}) => {
-  //   try {
-  //     const params = new URLSearchParams(filtros).toString();
-  //     const response = await api.get(`/lotes${params ? '?' + params : ''}`);
-  //     return response.data;
-  //   } catch (error) {
-  //     console.error('Error obteniendo lotes:', error);
-  //     throw error;
-  //   }
-  // },
 
-  // /**
-  //  * Obtener detalles de un lote específico
-  //  */
-  // getLoteById: async (loteId) => {
-  //   try {
-  //     const response = await api.get(`/lotes/${loteId}`);
-  //     return response.data;
-  //   } catch (error) {
-  //     console.error('Error obteniendo detalles del lote:', error);
-  //     throw error;
-  //   }
-  // },
-
-  // /**
-  //  * Actualizar estado de un lote
-  //  */
-  // actualizarEstadoLote: async (loteId, nuevoEstado) => {
-  //   try {
-  //     const response = await api.patch(`/lotes/${loteId}/estado`, {
-  //       estado: nuevoEstado
-  //     });
-  //     return response.data;
-  //   } catch (error) {
-  //     console.error('Error actualizando estado del lote:', error);
-  //     throw error;
-  //   }
-  // },
-
-  // /**
-  //  * Obtener bins asociados a un lote específico
-  //  */
-  // getBinsPorLote: async (loteId) => {
-  //   try {
-  //     const response = await api.get(`/lotes/${loteId}/bins`);
-  //     return response.data;
-  //   } catch (error) {
-  //     console.error('Error obteniendo bins del lote:', error);
-  //     throw error;
-  //   }
-  // },
-
-  /**
-   * Obtener estadísticas
-   */
   getEstadisticasBins: async () => {
     try {
       const response = await api.get('/binlote/estadisticas');
