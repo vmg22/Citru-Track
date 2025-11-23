@@ -424,3 +424,141 @@ h5.text-secondary {
     transition: color 0.2s;
 }
 .btn-action-table:hover { color: var(--citrus-green); background: none; }
+
+/* ===================================
+   TABLA DE PALLETS DISPONIBLES
+   Clases únicas para evitar conflictos
+   =================================== */
+
+/* Wrapper con scroll horizontal responsivo */
+.pallets-disponibles-table-wrapper {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  margin-bottom: 1rem;
+}
+
+/* Tabla principal */
+.pallets-disponibles-table {
+  width: 100%;
+  min-width: 1100px; /* Ancho mínimo para evitar que se comprima */
+}
+
+/* Encabezados de la tabla */
+.pallets-disponibles-table thead tr {
+  background-color: #2c3e50;
+  color: white;
+}
+
+.pallets-disponibles-table thead th {
+  padding: 18px 25px !important;
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 0.85rem;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+  border: 1px solid #34495e;
+}
+
+/* Celdas del cuerpo */
+.pallets-disponibles-table tbody td {
+  padding: 15px 25px !important;
+  font-size: 0.95rem;
+  vertical-align: middle;
+  border: 1px solid #dee2e6;
+}
+
+/* Hover en filas */
+.pallets-disponibles-table tbody tr:hover {
+  background-color: #f8f9fa;
+  transition: background-color 0.2s ease;
+}
+
+/* Anchos específicos de columnas */
+.pallets-col-checkbox {
+  width: 100px;
+  text-align: center;
+}
+
+.pallets-col-id {
+  width: 180px;
+  min-width: 150px;
+}
+
+.pallets-col-lote {
+  width: 250px;
+  min-width: 200px;
+}
+
+.pallets-col-cajas {
+  width: 120px;
+  text-align: center;
+}
+
+.pallets-col-peso {
+  width: 140px;
+  text-align: center;
+}
+
+.pallets-col-tipo {
+  width: 180px;
+  min-width: 150px;
+}
+
+.pallets-col-fecha {
+  width: 150px;
+  text-align: center;
+}
+
+.pallets-col-estado {
+  width: 130px;
+  text-align: center;
+}
+
+/* Footer de la tabla */
+.pallets-disponibles-footer {
+  padding: 10px 0;
+}
+
+/* Responsive para tablets */
+@media (max-width: 992px) {
+  .pallets-disponibles-table thead th {
+    padding: 15px 20px !important;
+    font-size: 0.8rem;
+  }
+  
+  .pallets-disponibles-table tbody td {
+    padding: 12px 20px !important;
+    font-size: 0.9rem;
+  }
+  
+  .pallets-disponibles-table {
+    min-width: 1000px;
+  }
+}
+
+/* Responsive para móviles */
+@media (max-width: 768px) {
+  .pallets-disponibles-table thead th {
+    padding: 12px 15px !important;
+    font-size: 0.75rem;
+  }
+  
+  .pallets-disponibles-table tbody td {
+    padding: 10px 15px !important;
+    font-size: 0.85rem;
+  }
+  
+  .pallets-disponibles-table {
+    min-width: 900px;
+  }
+  
+  .pallets-disponibles-footer {
+    flex-direction: column;
+    align-items: flex-start !important;
+  }
+  
+  .pallets-disponibles-footer .btn {
+    width: 100%;
+    margin-top: 10px;
+  }
+}
