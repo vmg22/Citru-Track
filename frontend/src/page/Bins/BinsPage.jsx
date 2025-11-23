@@ -10,7 +10,6 @@ const BinsPage = () => {
   const [variedadesDisponibles, setVariedadesDisponibles] = useState([]);
   const [binsRecientes, setBinsRecientes] = useState([]);
 
-
   const [formData, setFormData] = useState({
     producto_id: '',
     variedad_id: '',
@@ -23,12 +22,10 @@ const BinsPage = () => {
     responsable: 'Admin'
   });
 
-
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(false);
   const [remitoValido, setRemitoValido] = useState(null);
-
 
   useEffect(() => {
     cargarDatosIniciales();
@@ -37,7 +34,6 @@ const BinsPage = () => {
   const cargarDatosIniciales = async () => {
     try {
       setLoading(true);
-      
       const [productoresData, productosData, binsData] = await Promise.all([
         binloteServices.getProductores(),
         binloteServices.getProductos(),
@@ -56,11 +52,8 @@ const BinsPage = () => {
     }
   };
 
-
-
   const handleProductorChange = (e) => {
     const productorId = parseInt(e.target.value);
-    
     setFormData({
       ...formData,
       productor_id: productorId,
@@ -73,7 +66,6 @@ const BinsPage = () => {
 
   const handleProductoChange = (e) => {
     const productoId = parseInt(e.target.value);
-    
     setFormData({
       ...formData,
       producto_id: productoId,
@@ -94,7 +86,6 @@ const BinsPage = () => {
 
   const handleRemitoBlur = async (e) => {
     const remito = e.target.value;
-    
     if (remito.length < 3) {
       setRemitoValido(null);
       return;
@@ -103,7 +94,6 @@ const BinsPage = () => {
     try {
       const response = await binloteServices.validarRemito(remito);
       setRemitoValido(!response.existe);
-      
       if (response.existe) {
         setError('⚠️ Este número de remito ya existe en el sistema');
       } else {
@@ -127,7 +117,9 @@ const BinsPage = () => {
         return;
       }
 
-      const response = await binloteServices.crearBinYLote({
+      // CAMBIO PRINCIPAL: Llamamos a crearBin en lugar de crearBinYLote
+      // Nota: Asegúrate de que en tu archivo services exista este método y apunte al endpoint correcto (ej: POST /api/bins)
+      const response = await binloteServices.crearBin({
         producto_id: parseInt(formData.producto_id),
         variedad_id: formData.variedad_id ? parseInt(formData.variedad_id) : null,
         productor_id: formData.productor_id ? parseInt(formData.productor_id) : null,
@@ -143,24 +135,16 @@ const BinsPage = () => {
 
       setSuccess(true);
       
-      const fechaIngreso = response.data.bin.fecha_ingreso_deposito 
-        ? new Date(response.data.bin.fecha_ingreso_deposito).toLocaleString('es-AR', {
-            day: '2-digit',
-            month: '2-digit',
-            year: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit'
-          })
-        : 'No disponible';
+      // Ajustamos la alerta para no buscar datos del lote que ya no existen
+      // Asumimos que la respuesta trae los datos del bin creado en response.data o response.data.bin
+      const binCreado = response.data.bin || response.data; 
 
       alert(
-        `✅ Bin y Lote creados exitosamente!\n\n` +
+        `✅ Bin registrado exitosamente!\n\n` +
         `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n` +
-        `📦 BIN ID: ${response.data.bin.bin_id}\n` +
-        `📋 Lote ID: ${response.data.lote.lote_id}\n` +
-        `⚖️  Peso: ${response.data.bin.peso_bruto} kg\n` +
-        `📄 Remito: ${response.data.bin.remito}\n` +
-        `📊 Estado: ${response.data.lote.estado}\n` +
+        `📦 BIN ID: ${binCreado.bin_id}\n` +
+        `⚖️  Peso: ${formData.peso_bruto} kg\n` +
+        `📄 Remito: ${formData.remito}\n` +
         `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`
       );
 
@@ -200,10 +184,8 @@ const BinsPage = () => {
     }
   };
 
- 
   const formatearFecha = (fecha) => {
     if (!fecha) return 'N/A';
-    
     try {
       return new Date(fecha).toLocaleString('es-AR', {
         day: '2-digit',
@@ -216,7 +198,6 @@ const BinsPage = () => {
       return 'Fecha inválida';
     }
   };
-
 
   return (
     <div className="recepcion-bin-container">
@@ -232,7 +213,7 @@ const BinsPage = () => {
 
       {success && (
         <div className="alert alert-success">
-          ✅ Bin y lote creados exitosamente
+          ✅ Bin registrado exitosamente (Pendiente de Lote)
           <button onClick={() => setSuccess(false)}>✕</button>
         </div>
       )}
@@ -388,7 +369,7 @@ const BinsPage = () => {
           className="btn-submit"
           disabled={loading || remitoValido === false}
         >
-          {loading ? 'Registrando...' : 'Registrar Bin y Generar Lote'}
+          {loading ? 'Registrando...' : 'Registrar Bin '}
         </button>
       </form>
 
@@ -403,7 +384,10 @@ const BinsPage = () => {
               <li key={bin.bin_id}>
                 <div className="bin-header">
                   <strong>{bin.bin_id}</strong>
-                  <span className="lote-badge">Lote #{bin.lote_id}</span>
+                  
+                
+                  {/* ya no agregamos lote en el bin solo despues de pasar por la linea de proceso, com */}
+                  {/* {bin.lote_id && <span className="lote-badge">Lote #{bin.lote_id}</span>} */}
                 </div>
                 <div className="bin-info">
                   {bin.producto_nombre} {bin.variedad_nombre && `- ${bin.variedad_nombre}`}
