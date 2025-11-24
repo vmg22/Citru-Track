@@ -1184,26 +1184,22 @@ exports.getRendimientoPorLote = async (req, res) => {
       params.push(fecha_to);
     }
 
-    // For each lote: entrada (sum bins.peso_bruto), salida (sum cajas.peso_neto), rendimiento, descartes promedio, cajas totales
+    // For each lote: entrada (peso_total del lote), salida (sum cajas.peso_neto), rendimiento, descartes promedio, cajas totales
     const [rows] = await pool.query(
       `SELECT
          l.lote_id,
          COALESCE(l.descripcion, CONCAT('Lote ', l.lote_id)) AS descripcion,
-         IFNULL(SUM(DISTINCT b.peso_bruto),0) AS kg_entrada,
-         IFNULL(SUM(c.peso_neto),0) AS kg_salida,
-         CASE WHEN IFNULL(SUM(DISTINCT b.peso_bruto),0) > 0 THEN
-           (IFNULL(SUM(c.peso_neto),0) / IFNULL(SUM(DISTINCT b.peso_bruto),0)) * 100
+         IFNULL(l.peso_total, 0) AS kg_entrada,
+         IFNULL((SELECT SUM(c2.peso_neto) FROM cajas c2 WHERE c2.lote_id = l.lote_id), 0) AS kg_salida,
+         CASE WHEN IFNULL(l.peso_total, 0) > 0 THEN
+           (IFNULL((SELECT SUM(c2.peso_neto) FROM cajas c2 WHERE c2.lote_id = l.lote_id), 0) / l.peso_total) * 100
          ELSE NULL END AS rendimiento_pct,
-         IFNULL(SUM(s.cantidad_cajas),0) AS cajas_totales,
-         CASE WHEN IFNULL(SUM(s.cantidad_cajas),0) > 0 THEN
-           (SUM(s.porcentaje_descartes * s.cantidad_cajas) / SUM(s.cantidad_cajas))
+         IFNULL((SELECT SUM(s2.cantidad_cajas) FROM sublotes s2 WHERE s2.lote_id = l.lote_id), 0) AS cajas_totales,
+         CASE WHEN IFNULL((SELECT SUM(s2.cantidad_cajas) FROM sublotes s2 WHERE s2.lote_id = l.lote_id), 0) > 0 THEN
+           (SELECT SUM(s2.porcentaje_descartes * s2.cantidad_cajas) / SUM(s2.cantidad_cajas) FROM sublotes s2 WHERE s2.lote_id = l.lote_id)
          ELSE 0 END AS porcentaje_descartes_prom
        FROM lotes l
-       LEFT JOIN bins b ON l.bin_id = b.bin_id
-       LEFT JOIN cajas c ON c.lote_id = l.lote_id
-       LEFT JOIN sublotes s ON s.lote_id = l.lote_id
        ${whereL}
-       GROUP BY l.lote_id, l.descripcion
        ORDER BY l.fecha_ingreso DESC
        LIMIT 200`,
       params
@@ -1375,16 +1371,14 @@ exports.getCamarasKPIs = async (req, res) => {
       ? times.reduce((a, b) => a + (b.minutos_en_camara || 0), 0) / times.length
       : 0;
 
-    // --- 2) ocupación (evitar pallets sin ubicación o estado NULL)
+    // --- 2) ocupación (pallets por cámara basado en camara_id)
     const [ocupacion] = await pool.query(
       `SELECT c.camara_id, c.nombre, c.capacidad_pallets,
-              COUNT(p.pallet_id) AS pallets_en_camara
+              COUNT(CASE WHEN p.estado = 'en_camara' THEN p.pallet_id END) AS pallets_en_camara
        FROM camaras c
-       LEFT JOIN pallets p
-         ON p.ubicacion_camara = c.nombre
-        AND p.estado = 'en_camara'
-        AND p.pallet_id IS NOT NULL
-       GROUP BY c.camara_id, c.nombre, c.capacidad_pallets`
+       LEFT JOIN pallets p ON p.camara_id = c.camara_id
+       GROUP BY c.camara_id, c.nombre, c.capacidad_pallets
+       ORDER BY c.nombre`
     );
 
     // --- 3) pallets por estado (evitar NULL)
@@ -1395,10 +1389,23 @@ exports.getCamarasKPIs = async (req, res) => {
        GROUP BY estado`
     );
 
+    // --- 4) pallets en cámara por producto
+    const [palletsPorProducto] = await pool.query(
+      `SELECT pr.producto_id, pr.nombre AS producto_nombre, 
+              COUNT(p.pallet_id) AS cantidad_pallets,
+              SUM(CASE WHEN p.estado = 'en_camara' THEN 1 ELSE 0 END) AS pallets_en_camara
+       FROM productos pr
+       LEFT JOIN pallets p ON p.producto_id = pr.producto_id
+       GROUP BY pr.producto_id, pr.nombre
+       HAVING pallets_en_camara > 0
+       ORDER BY pallets_en_camara DESC`
+    );
+
     res.json({
       tiempo_promedio_minutos: promedioMinutos,
       ocupacion,
       porEstado,
+      palletsPorProducto,
     });
   } catch (err) {
     console.error("getCamarasKPIs error:", err);
@@ -1552,7 +1559,7 @@ exports.getMovimientosKPIs = async (req, res) => {
       `SELECT p.pallet_id, p.estado, COUNT(pc.caja_id) AS cajas_asociadas
        FROM pallets p
        LEFT JOIN pallet_cajas pc ON pc.pallet_id = p.pallet_id
-       WHERE (p.estado = 'despachado' AND p.ubicacion_camara IS NOT NULL)
+       WHERE (p.estado = 'despachado' AND p.camara_id IS NOT NULL)
        GROUP BY p.pallet_id, p.estado
        LIMIT 100`
     );

@@ -17,7 +17,6 @@ export default function KpiDashboard() {
   const [empaque, setEmpaque] = useState(null);
   const [camaras, setCamaras] = useState(null);
   const [movimientos, setMovimientos] = useState(null);
-  const [auditoria, setAuditoria] = useState(null);
 
 
 
@@ -36,7 +35,6 @@ export default function KpiDashboard() {
       setEmpaque(null);
       setCamaras(null);
       setMovimientos(null);
-      setAuditoria(null);
       return;
     }
 
@@ -60,10 +58,6 @@ export default function KpiDashboard() {
 
     axios.get(`${API}/api/kpi/movimientos`, { params })
       .then(r => setMovimientos(r.data))
-      .catch(console.error);
-
-    axios.get(`${API}/api/kpi/auditoria`, { params })
-      .then(r => setAuditoria(r.data))
       .catch(console.error);
 
   }, [producto, filters]);
@@ -184,10 +178,10 @@ export default function KpiDashboard() {
                 <BarChart
                   data={rendimiento.rows
                     ? rendimiento.rows.map(r => ({
-                      lote: r.descripcion,
-                      rendimiento: Number(r.rendimiento_pct || 0),
-                      cajas: Number(r.cajas_totales)
-                    }))
+                        lote: r.descripcion,
+                        rendimiento: Number(r.rendimiento_pct || 0),
+                        cajas: Number(r.cajas_totales)
+                      }))
                     : []}>
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="lote" />
@@ -244,7 +238,7 @@ export default function KpiDashboard() {
             </div>
 
             <div className="kpi-card green">
-              <h3>Tipos de caja (total)</h3>
+              <h3>Cantidad de cajas</h3>
               <div className="kpi-value">
                 {empaque.tipoCaja
                   ? empaque.tipoCaja.reduce((a, b) => a + b.cantidad, 0)
@@ -255,12 +249,12 @@ export default function KpiDashboard() {
 
           <div className="kpi-graficos">
             <div className="grafico-box">
-              <h4>Cajas por dia (ej.)</h4>
+              <h4>Empaque de cajas por día</h4>
               <ResponsiveContainer width="100%" height={260}>
                 <BarChart
                   data={empaque.cajasPorOperario
                     ? empaque.cajasPorOperario.map(r => ({
-                      operario: r.operario || "anon",
+                      operario: r.operario || "Empaque de cajas",
                       cajas: r.cajas
                     }))
                     : []}>
@@ -293,21 +287,40 @@ export default function KpiDashboard() {
           <div className="kpi-graficos">
             <div className="grafico-box">
               <h4>Ocupación por cámara</h4>
-              <ResponsiveContainer width="100%" height={260}>
-                <BarChart
-                  data={camaras.ocupacion
-                    ? camaras.ocupacion.map(r => ({
-                      camara: r.nombre,
-                      ocupado: r.pallets_en_camara,
-                      capacidad: r.capacidad_pallets
-                    }))
-                    : []}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="camara" />
-                  <YAxis />
+              <ResponsiveContainer width="100%" height={380}>
+                <PieChart>
+                  <Pie
+                    data={
+                      camaras.ocupacion
+                        ? camaras.ocupacion
+                            .filter(r => r.pallets_en_camara > 0)
+                            .map(r => ({
+                              name: r.nombre ? r.nombre.replace(/^Frio para /i, '') : r.nombre,
+                              value: r.pallets_en_camara
+                            }))
+                        : []
+                    }
+                    dataKey="value"
+                    nameKey="name"
+                    cx="50%"
+                    cy="40%"
+                    outerRadius={70}
+                    innerRadius={0}
+                    label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                  >
+                    {(camaras.ocupacion
+                      ? camaras.ocupacion.filter(r => r.pallets_en_camara > 0)
+                      : []
+                    ).map((entry, index) => (
+                      <Cell
+                        key={`cell-${index}`}
+                        fill={['#28a745', '#17a2b8', '#ffc107', '#fd7e14', '#dc3545'][index % 5]}
+                      />
+                    ))}
+                  </Pie>
                   <Tooltip />
-                  <Bar dataKey="ocupado" fill="#28a745" />
-                </BarChart>
+                  <Legend />
+                </PieChart>
               </ResponsiveContainer>
             </div>
 
@@ -344,6 +357,45 @@ export default function KpiDashboard() {
                 </PieChart>
               </ResponsiveContainer>
             </div>
+
+            <div className="grafico-box">
+              <h4>Pallets en cámara por producto</h4>
+              {camaras.palletsPorProducto && camaras.palletsPorProducto.length > 0 ? (
+                <ResponsiveContainer width="100%" height={350}>
+                  <PieChart>
+                    <Pie
+                      data={
+                        camaras.palletsPorProducto.map(r => ({
+                          name: r.producto_nombre,
+                          value: r.pallets_en_camara
+                        }))
+                      }
+                      dataKey="value"
+                      nameKey="name"
+                      cx="50%"
+                      cy="45%"
+                      outerRadius={80}
+                      innerRadius={50}
+                      label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                      labelLine={true}
+                    >
+                      {camaras.palletsPorProducto.map((entry, index) => (
+                        <Cell
+                          key={`cell-${index}`}
+                          fill={['#17a2b8', '#007bff', '#6610f2', '#6f42c1', '#e83e8c'][index % 5]}
+                        />
+                      ))}
+                    </Pie>
+                    <Tooltip />
+                    <Legend />
+                  </PieChart>
+                </ResponsiveContainer>
+              ) : (
+                <div style={{ padding: '40px', textAlign: 'center', color: '#666' }}>
+                  No hay pallets en cámara en este momento
+                </div>
+              )}
+            </div>
           </div>
         </>
       )}
@@ -370,34 +422,6 @@ export default function KpiDashboard() {
                 <YAxis />
                 <Tooltip />
                 <Bar dataKey="movimientos" fill="#6f42c1" />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        </>
-      )}
-
-      {/* Auditoría */}
-      {auditoria && (
-        <>
-          <h3 style={{ marginTop: 20 }}>Auditoría</h3>
-          <div className="grafico-box">
-            <h4>Top usuarios por acciones</h4>
-            <ResponsiveContainer width="100%" height={260}>
-              <BarChart
-                data={
-                  auditoria.byUser
-                    ? auditoria.byUser.map(r => ({
-                      user: r.nombre || r.usuario_id,
-                      acciones: r.acciones
-                    }))
-                    : []
-                }
-              >
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="user" />
-                <YAxis />
-                <Tooltip />
-                <Bar dataKey="acciones" fill="#343a40" />
               </BarChart>
             </ResponsiveContainer>
           </div>

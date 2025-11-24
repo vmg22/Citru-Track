@@ -62,6 +62,10 @@ const GestionPedidos = () => {
   const [palletsSeleccionados, setPalletsSeleccionados] = useState([]);
   const [loadingPallets, setLoadingPallets] = useState(false);
 
+  //estado para paginacion
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage] = useState(10);
+
   const metrics = {
     activos: pedidos.length,
     pendientes: pedidos.filter((p) => p.estado === "pendiente").length,
@@ -70,16 +74,29 @@ const GestionPedidos = () => {
     ).length,
     exportados: pedidos.filter((p) => p.estado === "entregado").length,
   };
+    
 
   useEffect(() => {
-    loadPedidos();
-    loadTransportistas();
-    loadClientes();
-    loadCamiones();
-    loadChoferes();
-    loadProductos();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filtros]);
+  setCurrentPage(1); // Resetear a la primera página cuando cambien los filtros
+  loadPedidos();
+  loadTransportistas();
+  loadClientes();
+  loadCamiones();
+  loadChoferes();
+  loadProductos();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+}, [filtros]);
+
+
+  // useEffect(() => {
+  //   loadPedidos();
+  //   loadTransportistas();
+  //   loadClientes();
+  //   loadCamiones();
+  //   loadChoferes();
+  //   loadProductos();
+  //   // eslint-disable-next-line react-hooks/exhaustive-deps
+  // }, [filtros]);
 
   // 🔥 PASO 6: Cargar pallets cuando se edita un pedido existente
   useEffect(() => {
@@ -195,6 +212,34 @@ const GestionPedidos = () => {
       setProductos([]);
     }
   }
+
+  // Función para paginación
+  const getPaginatedPedidos = () => {
+  // Ordenar pedidos por fecha de creación (más recientes primero)
+  const sortedPedidos = [...pedidos].sort((a, b) => {
+    const dateA = new Date(a.created_at || a.fecha_programada || 0);
+    const dateB = new Date(b.created_at || b.fecha_programada || 0);
+    return dateB - dateA; // Orden descendente (más recientes primero)
+  });
+
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentItems = sortedPedidos.slice(indexOfFirstItem, indexOfLastItem);
+  const totalPages = Math.ceil(sortedPedidos.length / itemsPerPage);
+
+  return {
+    currentItems,
+    totalPages,
+    totalItems: sortedPedidos.length
+  };
+};
+
+// Función para cambiar de página
+const handlePageChange = (pageNumber) => {
+  setCurrentPage(pageNumber);
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+};
+
 
   // 🔥 PASO 6: Nueva función para cargar pallets al editar
   const loadPalletsParaEditar = async (pedidoId, productoId) => {
@@ -690,7 +735,92 @@ const GestionPedidos = () => {
     return esActivo && perteneceAlTransportista;
   });
 
-  const ListaPedidosTab = () => (
+
+//función componente lista pedidos con paginación
+// Componente de paginación (agregar antes de ListaPedidosTab)
+const Pagination = ({ currentPage, totalPages, onPageChange }) => {
+  const getPageNumbers = () => {
+    const pages = [];
+    const maxVisiblePages = 5;
+    
+    if (totalPages <= maxVisiblePages) {
+      for (let i = 1; i <= totalPages; i++) {
+        pages.push(i);
+      }
+    } else {
+      if (currentPage <= 3) {
+        for (let i = 1; i <= 4; i++) pages.push(i);
+        pages.push('...');
+        pages.push(totalPages);
+      } else if (currentPage >= totalPages - 2) {
+        pages.push(1);
+        pages.push('...');
+        for (let i = totalPages - 3; i <= totalPages; i++) pages.push(i);
+      } else {
+        pages.push(1);
+        pages.push('...');
+        for (let i = currentPage - 1; i <= currentPage + 1; i++) pages.push(i);
+        pages.push('...');
+        pages.push(totalPages);
+      }
+    }
+    
+    return pages;
+  };
+
+  if (totalPages <= 1) return null;
+
+  return (
+    <div className="d-flex justify-content-center align-items-center mt-4 mb-3">
+      <nav>
+        <ul className="pagination mb-0">
+          <li className={`page-item ${currentPage === 1 ? 'disabled' : ''}`}>
+            <button
+              className="page-link"
+              onClick={() => onPageChange(currentPage - 1)}
+              disabled={currentPage === 1}
+            >
+              Anterior
+            </button>
+          </li>
+          
+          {getPageNumbers().map((page, index) => (
+            <li
+              key={index}
+              className={`page-item ${page === currentPage ? 'active' : ''} ${page === '...' ? 'disabled' : ''}`}
+            >
+              {page === '...' ? (
+                <span className="page-link">...</span>
+              ) : (
+                <button
+                  className="page-link"
+                  onClick={() => onPageChange(page)}
+                >
+                  {page}
+                </button>
+              )}
+            </li>
+          ))}
+          
+          <li className={`page-item ${currentPage === totalPages ? 'disabled' : ''}`}>
+            <button
+              className="page-link"
+              onClick={() => onPageChange(currentPage + 1)}
+              disabled={currentPage === totalPages}
+            >
+              Siguiente
+            </button>
+          </li>
+        </ul>
+      </nav>
+    </div>
+  );
+};
+
+const ListaPedidosTab = () => {
+  const { currentItems, totalPages, totalItems } = getPaginatedPedidos();
+
+  return (
     <>
       <div className="tab-content-header mb-3 d-flex justify-content-between align-items-center">
         <h5 className="mb-0 text-secondary" style={{ fontSize: "1.1rem" }}>
@@ -732,14 +862,14 @@ const GestionPedidos = () => {
                   Cargando...
                 </td>
               </tr>
-            ) : pedidos.length === 0 ? (
+            ) : currentItems.length === 0 ? (
               <tr>
                 <td colSpan="8" className="text-center py-4 text-muted">
                   No hay pedidos para mostrar.
                 </td>
               </tr>
             ) : (
-              pedidos.map((p) => {
+              currentItems.map((p) => {
                 let cantidadPallets = 0;
                 if (Array.isArray(p.od_pallets)) {
                   cantidadPallets = p.od_pallets.length;
@@ -806,11 +936,146 @@ const GestionPedidos = () => {
           </tbody>
         </Table>
       </div>
-      <div className="mt-3 text-muted small px-2">
-        Mostrando {pedidos.length} registros encontrados.
+
+      {/* Componente de paginación */}
+      <Pagination 
+        currentPage={currentPage}
+        totalPages={totalPages}
+        onPageChange={handlePageChange}
+      />
+
+      <div className="mt-3 text-muted small px-2 d-flex justify-content-between align-items-center">
+        <span>
+          Mostrando {currentItems.length > 0 ? ((currentPage - 1) * itemsPerPage) + 1 : 0} - {Math.min(currentPage * itemsPerPage, totalItems)} de {totalItems} registros
+        </span>
+        <span>
+          Página {currentPage} de {totalPages || 1}
+        </span>
       </div>
     </>
   );
+};
+  // const ListaPedidosTab = () => (
+  //   <>
+  //     <div className="tab-content-header mb-3 d-flex justify-content-between align-items-center">
+  //       <h5 className="mb-0 text-secondary" style={{ fontSize: "1.1rem" }}>
+  //         Listado Maestro de Exportaciones
+  //       </h5>
+  //       <div className="acciones">
+  //         <Button
+  //           variant="light"
+  //           className="btn-icon me-2 shadow-sm border"
+  //           onClick={loadPedidos}
+  //           title="Refrescar"
+  //         >
+  //           <FaSync color="#666" />
+  //         </Button>
+  //       </div>
+  //     </div>
+
+  //     {error && <Alert variant="danger">{error}</Alert>}
+
+  //     <div className="table-container">
+  //       <Table responsive hover className="custom-table">
+  //         <thead>
+  //           <tr>
+  //             <th>N° Pedido</th>
+  //             <th>Cliente</th>
+  //             <th>Destino</th>
+  //             <th>Transporte</th>
+  //             <th>Fecha Est.</th>
+  //             <th className="text-center">Pallets</th>
+  //             <th className="text-center">Estado</th>
+  //             <th className="text-end">Acciones</th>
+  //           </tr>
+  //         </thead>
+  //         <tbody>
+  //           {loading ? (
+  //             <tr>
+  //               <td colSpan="8" className="text-center py-4">
+  //                 <Spinner animation="border" size="sm" className="me-2" />{" "}
+  //                 Cargando...
+  //               </td>
+  //             </tr>
+  //           ) : pedidos.length === 0 ? (
+  //             <tr>
+  //               <td colSpan="8" className="text-center py-4 text-muted">
+  //                 No hay pedidos para mostrar.
+  //               </td>
+  //             </tr>
+  //           ) : (
+  //             pedidos.map((p) => {
+  //               let cantidadPallets = 0;
+  //               if (Array.isArray(p.od_pallets)) {
+  //                 cantidadPallets = p.od_pallets.length;
+  //               } else if (p.cantidad_pallets_prevista) {
+  //                 cantidadPallets = p.cantidad_pallets_prevista;
+  //               } else if (p.cantidad_pallets) {
+  //                 cantidadPallets = p.cantidad_pallets;
+  //               }
+
+  //               return (
+  //                 <tr key={p.od_id || p.id || p.odId}>
+  //                   <td className="text-highlight">
+  //                     {p.od_code || p.odCode || `OD-${p.od_id || p.id}`}
+  //                   </td>
+  //                   <td style={{ fontWeight: "500" }}>
+  //                     {p.cliente_nombre || p.cliente}
+  //                   </td>
+  //                   <td>{p.destino}</td>
+  //                   <td style={{ textTransform: "capitalize" }}>
+  //                     {p.tipo_destino || p.tipoDestino}
+  //                   </td>
+  //                   <td>
+  //                     {(
+  //                       p.fecha_programada ||
+  //                       p.fechaProgramada ||
+  //                       ""
+  //                     ).substring(0, 10)}
+  //                   </td>
+  //                   <td className="text-center">
+  //                     <Badge bg="info" className="px-3 py-2">
+  //                       {cantidadPallets}
+  //                     </Badge>
+  //                   </td>
+  //                   <td className="text-center">{badgeEstado(p.estado)}</td>
+  //                   <td className="text-end">
+  //                     <Button
+  //                       variant="link"
+  //                       className="btn-action-table me-2"
+  //                       title="Seguimiento GPS"
+  //                     >
+  //                       <FaTruck size={16} />
+  //                     </Button>
+  //                     <Button
+  //                       variant="link"
+  //                       className="btn-action-table me-2"
+  //                       title="Ver / Editar Detalles"
+  //                       onClick={() => openDetalle(p)}
+  //                     >
+  //                       <FaEye size={16} />
+  //                     </Button>
+  //                     <Button
+  //                       variant="link"
+  //                       className="btn-action-table text-danger"
+  //                       title="Eliminar Pedido"
+  //                       onClick={() => handleDeletePedido(p)}
+  //                     >
+  //                       <FaTrash size={16} />
+  //                     </Button>
+  //                   </td>
+  //                 </tr>
+  //               );
+  //             })
+  //           )}
+  //         </tbody>
+  //       </Table>
+  //     </div>
+  //     <div className="mt-3 text-muted small px-2">
+  //       Mostrando {pedidos.length} registros encontrados.
+  //     </div>
+  //   </>
+  // );
 
   const NuevoPedidoTab = () => (
     <NuevoPedidoForm onOrderSaved={handleFormAction} onCancel={handleCancel} />
