@@ -21,6 +21,7 @@ const routingRoutes = require("./routes/routing.routes");
 const procesoRoutes = require('./routes/proceso.routes');
 const loteMaestroRoutes = require('./routes/loteMaestroRoutes');
 const rolesRoutes = require("./routes/roles.routes");
+const trackingRoutes = require("./routes/tracking.routes");
 
 const app = express();
 app.use(cors());
@@ -49,6 +50,7 @@ app.use("/api/routing", routingRoutes);
 app.use('/api/proceso', procesoRoutes);
 app.use('/api/lotes-maestros', loteMaestroRoutes);
 app.use("/api/roles", rolesRoutes);
+app.use("/api/tracking", trackingRoutes);
 // health
 app.get('/health', (req, res) => res.json({ ok: true, env: process.env.NODE_ENV || 'dev' }));
 
