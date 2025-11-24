@@ -2,7 +2,7 @@ import L from 'leaflet';
 import 'leaflet-routing-machine';
 
 // URL base del backend
-const API_URL = 'http://localhost:4000/api';
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:4000/api';
 
 /**
  * Servicio para calcular rutas optimizadas usando el backend proxy

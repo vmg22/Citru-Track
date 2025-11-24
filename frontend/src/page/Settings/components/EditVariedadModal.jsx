@@ -1,29 +1,28 @@
-// EditCamaraModal.jsx
-
 import React, { useState, useEffect } from "react";
 import { toast } from "react-toastify";
-
 import "../../../style/addusermodal.css"; 
-import { editCamara } from "../../CamaraFrio/service/camaraService";
+import { updateVariedad } from "../services/settingsServices";
 
-const EditCamaraModal = ({ isOpen, onClose, camaraData, onCamaraUpdated }) => {
-  const [formData, setFormData] = useState(camaraData || {});
+const EditVariedadModal = ({ isOpen, onClose, variedadData, onVariedadUpdated }) => {
+  const [formData, setFormData] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [localError, setLocalError] = useState(null);
 
   useEffect(() => {
-    if (camaraData) {
-      setFormData(camaraData);
+    if (variedadData) {
+      setFormData({
+        nombre: variedadData.nombre || '',
+        descripcion: variedadData.descripcion || '',
+      });
       setLocalError(null);
     }
-  }, [camaraData]);
+  }, [variedadData]);
 
-  if (!isOpen || !camaraData) return null;
+  if (!isOpen || !variedadData) return null;
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    const finalValue = name === "capacidad_pallets" ? parseInt(value) : value; 
-    setFormData((prev) => ({ ...prev, [name]: finalValue }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleSubmit = async (e) => {
@@ -32,32 +31,28 @@ const EditCamaraModal = ({ isOpen, onClose, camaraData, onCamaraUpdated }) => {
     setIsSubmitting(true);
 
     try {
-      if (!formData.nombre || !formData.capacidad_pallets) {
-        const requiredError = "Los campos Nombre y Capacidad son obligatorios.";
-        setLocalError(requiredError);
-        toast.error(requiredError);
+      if (!formData.nombre) {
+        setLocalError("El nombre de la variedad es obligatorio.");
+        toast.error("El nombre de la variedad es obligatorio.");
         setIsSubmitting(false);
         return;
       }
-      
+
       const dataToSend = {
         nombre: formData.nombre,
-        ubicacion: formData.ubicacion || null,
-        capacidad_pallets: parseInt(formData.capacidad_pallets),
+        descripcion: formData.descripcion || null,
       };
+      await updateVariedad(variedadData.variedad_id, dataToSend); 
 
-      // Llamada al servicio que usa PUT/PATCH y la ruta /api/camaras/:id
-      await editCamara(camaraData.camara_id, dataToSend);
-
-      toast.success(`Cámara "${formData.nombre}" actualizada con éxito!`);
-
-      onCamaraUpdated(); // Recargar la lista
+      toast.success(`Variedad "${formData.nombre}" actualizada con éxito!`);
+      
+      onVariedadUpdated(); // Recargar la lista principal
       onClose();
 
     } catch (err) {
       const apiError =
         err.response?.data?.error ||
-        "Error al actualizar la cámara. Por favor, intenta nuevamente.";
+        "Error al actualizar la variedad. Por favor, intenta nuevamente.";
       toast.error(apiError);
       setLocalError(apiError);
     } finally {
@@ -76,7 +71,7 @@ const EditCamaraModal = ({ isOpen, onClose, camaraData, onCamaraUpdated }) => {
       <div className="modal-content">
         <div className="modal-header">
           <h3>
-            <i className="fas fa-edit"></i> Editar Cámara: {camaraData.nombre}
+            <i className="fas fa-edit"></i> Editar Variedad: {variedadData.nombre}
           </h3>
           <button
             className="modal-close-btn"
@@ -93,7 +88,7 @@ const EditCamaraModal = ({ isOpen, onClose, camaraData, onCamaraUpdated }) => {
           <form onSubmit={handleSubmit}>
             <div className="form-group">
               <label className="form-label" htmlFor="nombre">
-                Nombre de la Cámara <span className="required-star">*</span>
+                Nombre de la Variedad <span className="required-star">*</span>
               </label>
               <input
                 type="text"
@@ -105,53 +100,20 @@ const EditCamaraModal = ({ isOpen, onClose, camaraData, onCamaraUpdated }) => {
                 required
               />
             </div>
-
-            <div className="form-group">
-              <label className="form-label" htmlFor="ubicacion">
-                Ubicación
-              </label>
-              <input
-                type="text"
-                id="ubicacion"
-                name="ubicacion"
-                value={formData.ubicacion || ''}
-                onChange={handleChange}
-                className="form-input"
-              />
-            </div>
             
             <div className="form-group">
-              <label className="form-label" htmlFor="temperatura_aproximada_display">
-                Temperatura (°C)
+              <label className="form-label" htmlFor="descripcion">
+                Descripción
               </label>
-              <input
-                type="text"
-                id="temperatura_aproximada_display"
-                value={formData.temperatura_aproximada || 'N/A'}
-                className="form-input"
-                disabled
-              />
-              <p className="form-hint">
-                <i className="fas fa-lock"></i> La temperatura no se puede modificar.
-              </p>
-            </div>
-
-            <div className="form-group">
-              <label className="form-label" htmlFor="capacidad_pallets">
-                Capacidad (Pallets) <span className="required-star">*</span>
-              </label>
-              <input
-                type="number"
-                id="capacidad_pallets"
-                name="capacidad_pallets"
-                value={formData.capacidad_pallets || ''}
+              <textarea
+                id="descripcion"
+                name="descripcion"
+                value={formData.descripcion || ''}
                 onChange={handleChange}
                 className="form-input"
-                required
-                min="1"
+                rows="3"
               />
             </div>
-            
           </form>
         </div>
 
@@ -187,4 +149,4 @@ const EditCamaraModal = ({ isOpen, onClose, camaraData, onCamaraUpdated }) => {
   );
 };
 
-export default EditCamaraModal;
+export default EditVariedadModal;

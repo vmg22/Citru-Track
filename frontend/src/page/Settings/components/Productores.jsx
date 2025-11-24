@@ -155,7 +155,6 @@ const Productores = () => {
   return (
     <div className="camara-config-container">
       <div className="camara-config-section">
-        {/* Header con título y botones */}
         <div className="camara-table-header">
           <h2>
             <i className="fas fa-tractor"></i>
@@ -203,8 +202,10 @@ const Productores = () => {
                 productores.map((productor) => (
                   <tr key={productor.productor_id}>
                     <td className="camara-table-cell">
-                      {productor.productor_id}
-                    </td>
+                          <span className="camara-capacity-badge">
+                            {productor.productor_id}
+                          </span>
+                        </td>
                     <td className="camara-table-cell">
                       {productor.nombre}
                     </td>

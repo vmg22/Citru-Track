@@ -10,6 +10,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@react-google-maps/api": "^2.20.7",
     "axios": "^1.13.2",
     "chart.js": "^4.5.1",
     "jspdf": "^3.0.4",
@@ -24,6 +25,7 @@
     "react-router-dom": "^7.9.6",
     "react-toastify": "^11.0.5",
     "recharts": "^3.4.1",
+    "socket.io-client": "^4.8.1",
     "sweetalert2": "^11.26.3",
     "zustand": "^5.0.8"
   },

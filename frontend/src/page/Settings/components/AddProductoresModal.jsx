@@ -1,5 +1,3 @@
-// AddProductoresModal.jsx
-
 import React, { useState } from "react";
 import { toast } from "react-toastify";
 import { createProductor } from "../services/settingsServices"; 

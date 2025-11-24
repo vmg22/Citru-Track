@@ -16,10 +16,8 @@ const AddUserModal = ({ isOpen, onClose, onUserAdded }) => {
     });
     const [availableRoles, setAvailableRoles] = useState([]);
     const [isSubmitting, setIsSubmitting] = useState(false);
-    // Ya no necesitamos el estado 'error' para mostrar el mensaje en el modal si usamos toastify
     const [localError, setLocalError] = useState(null); 
 
-    // Cargar roles al montar el modal
     useEffect(() => {
         const fetchRoles = async () => {
             try {
@@ -72,13 +70,11 @@ const AddUserModal = ({ isOpen, onClose, onUserAdded }) => {
 
             const response = await createUser(dataToSend);
             
-            // 🌟 Notificación de Éxito
             toast.success(`Usuario ${response.usuario?.username || formData.username} creado con éxito!`);
             
             onUserAdded();
             onClose();
             
-            // 3. Resetear el formulario al cerrar
             setFormData({
                 username: '',
                 password: '',
@@ -91,9 +87,8 @@ const AddUserModal = ({ isOpen, onClose, onUserAdded }) => {
         } catch (err) {
             const apiError = err.response?.data?.error || "Error al crear el usuario. Por favor, intenta nuevamente.";
             
-            // ❌ Notificación de Error
             toast.error(apiError);
-            setLocalError(apiError); // Mantenemos el error local por si el usuario lo prefiere en el modal
+            setLocalError(apiError); 
         } finally {
             setIsSubmitting(false);
         }
@@ -124,7 +119,6 @@ const AddUserModal = ({ isOpen, onClose, onUserAdded }) => {
                 </div>
 
                 <div className="modal-body">
-                    {/* El mensaje de error interno (localError) se mantiene por si quieres duplicar la alerta */}
                     {localError && ( 
                         <div className="modal-error">
                             {localError}
@@ -132,7 +126,6 @@ const AddUserModal = ({ isOpen, onClose, onUserAdded }) => {
                     )}
 
                     <form onSubmit={handleSubmit}>
-                        {/* Campo de ROL */}
                         <div className="form-group">
                             <label className="form-label" htmlFor="rolSeleccionado">
                                 Rol <span className="required-star">*</span>
@@ -158,7 +151,6 @@ const AddUserModal = ({ isOpen, onClose, onUserAdded }) => {
                             </select>
                         </div>
                         
-                        {/* Resto de campos (Nombre, Username, Email, Contraseña, Teléfono) */}
                         <div className="form-group">
                             <label className="form-label" htmlFor="nombre">Nombre Completo <span className="required-star">*</span></label>
                             <input type="text" id="nombre" name="nombre" value={formData.nombre} onChange={handleChange} className="form-input" placeholder="Ingrese el nombre completo" required />
