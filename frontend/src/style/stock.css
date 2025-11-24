@@ -305,9 +305,10 @@
 }
 
 /* Gráficos circulares */
+/* Gráficos circulares */
 .stock-graficos-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  grid-template-columns: repeat(3, 1fr);
   gap: 20px;
 }
 
@@ -333,25 +334,30 @@
   margin-bottom: 15px;
 }
 
+.stock-grafico-circular svg {
+  width: 160px;
+  height: 160px;
+}
+
 .stock-circulo-fondo,
 .stock-circulo-progreso {
   transition: all 0.5s ease;
 }
 
 .stock-porcentaje-texto {
-  font-size: 18px;
+  font-size: 24px;
   font-weight: 700;
   fill: #2c3e50;
 }
 
 .stock-cantidad-texto {
-  font-size: 11px;
+  font-size: 14px;
   font-weight: 600;
   fill: #7f8c8d;
 }
 
 .stock-label-grafico {
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 600;
   color: #34495e;
   margin: 10px 0 0 0;

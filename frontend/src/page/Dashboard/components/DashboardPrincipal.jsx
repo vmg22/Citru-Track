@@ -1,408 +1,11 @@
-// import React, { useState, useEffect } from "react";
-// import MapaLogistica from "./MapaLogistica";
-// import "../../../style/DashboardPrincipal.css";
-// import { Link } from "react-router-dom";
-
-// // Componente Button Reutilizable
-// const Button = ({ children, onClick, className = "", icon }) => {
-//   return (
-//     <button onClick={onClick} className={`dashboard-button ${className}`}>
-//       {icon && <i className={icon}></i>}
-//       {children}
-//     </button>
-//   );
-// };
-
-// // Componente Card Reutilizable
-// const Card = ({ title, icon, iconClass, children }) => {
-//   return (
-//     <div className="dashboard-card-item">
-//       <div className="dashboard-card-header">
-//         <div className="dashboard-card-title">{title}</div>
-//         <div className={`dashboard-card-icon ${iconClass}`}>
-//           <i className={icon}></i>
-//         </div>
-//       </div>
-//       <div className="dashboard-card-content">
-//         {children}
-//       </div>
-//     </div>
-//   );
-// };
-
-// // Componente Status Badge
-// const StatusBadge = ({ status }) => {
-//   return (
-//     <span
-//       className={`dashboard-status dashboard-status-${status.toLowerCase()}`}
-//     >
-//       {status}
-//     </span>
-//   );
-// };
-
-// // Componente Conveyor CON COLORES
-// const Conveyor = () => {
-//   // Configuración de colores por tipo de fruta
-//   const fruitColors = {
-//     LIM: {
-//       background: 'linear-gradient(135deg, #C6D84F 0%, #9FB92C 100%)',
-//       color: '#2D5016',
-//       shadow: '0 4px 6px rgba(159, 185, 44, 0.4)',
-//       emoji: '🍋',
-//       name: 'Limón'
-//     },
-//     ORA: {
-//       background: 'linear-gradient(135deg, #FF9F40 0%, #FF7F00 100%)',
-//       color: '#8B4000',
-//       shadow: '0 4px 6px rgba(255, 127, 0, 0.4)',
-//       emoji: '🍊',
-//       name: 'Naranja'
-//     },
-//     MAN: {
-//       background: 'linear-gradient(135deg, #FFB347 0%, #FF8C00 100%)',
-//       color: '#CC6600',
-//       shadow: '0 4px 6px rgba(255, 140, 0, 0.4)',
-//       emoji: '🍊',
-//       name: 'Mandarina'
-//     }
-//   };
-
-//   const boxes = [
-//     { text: "LIM", delay: "0s" },
-//     { text: "ORA", delay: "3s" },
-//     { text: "MAN", delay: "6s" },
-//     { text: "LIM", delay: "9s" },
-//     { text: "ORA", delay: "12s" },
-//   ];
-
-//   return (
-//     <div className="dashboard-conveyor-container">
-//       <div className="dashboard-conveyor-belt"></div>
-//       {boxes.map((box, index) => {
-//         const colorConfig = fruitColors[box.text];
-//         return (
-//           <div
-//             key={index}
-//             className="dashboard-box"
-//             style={{ 
-//               animationDelay: box.delay,
-//               background: colorConfig.background,
-//               color: colorConfig.color,
-//               boxShadow: colorConfig.shadow,
-//               border: `2px solid ${colorConfig.color}20`,
-//               display: 'flex',
-//               flexDirection: 'column',
-//               alignItems: 'center',
-//               justifyContent: 'center',
-//               gap: '2px',
-//               fontWeight: 'bold',
-//               fontSize: '11px',
-//               textShadow: '0 1px 2px rgba(0,0,0,0.2)'
-//             }}
-//             title={colorConfig.name}
-//           >
-//             <span style={{ fontSize: '18px' }}>{colorConfig.emoji}</span>
-//             <span>{box.text}</span>
-//           </div>
-//         );
-//       })}
-//     </div>
-//   );
-// };
-
-// // Componente Table
-// const Table = ({ headers, rows }) => {
-//   return (
-//     <div className="dashboard-table-container">
-//       <table className="dashboard-table">
-//         <thead>
-//           <tr>
-//             {headers.map((header, index) => (
-//               <th key={index}>{header}</th>
-//             ))}
-//           </tr>
-//         </thead>
-//         <tbody>
-//           {rows.map((row, rowIndex) => (
-//             <tr key={rowIndex}>
-//               {row.map((cell, cellIndex) => (
-//                 <td key={cellIndex}>{cell}</td>
-//               ))}
-//             </tr>
-//           ))}
-//         </tbody>
-//       </table>
-//     </div>
-//   );
-// };
-
-// // Componente KPI
-// const KPIItem = ({ value, label, status }) => {
-//   return (
-//     <div className="dashboard-kpi-item">
-//       <div className={`dashboard-kpi-value dashboard-kpi-${status}`}>
-//         {value}
-//       </div>
-//       <div className="dashboard-kpi-label">{label}</div>
-//     </div>
-//   );
-// };
-
-// // Componente Alert
-// const Alert = ({ title, description }) => {
-//   return (
-//     <div className="dashboard-alerta">
-//       <i className="fas fa-exclamation-triangle"></i>
-//       <div>
-//         <strong>{title}</strong>
-//         <p>{description}</p>
-//       </div>
-//     </div>
-//   );
-// };
-
-// // ==================== Componente Principal ====================
-
-// const DashboardPrincipal = () => {
-
-
-//   useEffect(() => {
-//     console.log("✅ Dashboard montado correctamente");
-//     const interval = setInterval(() => {
-//       console.log("Actualizando datos...");
-//     }, 30000);
-
-//     return () => clearInterval(interval);
-//   }, []);
-
-//   const lotesData = [
-//     ["LIM00123", "Limón", <StatusBadge key="s1" status="Normal" />],
-//     ["ORA00456", "Naranja", <StatusBadge key="s2" status="Alerta" />],
-//     ["MAN00789", "Mandarina", <StatusBadge key="s3" status="Transito" />],
-//   ];
-
-//   const condicionesData = [
-//     [
-//       "T1A3121430LIM00123K",
-//       "Limón",
-//       "10.2°C",
-//       "67%",
-//       <StatusBadge key="c1" status="Normal" />,
-//     ],
-//     [
-//       "T1A3121431LIM00123J",
-//       "Limón",
-//       "12.5°C",
-//       "65%",
-//       <StatusBadge key="c2" status="Alerta" />,
-//     ],
-//     [
-//       "T2B3121450ORA00456A",
-//       "Naranja",
-//       "8.7°C",
-//       "70%",
-//       <StatusBadge key="c3" status="Normal" />,
-//     ],
-//   ];
-
-//   const viajesData = [
-//     [
-//       "#12",
-//       "Carlos Gómez",
-//       "Aeropuerto Tucumán",
-//       <StatusBadge key="v1" status="Transito" />,
-//       "5.4°C",
-//     ],
-//     [
-//       "#13",
-//       "María López",
-//       "Mercado Central Bs.As.",
-//       <StatusBadge key="v2" status="Transito" />,
-//       "6.2°C",
-//     ],
-//     [
-//       "#14",
-//       "Juan Pérez",
-//       "Puerto Rosario",
-//       <StatusBadge key="v3" status="Normal" />,
-//       "-",
-//     ],
-//   ];
-
-//   return (
-//     <>
-
-//       <link
-//         rel="stylesheet"
-//         href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
-//       />
-//       <link 
-//         rel="stylesheet" 
-//         href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-//       />
-
-//  <div className="monitoreo-container">
-//         <div className="monitoreo-main-content">
-
-// <div className="monitoreo-header">
-//             <h2>
-//               <i className="fas fa-tachometer-alt"></i> Dashboard Principal
-//             </h2>
-//             <div className="monitoreo-user-info">
-//               <i className="fas fa-user-circle"></i>
-//               <span>Supervisor de Planta</span>
-//             </div>
-//           </div>
-
-//         <div className="dashboard-cards-container">
-//           <Link to="/monitoreo" className="dashboard-card-link" style={{textDecoration:"none"}}>
-//           <Card
-//             title="Monitoreo en Tiempo Real"
-//             icon="fas fa-eye"
-//             iconClass="monitoring"
-//           >
-//             <p>
-//               Visualice el flujo de cajas en la planta y condiciones de
-//               transporte en tiempo real.
-//             </p>
-//             <Conveyor />
-//           </Card>
-//           </Link>
-          
-
-//           <Card
-//             title="Gestión de Lotes"
-//             icon="fas fa-boxes"
-//             iconClass="lotes"
-//           >
-//             <p>
-//               Registre, consulte y audite lotes y productos con trazabilidad
-//               completa.
-//             </p>
-//             <Table
-//               headers={["ID Lote", "Producto", "Estado"]}
-//               rows={lotesData}
-//             />
-//           </Card>
-
-//           <Card
-//             title="Logística y Rutas"
-//             icon="fas fa-truck"
-//             iconClass="logistica"
-//           >
-//             <p>
-//               Monitoree viajes, vehículos y condiciones en trayecto con mapas
-//               interactivos.
-//             </p>
-//             <div className="dashboard-map-container">
-//               <MapaLogistica />
-//             </div>
-//           </Card>
-
-//           <Card
-//             title="Dashboard de KPIs"
-//             icon="fas fa-chart-line"
-//             iconClass="kpis"
-//           >
-//             <p>
-//               Métricas clave de calidad y eficiencia con gráficos y
-//               comparativas.
-//             </p>
-//             <div className="dashboard-kpi-container">
-//               <KPIItem value="96.5%" label="Puntualidad" status="good" />
-//               <KPIItem
-//                 value="2.4%"
-//                 label="Rupturas de Frío"
-//                 status="warning"
-//               />
-//             </div>
-//           </Card>
-//         </div>
-
-//         <div className="dashboard-grid">
-//           <div className="dashboard-left">
-//             <div className="dashboard-info-card">
-//               <h3>Condiciones Actuales</h3>
-//               <Table
-//                 headers={[
-//                   "ID Caja",
-//                   "Producto",
-//                   "Temperatura",
-//                   "Humedad",
-//                   "Estado",
-//                 ]}
-//                 rows={condicionesData}
-//               />
-//             </div>
-
-//             <div className="dashboard-info-card">
-//               <h3>Viajes Activos</h3>
-//               <Table
-//                 headers={[
-//                   "ID Viaje",
-//                   "Chofer",
-//                   "Destino",
-//                   "Estado",
-//                   "Temperatura Media",
-//                 ]}
-//                 rows={viajesData}
-//               />
-//             </div>
-//           </div>
-
-//           <div className="dashboard-right">
-//             <div className="dashboard-info-card">
-//               <h3>Alertas Activas</h3>
-//               <div className="dashboard-alertas-container">
-//                 <Alert
-//                   title="Ruptura de frío detectada"
-//                   description="Caja T1A3121431LIM00123J - Temperatura: 12.5°C"
-//                 />
-//                 <Alert
-//                   title="Vibración excesiva"
-//                   description="Camión AB 123 CD - Viaje #12"
-//                 />
-//               </div>
-//             </div>
-
-//             <div className="dashboard-info-card">
-//               <h3>KPIs Principales</h3>
-//               <div className="dashboard-kpi-container">
-//                 <KPIItem
-//                   value="99.7%"
-//                   label="Lecturas Correctas"
-//                   status="good"
-//                 />
-//                 <KPIItem
-//                   value="1.8%"
-//                   label="Merma Promedio"
-//                   status="warning"
-//                 />
-//                 <KPIItem
-//                   value="87.3"
-//                   label="Costo por Caja ($)"
-//                   status="good"
-//                 />
-//                 <KPIItem value="12" label="Alertas Críticas" status="bad" />
-//               </div>
-//             </div>
-//           </div>
-//         </div>
-//         </div>
-        
-//       </div>
-      
-//     </>
-//   );
-// };
-
-// export default DashboardPrincipal;
-
 import React, { useState, useEffect } from "react";
 import stockService from "../../../services/stockService";
 import "../../../style/DashboardPrincipal.css";
 import { Link } from "react-router-dom";
+import axios from "axios";
+
+// Configurar base URL
+axios.defaults.baseURL = "http://localhost:4000";
 
 // Componente Button Reutilizable
 const Button = ({ children, onClick, className = "", icon }) => {
@@ -443,11 +46,37 @@ const Card = ({ title, icon, iconClass, children, to, fullWidth }) => {
 
 // Componente Status Badge
 const StatusBadge = ({ status }) => {
+  const getStatusText = (estado) => {
+    const statusMap = {
+      'en_carga': 'En Carga',
+      'en_ruta': 'En Ruta',
+      'completada': 'Completada',
+      'cancelada': 'Cancelada',
+      'Normal': 'Normal',
+      'Alerta': 'Alerta',
+      'Transito': 'Tránsito'
+    };
+    return statusMap[estado] || estado;
+  };
+
+  const getStatusClass = (estado) => {
+    const classMap = {
+      'en_carga': 'transito',
+      'en_ruta': 'transito',
+      'completada': 'normal',
+      'cancelada': 'alerta',
+      'Normal': 'normal',
+      'Alerta': 'alerta',
+      'Transito': 'transito'
+    };
+    return classMap[estado] || 'normal';
+  };
+
   return (
     <span
-      className={`dashboard-status dashboard-status-${status.toLowerCase()}`}
+      className={`dashboard-status dashboard-status-${getStatusClass(status)}`}
     >
-      {status}
+      {getStatusText(status)}
     </span>
   );
 };
@@ -561,6 +190,7 @@ const DashboardPrincipal = () => {
     porEstado: []
   });
 
+  const [operacionesActivas, setOperacionesActivas] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -587,16 +217,67 @@ const DashboardPrincipal = () => {
     anulado: 'Anulado'
   };
 
+  // Función para normalizar respuesta del backend
+  const normalizeResponse = (respData) => {
+    if (!respData && respData !== 0) return [];
+    if (Array.isArray(respData)) return respData;
+    if (respData && Array.isArray(respData.data)) return respData.data;
+    if (respData && Array.isArray(respData.items)) return respData.items;
+    if (respData && Array.isArray(respData.results)) return respData.results;
+    if (respData && Array.isArray(respData.ordenes)) return respData.ordenes;
+    if (typeof respData === "object") {
+      const keys = Object.keys(respData || {});
+      for (let k of keys) {
+        if (Array.isArray(respData[k])) return respData[k];
+      }
+    }
+    return [];
+  };
+
+  const safeArray = (a) => (Array.isArray(a) ? a : []);
+
+  // Mapear campos de orden
+  const mapOrderFields = (o) => {
+    const orden_id = o.orden_id ?? o.od_id ?? o.id ?? null;
+    const od_code = o.od_code ?? o.code ?? o.orden_code ?? null;
+    const cliente_nombre = o.cliente_nombre ?? o.cliente ?? o.cliente_name ?? null;
+    const transportista_nombre = o.transportista_nombre ?? o.transportista ?? o.transportista_name ?? null;
+    const patente = o.patente ?? o.patent ?? o.camion_patente ?? o.patent_plate ?? null;
+
+    return {
+      ...o,
+      orden_id,
+      od_code,
+      cliente_nombre,
+      transportista_nombre,
+      patente
+    };
+  };
+
   useEffect(() => {
     const fetchStockData = async () => {
       try {
         setLoading(true);
         setError(null);
         
-        // Llamada al servicio sin filtros para obtener el total
-        const data = await stockService.getResumenStock({});
+        // Cargar stock y operaciones en paralelo
+        const [stockResponse, ordenesResponse] = await Promise.all([
+          stockService.getResumenStock({}),
+          axios.get("/api/ordenes-despacho")
+        ]);
         
-        setStockData(data);
+        setStockData(stockResponse);
+
+        // Procesar operaciones
+        const ordenesRaw = normalizeResponse(ordenesResponse.data);
+        const ordenesArr = safeArray(ordenesRaw).map(mapOrderFields);
+        
+        // Filtrar solo operaciones activas (en_carga o en_ruta)
+        const activas = ordenesArr.filter(
+          (o) => o && (o.estado === "en_carga" || o.estado === "en_ruta")
+        );
+        
+        setOperacionesActivas(activas);
       } catch (err) {
         console.error('Error al cargar datos de stock:', err);
         setError('Error al cargar los datos de stock');
@@ -655,29 +336,14 @@ const DashboardPrincipal = () => {
     ],
   ];
 
-  const viajesData = [
-    [
-      "#12",
-      "Carlos Gómez",
-      "Aeropuerto Tucumán",
-      <StatusBadge key="v1" status="Transito" />,
-      "5.4°C",
-    ],
-    [
-      "#13",
-      "María López",
-      "Mercado Central Bs.As.",
-      <StatusBadge key="v2" status="Transito" />,
-      "6.2°C",
-    ],
-    [
-      "#14",
-      "Juan Pérez",
-      "Puerto Rosario",
-      <StatusBadge key="v3" status="Normal" />,
-      "-",
-    ],
-  ];
+  // Preparar datos de viajes activos desde operaciones
+  const viajesData = operacionesActivas.slice(0, 5).map((operacion, index) => [
+    operacion.od_code || operacion.orden_id || `#${index + 1}`,
+    operacion.transportista_nombre || "N/A",
+    operacion.cliente_nombre || "N/A",
+    <StatusBadge key={`op-${operacion.orden_id || index}`} status={operacion.estado} />,
+    operacion.patente || "-"
+  ]);
 
   return (
     <>
@@ -869,17 +535,29 @@ const DashboardPrincipal = () => {
               </div>
 
               <div className="dashboard-info-card">
-                <h3>Viajes Activos</h3>
-                <Table
-                  headers={[
-                    "ID Viaje",
-                    "Chofer",
-                    "Destino",
-                    "Estado",
-                    "Temperatura Media",
-                  ]}
-                  rows={viajesData}
-                />
+                <h3>Viajes Activos ({operacionesActivas.length})</h3>
+                {loading ? (
+                  <div style={{ textAlign: 'center', padding: '20px' }}>
+                    <p style={{ fontSize: '12px', color: '#666' }}>Cargando viajes...</p>
+                  </div>
+                ) : viajesData.length > 0 ? (
+                  <Table
+                    headers={[
+                      "Orden",
+                      "Transportista",
+                      "Cliente",
+                      "Estado",
+                      "Patente"
+                    ]}
+                    rows={viajesData}
+                  />
+                ) : (
+                  <div style={{ textAlign: 'center', padding: '20px' }}>
+                    <p style={{ fontSize: '12px', color: '#999' }}>
+                      No hay operaciones activas en este momento
+                    </p>
+                  </div>
+                )}
               </div>
             </div>
 
@@ -924,10 +602,16 @@ const DashboardPrincipal = () => {
 export default DashboardPrincipal;
 
 
+
+//segundo dashborad principal
 // import React, { useState, useEffect } from "react";
 // import stockService from "../../../services/stockService";
 // import "../../../style/DashboardPrincipal.css";
 // import { Link } from "react-router-dom";
+// import axios from "axios";
+
+// // Configurar base URL
+// axios.defaults.baseURL = "http://localhost:4000";
 
 // // Componente Button Reutilizable
 // const Button = ({ children, onClick, className = "", icon }) => {
@@ -968,11 +652,31 @@ export default DashboardPrincipal;
 
 // // Componente Status Badge
 // const StatusBadge = ({ status }) => {
+//   const getStatusText = (estado) => {
+//     const statusMap = {
+//       'en_carga': 'En Carga',
+//       'en_ruta': 'En Ruta',
+//       'completada': 'Completada',
+//       'cancelada': 'Cancelada'
+//     };
+//     return statusMap[estado] || estado;
+//   };
+
+//   const getStatusClass = (estado) => {
+//     const classMap = {
+//       'en_carga': 'transito',
+//       'en_ruta': 'transito',
+//       'completada': 'normal',
+//       'cancelada': 'alerta'
+//     };
+//     return classMap[estado] || 'normal';
+//   };
+
 //   return (
 //     <span
-//       className={`dashboard-status dashboard-status-${status.toLowerCase()}`}
+//       className={`dashboard-status dashboard-status-${getStatusClass(status)}`}
 //     >
-//       {status}
+//       {getStatusText(status)}
 //     </span>
 //   );
 // };
@@ -1207,6 +911,7 @@ export default DashboardPrincipal;
 //     porEstado: []
 //   });
 
+//   const [operacionesActivas, setOperacionesActivas] = useState([]);
 //   const [loading, setLoading] = useState(true);
 //   const [error, setError] = useState(null);
 
@@ -1233,28 +938,79 @@ export default DashboardPrincipal;
 //     anulado: 'Anulado'
 //   };
 
+//   // Función para normalizar respuesta del backend
+//   const normalizeResponse = (respData) => {
+//     if (!respData && respData !== 0) return [];
+//     if (Array.isArray(respData)) return respData;
+//     if (respData && Array.isArray(respData.data)) return respData.data;
+//     if (respData && Array.isArray(respData.items)) return respData.items;
+//     if (respData && Array.isArray(respData.results)) return respData.results;
+//     if (respData && Array.isArray(respData.ordenes)) return respData.ordenes;
+//     if (typeof respData === "object") {
+//       const keys = Object.keys(respData || {});
+//       for (let k of keys) {
+//         if (Array.isArray(respData[k])) return respData[k];
+//       }
+//     }
+//     return [];
+//   };
+
+//   const safeArray = (a) => (Array.isArray(a) ? a : []);
+
+//   // Mapear campos de orden
+//   const mapOrderFields = (o) => {
+//     const orden_id = o.orden_id ?? o.od_id ?? o.id ?? null;
+//     const od_code = o.od_code ?? o.code ?? o.orden_code ?? null;
+//     const cliente_nombre = o.cliente_nombre ?? o.cliente ?? o.cliente_name ?? null;
+//     const transportista_nombre = o.transportista_nombre ?? o.transportista ?? o.transportista_name ?? null;
+//     const patente = o.patente ?? o.patent ?? o.camion_patente ?? o.patent_plate ?? null;
+
+//     return {
+//       ...o,
+//       orden_id,
+//       od_code,
+//       cliente_nombre,
+//       transportista_nombre,
+//       patente
+//     };
+//   };
+
 //   useEffect(() => {
-//     const fetchStockData = async () => {
+//     const fetchData = async () => {
 //       try {
 //         setLoading(true);
 //         setError(null);
         
-//         // Llamada al servicio sin filtros para obtener el total
-//         const data = await stockService.getResumenStock({});
+//         // Cargar stock y operaciones en paralelo
+//         const [stockResponse, ordenesResponse] = await Promise.all([
+//           stockService.getResumenStock({}),
+//           axios.get("/api/ordenes-despacho")
+//         ]);
         
-//         setStockData(data);
+//         setStockData(stockResponse);
+
+//         // Procesar operaciones
+//         const ordenesRaw = normalizeResponse(ordenesResponse.data);
+//         const ordenesArr = safeArray(ordenesRaw).map(mapOrderFields);
+        
+//         // Filtrar solo operaciones activas (en_carga o en_ruta)
+//         const activas = ordenesArr.filter(
+//           (o) => o && (o.estado === "en_carga" || o.estado === "en_ruta")
+//         );
+        
+//         setOperacionesActivas(activas);
 //       } catch (err) {
-//         console.error('Error al cargar datos de stock:', err);
-//         setError('Error al cargar los datos de stock');
+//         console.error('Error al cargar datos:', err);
+//         setError('Error al cargar los datos');
 //       } finally {
 //         setLoading(false);
 //       }
 //     };
 
-//     fetchStockData();
+//     fetchData();
     
 //     // Actualizar cada 30 segundos
-//     const interval = setInterval(fetchStockData, 30000);
+//     const interval = setInterval(fetchData, 30000);
     
 //     return () => clearInterval(interval);
 //   }, []);
@@ -1301,29 +1057,14 @@ export default DashboardPrincipal;
 //     ],
 //   ];
 
-//   const viajesData = [
-//     [
-//       "#12",
-//       "Carlos Gómez",
-//       "Aeropuerto Tucumán",
-//       <StatusBadge key="v1" status="Transito" />,
-//       "5.4°C",
-//     ],
-//     [
-//       "#13",
-//       "María López",
-//       "Mercado Central Bs.As.",
-//       <StatusBadge key="v2" status="Transito" />,
-//       "6.2°C",
-//     ],
-//     [
-//       "#14",
-//       "Juan Pérez",
-//       "Puerto Rosario",
-//       <StatusBadge key="v3" status="Normal" />,
-//       "-",
-//     ],
-//   ];
+//   // Preparar datos de viajes activos desde operaciones
+//   const viajesData = operacionesActivas.slice(0, 5).map((operacion, index) => [
+//     operacion.od_code || operacion.orden_id || `#${index + 1}`,
+//     operacion.transportista_nombre || "N/A",
+//     operacion.cliente_nombre || "N/A",
+//     <StatusBadge key={`op-${operacion.orden_id || index}`} status={operacion.estado} />,
+//     operacion.patente || "-"
+//   ]);
 
 //   return (
 //     <>
@@ -1515,17 +1256,29 @@ export default DashboardPrincipal;
 //               </div>
 
 //               <div className="dashboard-info-card">
-//                 <h3>Viajes Activos</h3>
-//                 <Table
-//                   headers={[
-//                     "ID Viaje",
-//                     "Chofer",
-//                     "Destino",
-//                     "Estado",
-//                     "Temperatura Media",
-//                   ]}
-//                   rows={viajesData}
-//                 />
+//                 <h3>Viajes Activos ({operacionesActivas.length})</h3>
+//                 {loading ? (
+//                   <div style={{ textAlign: 'center', padding: '20px' }}>
+//                     <p style={{ fontSize: '12px', color: '#666' }}>Cargando viajes...</p>
+//                   </div>
+//                 ) : viajesData.length > 0 ? (
+//                   <Table
+//                     headers={[
+//                       "Orden",
+//                       "Transportista",
+//                       "Cliente",
+//                       "Estado",
+//                       "Patente"
+//                     ]}
+//                     rows={viajesData}
+//                   />
+//                 ) : (
+//                   <div style={{ textAlign: 'center', padding: '20px' }}>
+//                     <p style={{ fontSize: '12px', color: '#999' }}>
+//                       No hay operaciones activas en este momento
+//                     </p>
+//                   </div>
+//                 )}
 //               </div>
 //             </div>
 
