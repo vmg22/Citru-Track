@@ -18,6 +18,8 @@ const choferesRoutes = require("./routes/choferes.routes");
 const ordenesRoutes = require("./routes/ordenes.routes");
 const clientesRoutes = require("./routes/clientes.routes");
 const routingRoutes = require("./routes/routing.routes");
+const procesoRoutes = require('./routes/proceso.routes');
+const loteMaestroRoutes = require('./routes/loteMaestroRoutes');
 const rolesRoutes = require("./routes/roles.routes");
 const stockRoutes = require('./routes/stock.routes');
 
@@ -45,6 +47,8 @@ app.use("/api/choferes", choferesRoutes);
 app.use("/api/ordenes-despacho", ordenesRoutes);
 app.use("/api/clientes", clientesRoutes);
 app.use("/api/routing", routingRoutes);
+app.use('/api/proceso', procesoRoutes);
+app.use('/api/lotes-maestros', loteMaestroRoutes);
 app.use("/api/roles", rolesRoutes);
 app.use('/api/stock', stockRoutes);
 // health

@@ -218,21 +218,21 @@ const Productores = () => {
                       )}
                     </td>
                     <td className="camara-table-cell">
-                      {productor.telefono ? (
-                        <span>
-                           {productor.telefono}
-                        </span>
-                      ) : (
-                        "N/A"
-                      )}
-                    </td>
+                        {productor.telefono ? (
+                          <span className="camara-temperature-badge">
+                            <i className="fas fa-phone"></i>
+                            {productor.telefono}
+                          </span>
+                        ) : (
+                          "N/A"
+                        )}
+                      </td>
                     <td className="camara-table-cell">
                       {productor.direccion ? (
                         <span
                           className="camara-location-text"
                           title={productor.direccion}
                         >
-                          <i className="fas fa-map-marker-alt"></i>
                           {productor.direccion.length > 30
                             ? `${productor.direccion.substring(0, 30)}...`
                             : productor.direccion}

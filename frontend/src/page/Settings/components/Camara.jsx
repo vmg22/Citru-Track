@@ -1,70 +1,162 @@
-import React, { useState, useEffect } from "react";
-import { getAllCamaras } from "../../CamaraFrio/service/camaraService";
+import React, { useState, useEffect, useCallback } from "react";
+import {
+  deleteCamara,
+  getAllCamaras,
+} from "../../CamaraFrio/service/camaraService";
+import { toast } from "react-toastify";
 import "../../../style/camaraconfig.css";
+import AddCamaraModal from "./AddCamaraModal";
+import EditCamaraModal from "./EditCamaraModal";
 
 const Camara = () => {
   const [camaras, setCamaras] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [camaraToEdit, setCamaraToEdit] = useState(null);
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const data = await getAllCamaras();
-        setCamaras(data);
-      } catch (error) {
-        console.error("Error al cargar datos de Cámaras:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchData();
+  const fetchData = useCallback(async () => {
+    try {
+      setLoading(true);
+      const data = await getAllCamaras();
+      setCamaras(data);
+    } catch (error) {
+      console.error("Error al cargar datos de Cámaras:", error);
+      toast.error("Error al cargar la lista de cámaras.");
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
-  // Función para formatear fecha
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+
+  const handleAddCamara = () => {
+    setIsAddModalOpen(true);
+  };
+
+  const handleEditCamara = (camara) => {
+    setCamaraToEdit(camara);
+    setIsEditModalOpen(true);
+  };
+
+  const handleCloseModals = () => {
+    setIsAddModalOpen(false);
+    setIsEditModalOpen(false);
+    setCamaraToEdit(null);
+  };
+  console.log(camaras);
+  const handleDataChange = () => {
+    fetchData();
+  };
+
+  const handleEliminarCamara = async (camara_id, nombre) => {
+    toast.promise(
+      new Promise(async (resolve, reject) => {
+        toast.warn(
+          ({ closeToast }) => (
+            <div style={{ padding: "10px" }}>
+              <p style={{ fontWeight: "bold", marginBottom: "8px" }}>
+                Confirmar Eliminación
+              </p>
+              <p style={{ fontSize: "0.9em" }}>
+                ¿Estás seguro que quieres eliminar la cámara:
+                <strong>{nombre}</strong>?
+              </p>
+
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "flex-end",
+                  gap: "10px",
+                  marginTop: "10px",
+                }}
+              >
+                <button
+                  style={{
+                    padding: "5px 10px",
+                    borderRadius: "4px",
+                    border: "none",
+                    cursor: "pointer",
+                    backgroundColor: "#ccc",
+                  }}
+                  onClick={() => {
+                    closeToast();
+                    reject(new Error("Operación cancelada"));
+                  }}
+                >
+                  Cancelar
+                </button>
+
+                <button
+                  style={{
+                    padding: "5px 10px",
+                    borderRadius: "4px",
+                    border: "none",
+                    cursor: "pointer",
+                    backgroundColor: "#dc3545",
+                    color: "white",
+                  }}
+                  onClick={async () => {
+                    closeToast();
+                    try {
+                      await deleteCamara(camara_id);
+                      await fetchData();
+                      resolve();
+                    } catch (error) {
+                      reject(error);
+                    }
+                  }}
+                >
+                  Eliminar
+                </button>
+              </div>
+            </div>
+          ),
+          {
+            closeButton: false,
+            autoClose: false,
+            position: "top-center",
+          }
+        );
+      }),
+      {
+        pending: "Desactivando cámara...",
+        success: "Cámara desactivada correctamente",
+        error: {
+          render({ data }) {
+            if (data.message === "Operación cancelada") {
+              return "Operación cancelada";
+            }
+            return "Error al desactivar la cámara";
+          },
+        },
+      }
+    );
+  };
+
   const formatDate = (dateString) => {
     if (!dateString) return "N/A";
     const date = new Date(dateString);
-    return date.toLocaleDateString("es-AR", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-    });
+    return date.toLocaleDateString("es-AR");
   };
 
-  // Función para determinar el estado basado en la temperatura
   const getStatus = (temperatura) => {
     const temp = parseFloat(temperatura);
     return temp > 20 ? "alerta" : "normal";
   };
 
-  // Función para obtener clase CSS según estado
   const getStatusClass = (temperatura) => {
     return getStatus(temperatura) === "alerta"
       ? "camara-status-alerta"
       : "camara-status-normal";
   };
 
-  // Función para obtener texto del estado
   const getStatusText = (temperatura) => {
     return getStatus(temperatura) === "alerta"
       ? "Alerta Temperatura"
       : "Normal";
-  };
-
-  // Función para manejar eliminación
-  const handleEliminarCamara = async (camara_id) => {
-    if (window.confirm("¿Estás seguro que quieres eliminar esta cámara?")) {
-      try {
-        // await deleteCamaraById(camara_id); // Descomenta cuando tengas esta función
-        alert("Cámara eliminada correctamente");
-        // Recargar la lista
-        const data = await getAllCamaras();
-        setCamaras(data);
-      } catch (error) {
-        console.error("Error al eliminar cámara:", error);
-        alert("Error al eliminar la cámara");
-      }
-    }
   };
 
   if (loading) {
@@ -85,7 +177,10 @@ const Camara = () => {
             Gestión de Cámaras de Frío
           </h2>
           <div className="camara-table-actions">
-            <button className="camara-btn camara-btn-primary">
+            <button
+              className="camara-btn camara-btn-primary"
+              onClick={handleAddCamara}
+            >
               <i className="fas fa-plus"></i> Agregar Cámara
             </button>
             <button
@@ -113,19 +208,17 @@ const Camara = () => {
               </tr>
             </thead>
             <tbody>
-              {camaras.length === 0 ? (
+              {camaras.data.length === 0 ? (
                 <tr>
                   <td colSpan="8" className="camara-empty-state">
                     No se encontraron cámaras.
                   </td>
                 </tr>
               ) : (
-                camaras.map((camara) => (
+                camaras.data.map((camara) => (
                   <tr key={camara.camara_id}>
                     <td className="camara-table-cell">{camara.camara_id}</td>
-                    <td className="camara-table-cell">
-                      <strong>{camara.nombre}</strong>
-                    </td>
+                    <td className="camara-table-cell">{camara.nombre}</td>
                     <td className="camara-table-cell">
                       <span
                         className={`camara-temperature-badge ${getStatusClass(
@@ -173,15 +266,17 @@ const Camara = () => {
                       <button
                         className="camara-btn-warning camara-action-btn"
                         title="Editar cámara"
-                        // onClick={() => handleEditarCamara(camara.camara_id)}
+                        onClick={() => handleEditCamara(camara)}
                       >
                         <i className="fas fa-edit"></i>
                       </button>
                       <button
                         className="camara-btn-danger camara-action-btn"
-                        title="Eliminar cámara"
+                        title="Desactivar cámara"
                         style={{ marginLeft: "5px" }}
-                        onClick={() => handleEliminarCamara(camara.camara_id)}
+                        onClick={() =>
+                          handleEliminarCamara(camara.camara_id, camara.nombre)
+                        }
                       >
                         <i className="fa-solid fa-trash"></i>
                       </button>
@@ -193,6 +288,19 @@ const Camara = () => {
           </table>
         </div>
       </div>
+
+      <AddCamaraModal
+        isOpen={isAddModalOpen}
+        onClose={handleCloseModals}
+        onCamaraAdded={handleDataChange}
+      />
+
+      <EditCamaraModal
+        isOpen={isEditModalOpen}
+        onClose={handleCloseModals}
+        camaraData={camaraToEdit}
+        onCamaraUpdated={handleDataChange}
+      />
     </div>
   );
 };
