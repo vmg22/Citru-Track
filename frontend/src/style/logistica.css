@@ -391,7 +391,7 @@
 }
 
 .btnCancelado{
-  background-color: #28a745;
+  background-color: #15BA84;
 
 }
 
@@ -402,8 +402,4 @@
 
 .btnCancelado:hover{
   background-color: #6aed89;
-}
-
-.iconCancelado:hover{
-color: #065f46;
 }
