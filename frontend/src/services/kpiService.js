@@ -53,7 +53,7 @@
 // src/services/kpi.service.js
 // src/services/kpiService.js
 
-const API_BASE = import.meta.env.VITE_API || "http://localhost:4000";
+const API_BASE = import.meta.env.VITE_API_URL?.replace('/api', '') || "http://localhost:4000";
 
 /** safeJson para manejar respuestas vacías o errores HTML */
 async function safeJson(response) {

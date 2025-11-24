@@ -1,3 +1,4 @@
+//sockets.js
 const db = require("./config/db.js");
 
 const configurarSockets = (io) => {

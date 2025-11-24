@@ -1,22 +1,19 @@
-// AddCamaraModal.jsx
-
 import React, { useState, useEffect } from "react";
 import { toast } from "react-toastify";
-import "../../../style/addusermodal.css"; 
+import "../../../style/addusermodal.css";
 import { createCamara } from "../../CamaraFrio/service/camaraService";
 
 const AddCamaraModal = ({ isOpen, onClose, onCamaraAdded }) => {
   const [formData, setFormData] = useState({
     nombre: "",
     ubicacion: "",
-    temperatura_aproximada: "", // Obligatorio en la creación
+    temperatura_aproximada: "",
     capacidad_pallets: "",
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [localError, setLocalError] = useState(null);
 
-  // Resetear el formulario al abrir el modal
   useEffect(() => {
     if (isOpen) {
       setFormData({
@@ -33,10 +30,10 @@ const AddCamaraModal = ({ isOpen, onClose, onCamaraAdded }) => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    // Manejar números para capacidad y temperatura
-    const finalValue = (name === "capacidad_pallets" || name === "temperatura_aproximada") 
-                       ? parseFloat(value) 
-                       : value;
+    const finalValue =
+      name === "capacidad_pallets" || name === "temperatura_aproximada"
+        ? parseFloat(value)
+        : value;
     setFormData((prev) => ({ ...prev, [name]: finalValue }));
   };
 
@@ -49,7 +46,7 @@ const AddCamaraModal = ({ isOpen, onClose, onCamaraAdded }) => {
       if (
         !formData.nombre ||
         !formData.capacidad_pallets ||
-        formData.temperatura_aproximada === "" 
+        formData.temperatura_aproximada === ""
       ) {
         const requiredError =
           "Los campos Nombre, Capacidad y Temperatura son obligatorios.";
@@ -58,12 +55,12 @@ const AddCamaraModal = ({ isOpen, onClose, onCamaraAdded }) => {
         setIsSubmitting(false);
         return;
       }
-      
+
       const dataToSend = {
         nombre: formData.nombre,
         ubicacion: formData.ubicacion || null,
         // Solo enviamos la temperatura en la creación
-        temperatura_aproximada: formData.temperatura_aproximada, 
+        temperatura_aproximada: formData.temperatura_aproximada,
         capacidad_pallets: parseInt(formData.capacidad_pallets),
       };
 
@@ -72,7 +69,6 @@ const AddCamaraModal = ({ isOpen, onClose, onCamaraAdded }) => {
       toast.success(`Cámara "${formData.nombre}" creada con éxito!`);
       onCamaraAdded(); // Recargar la lista principal
       onClose();
-
     } catch (err) {
       const apiError =
         err.response?.data?.error ||
@@ -157,7 +153,7 @@ const AddCamaraModal = ({ isOpen, onClose, onCamaraAdded }) => {
                 min="1"
               />
             </div>
-            
+
             <div className="form-group">
               <label className="form-label" htmlFor="temperatura_aproximada">
                 Temperatura (°C) <span className="required-star">*</span>

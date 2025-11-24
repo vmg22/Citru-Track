@@ -11,7 +11,6 @@ const EditCamaraModal = ({ isOpen, onClose, camaraData, onCamaraUpdated }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [localError, setLocalError] = useState(null);
 
-  // Sincroniza el estado local con los datos pasados por props
   useEffect(() => {
     if (camaraData) {
       setFormData(camaraData);
@@ -23,7 +22,6 @@ const EditCamaraModal = ({ isOpen, onClose, camaraData, onCamaraUpdated }) => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    // Asegurar que capacidad_pallets sea número si se modifica
     const finalValue = name === "capacidad_pallets" ? parseInt(value) : value; 
     setFormData((prev) => ({ ...prev, [name]: finalValue }));
   };
@@ -122,7 +120,6 @@ const EditCamaraModal = ({ isOpen, onClose, camaraData, onCamaraUpdated }) => {
               />
             </div>
             
-            {/* Campo de Temperatura: NO EDITABLE, SOLO MOSTRAR */}
             <div className="form-group">
               <label className="form-label" htmlFor="temperatura_aproximada_display">
                 Temperatura (°C)

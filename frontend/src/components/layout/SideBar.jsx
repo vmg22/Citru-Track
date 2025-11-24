@@ -42,12 +42,14 @@ const Sidebar = ({
       items: [
         { id: "logistica", icon: "fas fa-truck", text: "Logística" },
         { id: "gestion-pedidos", icon: "fas fa-clipboard-list", text: "Gestión de Pedidos" },
+        
       ],
     },
     {
       title: "Admin",
       items: [
         { id: "kpis", icon: "fas fa-chart-line", text: "KPIs" },
+        { id: "stock", icon: "fas fa-clipboard-list", text: "stock" },
         { id: "ajustes", icon: "fas fa-cog", text: "Ajustes" },
       ],
     },

@@ -1,4 +1,4 @@
-
+//server.js
 
 // Cargar variables de entorno
 require('dotenv').config();

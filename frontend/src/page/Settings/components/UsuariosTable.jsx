@@ -9,16 +9,10 @@ import EditUserModal from "./EditUserModal";
 const UsuariosTable = () => {
   const [usuarios, setUsuarios] = useState([]);
   const [loading, setLoading] = useState(true);
-  
-  // Estado para el modal de AGREGAR
   const [isAddModalOpen, setIsAddModalOpen] = useState(false); 
-  
-  // Estado para el modal de EDITAR
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  // Estado para guardar los datos del usuario que se va a editar
   const [userToEdit, setUserToEdit] = useState(null);
 
-  // Función para obtener y establecer usuarios (centralizada para reutilizar)
   const fetchUsuarios = async () => {
     setLoading(true);
     try {
@@ -124,7 +118,6 @@ const UsuariosTable = () => {
   const openAddModal = () => setIsAddModalOpen(true);
   const closeAddModal = () => setIsAddModalOpen(false);
 
-  // Funciones para manejar el modal de EDITAR
   const openEditModal = (user) => {
     setUserToEdit(user);
     setIsEditModalOpen(true);
@@ -142,34 +135,8 @@ const UsuariosTable = () => {
   const handleUserUpdate = () => {
     fetchUsuarios();
   };
-
-  // Formato de fecha mejorado
   const formatDate = (dateString) => {
     if (!dateString) return "N/A";
-    
-    // Opción 1: Formato corto (10/11/2025)
-    // const date = new Date(dateString);
-    // return date.toLocaleDateString("es-AR");
-    
-    // Opción 2: Formato completo (10 de noviembre de 2025)
-    // const date = new Date(dateString);
-    // return date.toLocaleDateString("es-AR", {
-    //   year: "numeric",
-    //   month: "long",
-    //   day: "numeric",
-    // });
-    
-    // Opción 3: Formato con hora (10/11/2025 00:00)
-    // const date = new Date(dateString);
-    // return date.toLocaleString("es-AR", {
-    //   year: "numeric",
-    //   month: "2-digit",
-    //   day: "2-digit",
-    //   hour: "2-digit",
-    //   minute: "2-digit",
-    // });
-    
-    // Opción 4: Formato medio (10 nov 2025) - RECOMENDADO
     const date = new Date(dateString);
     return date.toLocaleDateString("es-AR", {
       year: "numeric",
@@ -235,7 +202,11 @@ const UsuariosTable = () => {
               ) : (
                 usuarios.map((user) => (
                   <tr key={user.user_id}>
-                    <td className="camara-table-cell">{user.user_id}</td>
+                    <td className="camara-table-cell">
+                          <span className="camara-capacity-badge">
+                            {user.user_id}
+                          </span>
+                        </td>
                     <td className="camara-table-cell">{user.nombre}</td>
                     <td className="camara-table-cell">{user.username}</td>
                     <td className="camara-table-cell">{user.email}</td>
@@ -290,14 +261,12 @@ const UsuariosTable = () => {
           </table>
         </div>
 
-        {/* Renderizar el Modal */}
         <AddUserModal
           isOpen={isAddModalOpen}
           onClose={closeAddModal}
           onUserAdded={handleUserUpdate}
         />
         
-        {/* Renderizar el Modal de Edición */}
         <EditUserModal
           isOpen={isEditModalOpen}
           onClose={closeEditModal}

@@ -32,6 +32,7 @@ import Kpi from "./page/KPIs/KPIsPage";
 import Logistica from "./page/Logitics/LogisticsPage";
 import Camara from "./page/Settings/components/Camara";
 import ProductoVariedades from "./page/Settings/components/ProductoVariedades";
+import Stock from './page/Stock/Stock';
 // ---------------------------------------------------
 
 const routeToItemMap = {
@@ -46,6 +47,7 @@ const routeToItemMap = {
     "/kpis": "kpis",
     "/logistica": "logistica",
     "/productos": "productos",
+    "/stock": "stock",
 };
 
 const itemToPathMap = {
@@ -59,7 +61,8 @@ const itemToPathMap = {
     kpis: "/kpis",
     logistica: "/logistica",
     "gestion-pedidos": "/gestion-pedidos",
-    productos:"/productos",  
+    productos:"/productos", 
+    stock:"/stock",
 };
 
 // ---------------------------------------------------
@@ -117,12 +120,13 @@ const AppContent = () => {
                 <Route path="/kpis" element={<Kpi />} />
                 <Route path="/logistica" element={<Logistica />} />
                 <Route path="/productos" element={<ProductoVariedades />} />
+                <Route path="/stock" element={<Stock />} />
 
             </Routes>
         </Layout>
     );
 };
-        
+
 // ---------------------------------------------------
 // APP PRINCIPAL (ESTRUCTURA CORREGIDA)
 // ---------------------------------------------------
