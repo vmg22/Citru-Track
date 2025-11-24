@@ -398,3 +398,107 @@
     transform: translateY(0);
   }
 }
+
+/* ESTILOS PESTAÑAS */
+.header-proceso {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    
+}
+
+
+.tabs-container {
+    display: flex;
+    gap: 10px;
+    background: #f1f6f3;
+    padding: 5px;
+    border-radius: 8px;
+}
+
+.tab-btn {
+    padding: 10px 20px;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    font-weight: 700;
+    color: #4a7c2f;
+    border-radius: 6px;
+    transition: 0.3s;
+    font-size: 16px;
+}
+
+.tab-btn.active {
+    background: rgb(253, 253, 253);
+    color: #4a7c2f;
+    box-shadow: 0 2px 5px rgba(0,0,1,0.1);
+}
+
+/* ESTILOS TABLA LOTEO */
+.loteo-wrapper {
+    animation: fadeIn 0.3s ease;
+}
+
+.alerta-loteo {
+    background: #e3f2fd;
+    border-left: 4px solid #2196f3;
+    padding: 15px;
+}
+
+.tabla-contenedor {
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    padding: 20px;
+    margin-top: 20px;
+}
+
+.tabla-lotes {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.tabla-lotes th, .tabla-lotes td {
+    padding: 12px;
+    text-align: left;
+    border-bottom: 1px solid #eee;
+}
+
+.fila-seleccionada {
+    background-color: #e8f5e9;
+}
+
+.footer-flotante {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background: #2c3e50;
+    color: white;
+    padding: 15px 25px;
+    border-radius: 30px;
+    display: flex;
+    gap: 20px;
+    align-items: center;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+    z-index: 100;
+}
+
+.btn-crear-lote {
+    background: #27ae60;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 20px;
+    cursor: pointer;
+    font-weight: bold;
+}
+.btn-crear-lote:disabled {
+    background: #7f8c8d;
+    cursor: not-allowed;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}

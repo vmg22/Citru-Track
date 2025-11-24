@@ -15,7 +15,6 @@ const ModalHistorialBin = ({ bin, onClose }) => {
   const cargarHistorial = async () => {
     try {
       setLoading(true);
-      // Ahora esto funcionará porque procesoService es un objeto con todas las exportaciones
       const response = await procesoService.getHistorialBin(bin.bin_id);
       setHistorial(response.data || []);
     } catch (err) {

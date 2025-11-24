@@ -1,289 +1,58 @@
 import React, { useState, useEffect } from 'react';
-// CORRECCIÓN 1: Importar todo el objeto con el alias
-import * as procesoService from './services/procesoService'; 
-import ModalRegistrarProceso from './ModalRegistrarProceso';
-import ModalHistorialBin from './ModalHistorialBin';
+import * as procesoService from './services/procesoService';
+
+
+import BandejaEnProceso from './BandejaEnProceso'; 
+import GestionLotes from './GestionLotes';       
+import ListaLotes from './ListaLotes'; 
 import '../../style/lineaproceso.css';
 
 const LineadeProceso = () => {
-  // Estados
+  const [tabActiva, setTabActiva] = useState('proceso');
   const [productos, setProductos] = useState([]);
-  const [variedadesDisponibles, setVariedadesDisponibles] = useState([]);
-  const [bins, setBins] = useState([]);
-  const [binSeleccionado, setBinSeleccionado] = useState(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
 
-  // Filtros
-  const [filtros, setFiltros] = useState({
-    producto_id: '',
-    variedad_id: '',
-    estado: ''
-  });
-
-  // Modales
-  const [modalRegistrar, setModalRegistrar] = useState(false);
-  const [modalHistorial, setModalHistorial] = useState(false);
-
-  // Cargar datos iniciales
   useEffect(() => {
-    cargarProductos();
-    cargarBins();
+    const fetchProds = async () => {
+      try {
+        const res = await procesoService.getProductosConVariedades();
+        setProductos(res.data || []);
+      } catch (e) { console.error(e); }
+    };
+    fetchProds();
   }, []);
-
-  // Cargar bins cuando cambian los filtros
-  useEffect(() => {
-    if (filtros.producto_id || filtros.variedad_id || filtros.estado) {
-      cargarBins();
-    }
-  }, [filtros]);
-
-  const cargarProductos = async () => {
-    try {
-      // CORRECCIÓN 2: Usar el nombre real de la función en el servicio
-      const response = await procesoService.getProductosConVariedades();
-      setProductos(response.data || []);
-    } catch (err) {
-      console.error('Error cargando productos:', err);
-    }
-  };
-
-  const cargarBins = async () => {
-    try {
-      setLoading(true);
-      const filtrosLimpios = Object.fromEntries(
-        Object.entries(filtros).filter(([_, v]) => v !== '')
-      );
-      // CORRECCIÓN 3: Usar el nombre real de la función en el servicio
-      const response = await procesoService.getBinsConFiltros(filtrosLimpios);
-      setBins(response.data || []);
-    } catch (err) {
-      setError('Error al cargar bins');
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleProductoChange = (e) => {
-    const productoId = e.target.value;
-    setFiltros({ ...filtros, producto_id: productoId, variedad_id: '' });
-    
-    const producto = productos.find(p => p.producto_id === parseInt(productoId));
-    setVariedadesDisponibles(producto?.variedades || []);
-  };
-
-  const handleFiltroChange = (campo, valor) => {
-    setFiltros({ ...filtros, [campo]: valor });
-  };
-
-  const limpiarFiltros = () => {
-    setFiltros({ producto_id: '', variedad_id: '', estado: '' });
-    setVariedadesDisponibles([]);
-    cargarBins(); // Esto recargará los bins sin filtros
-  };
-
-  const abrirModalRegistrar = (bin) => {
-    setBinSeleccionado(bin);
-    setModalRegistrar(true);
-  };
-
-  const abrirModalHistorial = (bin) => {
-    setBinSeleccionado(bin);
-    setModalHistorial(true);
-  };
-
-  const handleProcesoRegistrado = () => {
-    setModalRegistrar(false);
-    cargarBins();
-  };
-
-  const calcularPorcentaje = (completados, totales) => {
-    if (!totales || totales === 0) return 0;
-    return Math.round((completados / totales) * 100);
-  };
 
   return (
     <div className="linea-proceso-container">
-      <h2>Línea de Proceso</h2>
-
-      {/* Filtros */}
-      <div className="filtros-card">
-        <h3>Filtros</h3>
-        <div className="filtros-grid">
-          
-          {/* Producto */}
-          <div className="filtro-group">
-            <label>Producto</label>
-            <select
-              value={filtros.producto_id}
-              onChange={handleProductoChange}
-            >
-              <option value="">Todos los productos</option>
-              {productos.map(producto => (
-                <option key={producto.producto_id} value={producto.producto_id}>
-                  {producto.producto_nombre}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {/* Variedad */}
-          <div className="filtro-group">
-            <label>Variedad</label>
-            <select
-              value={filtros.variedad_id}
-              onChange={(e) => handleFiltroChange('variedad_id', e.target.value)}
-              disabled={!filtros.producto_id}
-            >
-              <option value="">Todas las variedades</option>
-              {variedadesDisponibles.map(variedad => (
-                <option key={variedad.variedad_id} value={variedad.variedad_id}>
-                  {variedad.nombre}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {/* Estado */}
-          <div className="filtro-group">
-            <label>Estado</label>
-            <select
-              value={filtros.estado}
-              onChange={(e) => handleFiltroChange('estado', e.target.value)}
-            >
-              <option value="">Todos los estados</option>
-              <option value="Recepción">Recepción</option>
-              <option value="Lavado">Lavado</option>
-              <option value="Clasificación electrónica">Clasificación</option>
-              <option value="Empaque">Empaque</option>
-              <option value="Cámara fría">Cámara fría</option>
-            </select>
-          </div>
-
-          {/* Botón limpiar */}
-          <div className="filtro-group">
-            <label>&nbsp;</label>
-            <button className="btn-limpiar" onClick={limpiarFiltros}>
-              Limpiar filtros
-            </button>
-          </div>
+      <div className="header-proceso">
+        <h2>Linea de Proceso</h2>
+        
+        <div className="tabs-container">
+           <button 
+             className={`tab-btn ${tabActiva === 'proceso' ? 'active' : ''}`}
+             onClick={() => setTabActiva('proceso')}
+           >
+              En Proceso
+           </button>
+           <button 
+             className={`tab-btn ${tabActiva === 'loteo' ? 'active' : ''}`}
+             onClick={() => setTabActiva('loteo')}
+           >
+              Gestion de Lotes
+           </button>
+           <button 
+             className={`tab-btn ${tabActiva === 'listado' ? 'active' : ''}`}
+             onClick={() => setTabActiva('listado')}
+           >
+              Lista Lotes
+           </button>
         </div>
       </div>
 
-      {/* Mensaje de error */}
-      {error && (
-        <div className="alert alert-error">
-          {error}
-          <button onClick={() => setError(null)}>✕</button>
-        </div>
-      )}
-
-      {/* Lista de bins */}
-      <div className="bins-lista-card">
-        <div className="card-header">
-          <h3>Bins en Proceso</h3>
-          <span className="badge-count">{bins.length} bins</span>
-        </div>
-
-        {loading ? (
-          <div className="loading">Cargando bins...</div>
-        ) : bins.length === 0 ? (
-          <div className="empty-state">
-            <p>No hay bins que coincidan con los filtros</p>
-          </div>
-        ) : (
-          <div className="bins-grid">
-            {bins.map(bin => (
-              <div key={bin.bin_id} className="bin-card">
-                <div className="bin-header">
-                  <h4>{bin.bin_id}</h4>
-                  <span className={`estado-badge ${bin.estado_actual?.toLowerCase().replace(/\s/g, '-')}`}>
-                    {bin.estado_actual || 'Sin estado'}
-                  </span>
-                </div>
-
-                <div className="bin-info">
-                  <div className="info-row">
-                    <span className="label">Producto:</span>
-                    <span className="value">
-                      {bin.producto_nombre} 
-                      {bin.variedad_nombre && ` - ${bin.variedad_nombre}`}
-                    </span>
-                  </div>
-                  <div className="info-row">
-                    <span className="label">Remito:</span>
-                    <span className="value">{bin.remito}</span>
-                  </div>
-                  <div className="info-row">
-                    <span className="label">Peso:</span>
-                    <span className="value">{bin.peso_bruto} kg</span>
-                  </div>
-                  {bin.lote_descripcion && (
-                    <div className="info-row">
-                      <span className="label">Lote:</span>
-                      <span className="value">{bin.lote_descripcion}</span>
-                    </div>
-                  )}
-                </div>
-
-                {/* Barra de progreso */}
-                <div className="progreso-container">
-                  <div className="progreso-texto">
-                    <span>Progreso</span>
-                    <span className="progreso-numeros">
-                      {bin.procesos_completados}/{bin.procesos_totales_obligatorios}
-                    </span>
-                  </div>
-                  <div className="barra-progreso">
-                    <div 
-                      className="barra-progreso-fill"
-                      style={{ 
-                        width: `${calcularPorcentaje(bin.procesos_completados, bin.procesos_totales_obligatorios)}%` 
-                      }}
-                    />
-                  </div>
-                  <div className="porcentaje-texto">
-                    {calcularPorcentaje(bin.procesos_completados, bin.procesos_totales_obligatorios)}% completado
-                  </div>
-                </div>
-
-                {/* Acciones */}
-                <div className="bin-acciones">
-                  <button 
-                    className="btn-secundario"
-                    onClick={() => abrirModalHistorial(bin)}
-                  >
-                    Ver Historial
-                  </button>
-                  <button 
-                    className="btn-primario"
-                    onClick={() => abrirModalRegistrar(bin)}
-                  >
-                    Registrar Proceso
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
+      <div className="tab-body">
+        {tabActiva === 'proceso' && <BandejaEnProceso productos={productos} />}
+        {tabActiva === 'loteo' && <GestionLotes productos={productos} />}
+        {tabActiva === 'listado' && <ListaLotes />}
       </div>
-
-      {/* Modales */}
-      {modalRegistrar && binSeleccionado && (
-        <ModalRegistrarProceso
-          bin={binSeleccionado}
-          onClose={() => setModalRegistrar(false)}
-          onSuccess={handleProcesoRegistrado}
-        />
-      )}
-
-      {modalHistorial && binSeleccionado && (
-        <ModalHistorialBin
-          bin={binSeleccionado}
-          onClose={() => setModalHistorial(false)}
-        />
-      )}
     </div>
   );
 };

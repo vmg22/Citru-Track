@@ -6,7 +6,11 @@ const {
   getHistorialProcesoBin,
   registrarProcesoBin,
   getProductosConVariedades,
-  getEstadisticasProceso
+  getEstadisticasProceso,getCamposClasificacion,
+  getBinsPendientesLote,
+  crearLoteDesdeBins,
+  getLotesCreados,
+  getDetalleLote
 } = require('../controllers/procesoController');
 
 // Middleware de autenticación (descomentar cuando lo implementes)
@@ -55,5 +59,13 @@ router.post('/bins/:binId/registrar', registrarProcesoBin);
  * @access  Private
  */
 router.get('/estadisticas', getEstadisticasProceso);
+
+router.get('/productos/:productoId/campos-clasificacion', getCamposClasificacion);
+router.post('/bins/:binId/registrar', registrarProcesoBin); // Ya existía, pero ahora soporta JSON y cierre
+router.get('/bins-pendientes-lote', getBinsPendientesLote);
+router.post('/crear-lote', crearLoteDesdeBins);
+
+router.get('/lotes-creados', getLotesCreados);
+router.get('/lotes/:loteId/detalle', getDetalleLote);
 
 module.exports = router;

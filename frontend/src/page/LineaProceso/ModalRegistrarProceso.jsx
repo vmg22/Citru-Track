@@ -1,234 +1,188 @@
 import React, { useState, useEffect } from 'react';
-// CORRECCIÓN 1: Importamos todo como un alias para evitar el error de "export default"
-// Asegúrate de que esta ruta apunte a tu archivo procesoService.js
-import * as procesoService from './services/procesoService'; 
-import '../../style/modalproc.css';
+import * as procesoService from './services/procesoService';
+
+import '../../style/modalproc.css'; 
 
 const ModalRegistrarProceso = ({ bin, onClose, onSuccess }) => {
   const [procesos, setProcesos] = useState([]);
+  const [camposDinamicos, setCamposDinamicos] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
-
+  
+  // Estado para campos fijos
   const [formData, setFormData] = useState({
-    proceso_id: '',
-    operario: '',
-    temperatura: '',
-    peso_entrada: '',
-    peso_salida: '',
-    calibre: '',
-    observaciones: ''
+    proceso_id: '', operario: '', temperatura: '',
+    peso_entrada: bin.peso_bruto || '', peso_salida: '', observaciones: ''
   });
+  const [respuestasDinamicas, setRespuestasDinamicas] = useState({});
+  const [cerrarBin, setCerrarBin] = useState(false);
 
   useEffect(() => {
-    cargarProcesos();
+    cargarDatos();
   }, []);
 
-  const cargarProcesos = async () => {
+  const cargarDatos = async () => {
     try {
-      const response = await procesoService.getProcesosPorProducto(bin.producto_id);
-      setProcesos(response.data || []);
-    } catch (err) {
-      setError('Error al cargar procesos');
-      console.error(err);
-    }
-  };
+      // 1. Cargar Procesos
+      const pRes = await procesoService.getProcesosPorProducto(bin.producto_id);
+      // Validación extra: asegurarse de que sea un array
+      setProcesos(Array.isArray(pRes.data) ? pRes.data : []);
 
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
+      // 2. Cargar Campos Dinámicos
+      const cRes = await procesoService.getCamposClasificacion(bin.producto_id);
+      setCamposDinamicos(Array.isArray(cRes.data) ? cRes.data : []);
+      
+    } catch (err) { 
+      console.error("Error cargando datos del modal:", err); 
+    }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
-    if (!formData.proceso_id) {
-      setError('Debe seleccionar un proceso');
-      return;
-    }
-
     setLoading(true);
-    setError(null);
-
     try {
-      // CORRECCIÓN 2: Usamos el nombre correcto 'registrarProcesoBin' (como está en el servicio)
-      // en lugar de 'registrarProceso' (que no existe).
       await procesoService.registrarProcesoBin(bin.bin_id, {
-        proceso_id: parseInt(formData.proceso_id),
-        operario: formData.operario || 'Sistema',
-        temperatura: formData.temperatura ? parseFloat(formData.temperatura) : null,
-        peso_entrada: formData.peso_entrada ? parseFloat(formData.peso_entrada) : null,
-        peso_salida: formData.peso_salida ? parseFloat(formData.peso_salida) : null,
-        calibre: formData.calibre || null,
-        observaciones: formData.observaciones || null
+        ...formData,
+        atributos_calidad: respuestasDinamicas,
+        cerrar_bin: cerrarBin
       });
-
       onSuccess();
     } catch (err) {
-      setError(err.response?.data?.message || 'Error al registrar proceso');
-    } finally {
-      setLoading(false);
+      alert("Error: " + (err.response?.data?.message || err.message));
+    } finally { setLoading(false); }
+  };
+
+  // --- FUNCIÓN DE RENDERIZADO SEGURA ---
+  const renderInputDinamico = (campo) => {
+    const handleChange = (val) => setRespuestasDinamicas(prev => ({...prev, [campo.nombre_campo]: val}));
+    
+    // TIPO SELECT
+    if (campo.tipo_campo === 'select') {
+      let opciones = [];
+      try {
+        // Intentamos parsear, si falla o es null, usamos array vacío
+        opciones = typeof campo.opciones_json === 'string' 
+                   ? JSON.parse(campo.opciones_json) 
+                   : (campo.opciones_json || []);
+      } catch (e) {
+        console.warn("Error parseando JSON para campo:", campo.nombre_campo);
+        opciones = [];
+      }
+
+      return (
+        <select className="form-control" onChange={e => handleChange(e.target.value)} required={campo.es_obligatorio}>
+          <option value="">Seleccione...</option>
+          {opciones.map((opt, i) => <option key={i} value={opt}>{opt}</option>)}
+        </select>
+      );
     }
+
+    // TIPO MULTISELECT (CHECKBOXES)
+    if (campo.tipo_campo === 'multiselect') {
+       let opciones = [];
+       try {
+         opciones = typeof campo.opciones_json === 'string' ? JSON.parse(campo.opciones_json) : (campo.opciones_json || []);
+       } catch (e) { opciones = []; }
+       
+       const seleccionados = respuestasDinamicas[campo.nombre_campo] || [];
+
+       const handleCheck = (opt) => {
+          const newSel = seleccionados.includes(opt) 
+             ? seleccionados.filter(x => x !== opt) 
+             : [...seleccionados, opt];
+          handleChange(newSel);
+       }
+
+       return (
+         <div className="checkbox-group">
+            {opciones.map(opt => (
+               <label key={opt} style={{display:'block', margin:'5px 0'}}>
+                  <input type="checkbox" checked={seleccionados.includes(opt)} onChange={() => handleCheck(opt)}/> {opt}
+               </label>
+            ))}
+         </div>
+       );
+    }
+    
+    // TIPO NUMBER / TEXT
+    return (
+        <input 
+            type={campo.tipo_campo === 'number' ? 'number' : 'text'} 
+            step={campo.tipo_campo === 'number' ? "0.01" : undefined}
+            className="form-control"
+            onChange={e => handleChange(e.target.value)} 
+            required={campo.es_obligatorio} 
+            placeholder={campo.unidad_medida ? `En ${campo.unidad_medida}` : ''}
+        />
+    );
   };
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+    <div className="modal-overlay">
+      <div className="modal-content">
         <div className="modal-header">
-          <h3>Registrar Proceso</h3>
-          <button className="btn-close" onClick={onClose}>✕</button>
+            <h3>Registrar Proceso: <span style={{color:'#27ae60'}}>{bin.producto_nombre}</span></h3>
+            <button onClick={onClose} className="close-btn">×</button>
         </div>
+        
+        <form onSubmit={handleSubmit}>
+          {/* SECCIÓN 1: DATOS GENERALES */}
+          <div className="form-section">
+              <h4>Datos del Proceso</h4>
+              <div className="form-group">
+                <label>Proceso a realizar</label>
+                <select className="form-control" onChange={e => setFormData({...formData, proceso_id: e.target.value})} required>
+                    <option value="">-- Seleccione Proceso --</option>
+                    {procesos.map(p => <option key={p.proceso_id} value={p.proceso_id}>{p.nombre}</option>)}
+                </select>
+              </div>
 
-        <div className="modal-body">
-          {/* Información del bin */}
-          <div className="info-bin-modal">
-            <div className="info-item">
-              <span className="label">Bin:</span>
-              <span className="value">{bin.bin_id}</span>
-            </div>
-            <div className="info-item">
-              <span className="label">Producto:</span>
-              <span className="value">
-                {bin.producto_nombre} {bin.variedad_nombre && `- ${bin.variedad_nombre}`}
-              </span>
-            </div>
-            <div className="info-item">
-              <span className="label">Estado actual:</span>
-              <span className="value estado-badge">{bin.estado_actual}</span>
-            </div>
-            <div className="info-item">
-              <span className="label">Progreso:</span>
-              <span className="value">
-                {bin.procesos_completados}/{bin.procesos_totales_obligatorios}
-              </span>
-            </div>
+              <div className="row-2-col">
+                  <div className="form-group">
+                      <label>Peso Entrada (kg)</label>
+                      <input className="form-control" type="number" value={formData.peso_entrada} readOnly disabled style={{background:'#f0f0f0'}}/>
+                  </div>
+                  <div className="form-group">
+                      <label>Peso Salida (kg)</label>
+                      <input className="form-control" type="number" onChange={e => setFormData({...formData, peso_salida: e.target.value})} />
+                  </div>
+              </div>
           </div>
-
-          {error && (
-            <div className="alert alert-error">
-              {error}
-            </div>
+          
+          {/* SECCIÓN 2: CALIDAD DINÁMICA */}
+          {camposDinamicos.length > 0 && (
+              <div className="dynamic-section">
+                <h4>Clasificación de Calidad</h4>
+                <div className="grid-dinamico">
+                    {camposDinamicos.map(campo => (
+                    <div key={campo.id} className="form-group">
+                        <label>
+                            {campo.etiqueta} 
+                            {campo.unidad_medida && <small style={{color:'#888', marginLeft:'5px'}}>({campo.unidad_medida})</small>}
+                        </label>
+                        {renderInputDinamico(campo)}
+                    </div>
+                    ))}
+                </div>
+              </div>
           )}
 
-          {/* Formulario */}
-          <form onSubmit={handleSubmit} className="form-proceso">
-            
-            {/* Proceso */}
-            <div className="form-group">
-              <label>Proceso *</label>
-              <select
-                name="proceso_id"
-                value={formData.proceso_id}
-                onChange={handleInputChange}
-                required
-              >
-                <option value="">Seleccione proceso</option>
-                {procesos.map(proceso => (
-                  <option key={proceso.proceso_id} value={proceso.proceso_id}>
-                    {proceso.orden}. {proceso.nombre}
-                    {proceso.es_opcional && ' (Opcional)'}
-                  </option>
-                ))}
-              </select>
-            </div>
+          {/* CHECKBOX DE CIERRE */}
+          <div className="cerrar-bin-check">
+            <label>
+              <input type="checkbox" checked={cerrarBin} onChange={e => setCerrarBin(e.target.checked)} />
+              <strong> Finalizar procesamiento (Enviar a Loteo)</strong>
+            </label>
+          </div>
 
-            {/* Operario */}
-            <div className="form-group">
-              <label>Operario</label>
-              <input
-                type="text"
-                name="operario"
-                value={formData.operario}
-                onChange={handleInputChange}
-                placeholder="Nombre del operario"
-              />
-            </div>
-
-            {/* Temperatura */}
-            <div className="form-group">
-              <label>Temperatura (°C)</label>
-              <input
-                type="number"
-                step="0.1"
-                name="temperatura"
-                value={formData.temperatura}
-                onChange={handleInputChange}
-                placeholder="Ej: 15.5"
-              />
-            </div>
-
-            {/* Peso entrada */}
-            <div className="form-group">
-              <label>Peso Entrada (kg)</label>
-              <input
-                type="number"
-                step="0.1"
-                name="peso_entrada"
-                value={formData.peso_entrada}
-                onChange={handleInputChange}
-                placeholder="Ej: 696.0"
-              />
-            </div>
-
-            {/* Peso salida */}
-            <div className="form-group">
-              <label>Peso Salida (kg)</label>
-              <input
-                type="number"
-                step="0.1"
-                name="peso_salida"
-                value={formData.peso_salida}
-                onChange={handleInputChange}
-                placeholder="Ej: 680.5"
-              />
-            </div>
-
-            {/* Calibre */}
-            <div className="form-group">
-              <label>Calibre</label>
-              <input
-                type="text"
-                name="calibre"
-                value={formData.calibre}
-                onChange={handleInputChange}
-                placeholder="Ej: 88, 80, 70"
-              />
-            </div>
-
-            {/* Observaciones */}
-            <div className="form-group full-width">
-              <label>Observaciones</label>
-              <textarea
-                name="observaciones"
-                value={formData.observaciones}
-                onChange={handleInputChange}
-                rows="3"
-                placeholder="Observaciones del proceso..."
-              />
-            </div>
-
-            {/* Botones */}
-            <div className="modal-footer">
-              <button 
-                type="button" 
-                className="btn-secundario"
-                onClick={onClose}
-                disabled={loading}
-              >
-                Cancelar
-              </button>
-              <button 
-                type="submit" 
-                className="btn-primario"
-                disabled={loading}
-              >
-                {loading ? 'Registrando...' : 'Registrar Proceso'}
-              </button>
-            </div>
-          </form>
-        </div>
+          <div className="footer">
+            <button type="button" onClick={onClose} className="btn-secundario">Cancelar</button>
+            <button type="submit" className="btn-primario" disabled={loading}>
+                {loading ? 'Guardando...' : 'Guardar'}
+            </button>
+          </div>
+        </form>
       </div>
     </div>
   );
 };
-
 export default ModalRegistrarProceso;
