@@ -88,15 +88,6 @@ const GestionPedidos = () => {
 }, [filtros]);
 
 
-  // useEffect(() => {
-  //   loadPedidos();
-  //   loadTransportistas();
-  //   loadClientes();
-  //   loadCamiones();
-  //   loadChoferes();
-  //   loadProductos();
-  //   // eslint-disable-next-line react-hooks/exhaustive-deps
-  // }, [filtros]);
 
   // 🔥 PASO 6: Cargar pallets cuando se edita un pedido existente
   useEffect(() => {
@@ -955,127 +946,7 @@ const ListaPedidosTab = () => {
     </>
   );
 };
-  // const ListaPedidosTab = () => (
-  //   <>
-  //     <div className="tab-content-header mb-3 d-flex justify-content-between align-items-center">
-  //       <h5 className="mb-0 text-secondary" style={{ fontSize: "1.1rem" }}>
-  //         Listado Maestro de Exportaciones
-  //       </h5>
-  //       <div className="acciones">
-  //         <Button
-  //           variant="light"
-  //           className="btn-icon me-2 shadow-sm border"
-  //           onClick={loadPedidos}
-  //           title="Refrescar"
-  //         >
-  //           <FaSync color="#666" />
-  //         </Button>
-  //       </div>
-  //     </div>
-
-  //     {error && <Alert variant="danger">{error}</Alert>}
-
-  //     <div className="table-container">
-  //       <Table responsive hover className="custom-table">
-  //         <thead>
-  //           <tr>
-  //             <th>N° Pedido</th>
-  //             <th>Cliente</th>
-  //             <th>Destino</th>
-  //             <th>Transporte</th>
-  //             <th>Fecha Est.</th>
-  //             <th className="text-center">Pallets</th>
-  //             <th className="text-center">Estado</th>
-  //             <th className="text-end">Acciones</th>
-  //           </tr>
-  //         </thead>
-  //         <tbody>
-  //           {loading ? (
-  //             <tr>
-  //               <td colSpan="8" className="text-center py-4">
-  //                 <Spinner animation="border" size="sm" className="me-2" />{" "}
-  //                 Cargando...
-  //               </td>
-  //             </tr>
-  //           ) : pedidos.length === 0 ? (
-  //             <tr>
-  //               <td colSpan="8" className="text-center py-4 text-muted">
-  //                 No hay pedidos para mostrar.
-  //               </td>
-  //             </tr>
-  //           ) : (
-  //             pedidos.map((p) => {
-  //               let cantidadPallets = 0;
-  //               if (Array.isArray(p.od_pallets)) {
-  //                 cantidadPallets = p.od_pallets.length;
-  //               } else if (p.cantidad_pallets_prevista) {
-  //                 cantidadPallets = p.cantidad_pallets_prevista;
-  //               } else if (p.cantidad_pallets) {
-  //                 cantidadPallets = p.cantidad_pallets;
-  //               }
-
-  //               return (
-  //                 <tr key={p.od_id || p.id || p.odId}>
-  //                   <td className="text-highlight">
-  //                     {p.od_code || p.odCode || `OD-${p.od_id || p.id}`}
-  //                   </td>
-  //                   <td style={{ fontWeight: "500" }}>
-  //                     {p.cliente_nombre || p.cliente}
-  //                   </td>
-  //                   <td>{p.destino}</td>
-  //                   <td style={{ textTransform: "capitalize" }}>
-  //                     {p.tipo_destino || p.tipoDestino}
-  //                   </td>
-  //                   <td>
-  //                     {(
-  //                       p.fecha_programada ||
-  //                       p.fechaProgramada ||
-  //                       ""
-  //                     ).substring(0, 10)}
-  //                   </td>
-  //                   <td className="text-center">
-  //                     <Badge bg="info" className="px-3 py-2">
-  //                       {cantidadPallets}
-  //                     </Badge>
-  //                   </td>
-  //                   <td className="text-center">{badgeEstado(p.estado)}</td>
-  //                   <td className="text-end">
-  //                     <Button
-  //                       variant="link"
-  //                       className="btn-action-table me-2"
-  //                       title="Seguimiento GPS"
-  //                     >
-  //                       <FaTruck size={16} />
-  //                     </Button>
-  //                     <Button
-  //                       variant="link"
-  //                       className="btn-action-table me-2"
-  //                       title="Ver / Editar Detalles"
-  //                       onClick={() => openDetalle(p)}
-  //                     >
-  //                       <FaEye size={16} />
-  //                     </Button>
-  //                     <Button
-  //                       variant="link"
-  //                       className="btn-action-table text-danger"
-  //                       title="Eliminar Pedido"
-  //                       onClick={() => handleDeletePedido(p)}
-  //                     >
-  //                       <FaTrash size={16} />
-  //                     </Button>
-  //                   </td>
-  //                 </tr>
-  //               );
-  //             })
-  //           )}
-  //         </tbody>
-  //       </Table>
-  //     </div>
-  //     <div className="mt-3 text-muted small px-2">
-  //       Mostrando {pedidos.length} registros encontrados.
-  //     </div>
-  //   </>
-  // );
+  
 
   const NuevoPedidoTab = () => (
     <NuevoPedidoForm onOrderSaved={handleFormAction} onCancel={handleCancel} />
