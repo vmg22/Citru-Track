@@ -15,7 +15,7 @@ const options = {
 
 export default function LogisticsMap() {
   const { isLoaded, loadError } = useLoadScript({
-    googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY, 
+    googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY,
     libraries,
   });
 
@@ -29,55 +29,45 @@ export default function LogisticsMap() {
   const [filtroMovimiento, setFiltroMovimiento] = useState(false);
   const [filtroEstados, setFiltroEstados] = useState([]);
   const [filtroProductos, setFiltroProductos] = useState([]);
+  const [filtroDestino, setFiltroDestino] = useState([]);
   const [mostrarFiltros, setMostrarFiltros] = useState(true);
 
   // Opciones de filtros disponibles
   const estadosDisponibles = ['en_ruta', 'pendiente', 'en_carga'];
-  const productosUnicos = useMemo(() => {
+  const { productos: productosUnicos, destinos: destinosUnicos } = useMemo(() => {
     const productos = [...new Set(camiones.map(c => c.producto_nombre).filter(Boolean))];
-    return productos.sort();
+    const destinos = [...new Set(camiones.map(c => c.destino).filter(Boolean))];
+    return { productos: productos.sort(), destinos: destinos.sort() };
   }, [camiones]);
 
-  // Conexión Socket y Carga Inicial
+  // Carga inicial y socket
   useEffect(() => {
     const cargarFlotaActiva = async () => {
       try {
         const data = await logisticService.getFlotaActiva();
-        
-        // Normalizar los datos recibidos del servicio
-        const camionesNormalizados = Array.isArray(data) 
-          ? data 
-          : Array.isArray(data?.data) 
-            ? data.data 
-            : Array.isArray(data?.camiones) 
-              ? data.camiones 
+        const camionesNormalizados = Array.isArray(data)
+          ? data
+          : Array.isArray(data?.data)
+            ? data.data
+            : Array.isArray(data?.camiones)
+              ? data.camiones
               : [];
-
-        console.log('📦 Datos recibidos del backend:', camionesNormalizados.length, 'camiones');
-        console.log('📊 Primer camión (sample):', camionesNormalizados[0]);
-
-        // Mapear a la estructura que espera el componente
         const camionesMapeados = camionesNormalizados.map(camion => ({
           orden_despacho_id: camion.orden_despacho_id || camion.od_id || camion.id,
           patente: camion.patente || 'Sin patente',
           lat: parseFloat(camion.lat) || -34.6037 + (Math.random() - 0.5) * 2,
           lng: parseFloat(camion.lng) || -58.3816 + (Math.random() - 0.5) * 2,
           velocidad: camion.velocidad || 0,
-          estado: camion.estado, // ⚠️ SIN FALLBACK para detectar problemas
+          estado: camion.estado,
           estado_actual: camion.estado_actual || camion.evento,
           destino: camion.destino || 'Destino no especificado',
           chofer: camion.chofer || camion.chofer_nombre || 'Chofer no asignado',
           producto_nombre: camion.producto_nombre || 'Sin producto',
-          temperatura: camion.temperatura || null
+          temperatura: camion.temperatura || null,
         }));
-
-        console.log('✅ Camiones mapeados:', camionesMapeados.length);
-        console.log('🔍 Estados encontrados:', [...new Set(camionesMapeados.map(c => c.estado))]);
-        
         setCamiones(camionesMapeados);
       } catch (error) {
-        console.error("Error cargando flota activa:", error);
-        // Datos de ejemplo como fallback
+        console.error('Error cargando flota activa:', error);
         setCamiones([
           {
             orden_despacho_id: 1,
@@ -89,76 +79,62 @@ export default function LogisticsMap() {
             estado_actual: 'En movimiento',
             destino: 'Buenos Aires',
             chofer: 'Juan Pérez',
-            producto_nombre: 'Naranjas'
-          }
+            producto_nombre: 'Naranjas',
+            temperatura: null,
+          },
         ]);
       }
     };
-
     cargarFlotaActiva();
 
-    // Conectar Socket (opcional - si tu backend lo soporta)
     const socketUrl = import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:4000';
     try {
       const newSocket = io(socketUrl);
       setSocket(newSocket);
-
-      newSocket.on("tracking:global_feed", (newData) => {
-        setCamiones((prevCamiones) => {
-          const index = prevCamiones.findIndex(c => c.orden_despacho_id === newData.orden_despacho_id);
-          
-          if (index !== -1) {
-            const updated = [...prevCamiones];
-            updated[index] = { ...updated[index], ...newData };
+      newSocket.on('tracking:global_feed', newData => {
+        setCamiones(prev => {
+          const idx = prev.findIndex(c => c.orden_despacho_id === newData.orden_despacho_id);
+          if (idx !== -1) {
+            const updated = [...prev];
+            updated[idx] = { ...updated[idx], ...newData };
             return updated;
-          } else {
-            return [...prevCamiones, newData];
           }
+          return [...prev, newData];
         });
       });
-
       return () => newSocket.disconnect();
-    } catch (socketError) {
-      console.warn("Socket no disponible, continuando sin conexión en tiempo real");
+    } catch (e) {
+      console.warn('Socket no disponible, continuando sin tiempo real');
     }
   }, []);
 
   // Lógica de filtrado
   const camionesFiltrados = useMemo(() => {
     return camiones.filter(camion => {
-      // Filtro de movimiento (solo camiones en movimiento)
-      if (filtroMovimiento && parseFloat(camion.velocidad) === 0) {
-        return false;
-      }
-
-      // Filtro de estados
-      if (filtroEstados.length > 0 && !filtroEstados.includes(camion.estado)) {
-        return false;
-      }
-
-      // Filtro de productos
-      if (filtroProductos.length > 0 && !filtroProductos.includes(camion.producto_nombre)) {
-        return false;
-      }
-
+      if (filtroMovimiento && parseFloat(camion.velocidad) === 0) return false;
+      if (filtroEstados.length && !filtroEstados.includes(camion.estado)) return false;
+      if (filtroProductos.length && !filtroProductos.includes(camion.producto_nombre)) return false;
+      if (filtroDestino.length && !filtroDestino.includes(camion.destino)) return false;
       return true;
     });
-  }, [camiones, filtroMovimiento, filtroEstados, filtroProductos]);
+  }, [camiones, filtroMovimiento, filtroEstados, filtroProductos, filtroDestino]);
 
   // Funciones de manejo de filtros
-  const toggleEstado = (estado) => {
-    setFiltroEstados(prev => 
-      prev.includes(estado) 
-        ? prev.filter(e => e !== estado)
-        : [...prev, estado]
+  const toggleEstado = estado => {
+    setFiltroEstados(prev =>
+      prev.includes(estado) ? prev.filter(e => e !== estado) : [...prev, estado]
     );
   };
 
-  const toggleProducto = (producto) => {
-    setFiltroProductos(prev => 
-      prev.includes(producto) 
-        ? prev.filter(p => p !== producto)
-        : [...prev, producto]
+  const toggleProducto = producto => {
+    setFiltroProductos(prev =>
+      prev.includes(producto) ? prev.filter(p => p !== producto) : [...prev, producto]
+    );
+  };
+
+  const toggleDestino = destino => {
+    setFiltroDestino(prev =>
+      prev.includes(destino) ? prev.filter(d => d !== destino) : [...prev, destino]
     );
   };
 
@@ -166,6 +142,7 @@ export default function LogisticsMap() {
     setFiltroMovimiento(false);
     setFiltroEstados([]);
     setFiltroProductos([]);
+    setFiltroDestino([]);
   };
 
   const cantidadFiltrosActivos = () => {
@@ -173,62 +150,61 @@ export default function LogisticsMap() {
     if (filtroMovimiento) count++;
     count += filtroEstados.length;
     count += filtroProductos.length;
+    count += filtroDestino.length;
     return count;
   };
 
-  // Función para Calcular Ruta
-  const handleMarkerClick = useCallback((camion) => {
+  // Calcular ruta al hacer click en marcador
+  const handleMarkerClick = useCallback(camion => {
     setSelectedCamion(camion);
-    
     if (!camion.destino || camion.destino === 'Destino no especificado') return;
-
     const directionsService = new window.google.maps.DirectionsService();
-
-    directionsService.route({
-      origin: { lat: parseFloat(camion.lat), lng: parseFloat(camion.lng) },
-      destination: camion.destino,
-      travelMode: window.google.maps.TravelMode.DRIVING,
-    }, (result, status) => {
-      if (status === window.google.maps.DirectionsStatus.OK) {
-        setDirections(result);
-      } else {
-        console.error(`Error calculando ruta: ${status}`);
-        setDirections(null);
+    directionsService.route(
+      {
+        origin: { lat: parseFloat(camion.lat), lng: parseFloat(camion.lng) },
+        destination: camion.destino,
+        travelMode: window.google.maps.TravelMode.DRIVING,
+      },
+      (result, status) => {
+        if (status === window.google.maps.DirectionsStatus.OK) {
+          setDirections(result);
+        } else {
+          console.error(`Error calculando ruta: ${status}`);
+          setDirections(null);
+        }
       }
-    });
+    );
   }, []);
 
   // Helper para traducir estados
-  const traducirEstado = (estado) => {
+  const traducirEstado = estado => {
     const traducciones = {
-      'en_ruta': 'En Ruta',
-      'pendiente': 'Pendiente',
-      'en_carga': 'En Carga',
-      'entregado': 'Entregado',
-      'cancelado': 'Cancelado'
+      en_ruta: 'En Ruta',
+      pendiente: 'Pendiente',
+      en_carga: 'En Carga',
+      entregado: 'Entregado',
+      cancelado: 'Cancelado',
     };
     return traducciones[estado] || estado;
   };
 
-  // Helper para determinar clase de color según estado
-  const getEstadoColorClass = (estado) => {
-    return `logistics-status-badge logistics-status-${estado}`;
-  };
+  // Helper para clase de color
+  const getEstadoColorClass = estado => `logistics-status-badge logistics-status-${estado}`;
 
   if (loadError) return <div className="logistics-error">Error cargando Google Maps. Verifica tu API Key.</div>;
   if (!isLoaded) return <div className="logistics-loading">Cargando Google Maps...</div>;
 
   return (
     <div className="logistics-map-container">
-      
-      {/* Panel Superior Izquierdo - Resumen */}
+      {/* Resumen */}
       <div className="logistics-summary-panel">
         <h3 className="logistics-summary-title">
-          <span className="logistics-summary-status"></span>
-          Monitoreo en Vivo
+          <span className="logistics-summary-status" /> Monitoreo en Vivo
         </h3>
         <div className="logistics-summary-stats">
-          <div><strong>{camionesFiltrados.length}</strong> de <strong>{camiones.length}</strong> camiones</div>
+          <div>
+            <strong>{camionesFiltrados.length}</strong> de <strong>{camiones.length}</strong> camiones
+          </div>
           {cantidadFiltrosActivos() > 0 && (
             <div className="logistics-summary-filters">
               {cantidadFiltrosActivos()} filtro(s) activo(s)
@@ -237,81 +213,56 @@ export default function LogisticsMap() {
         </div>
       </div>
 
-      {/* Panel de Filtros - Superior Derecho */}
+      {/* Filtros */}
       <div className="logistics-filters-container">
         {!mostrarFiltros ? (
-          <button 
-            onClick={() => setMostrarFiltros(true)}
-            className="logistics-filters-toggle"
-          >
-            <span className="logistics-filters-toggle-text">
-              🔍 Filtros
-            </span>
+          <button onClick={() => setMostrarFiltros(true)} className="logistics-filters-toggle">
+            <span className="logistics-filters-toggle-text">🔍 Filtros</span>
             {cantidadFiltrosActivos() > 0 && (
-              <span className="logistics-filters-badge">
-                {cantidadFiltrosActivos()}
-              </span>
+              <span className="logistics-filters-badge">{cantidadFiltrosActivos()}</span>
             )}
           </button>
         ) : (
           <div className="logistics-filters-panel">
-            {/* Header */}
             <div className="logistics-filters-header">
               <h3 className="logistics-filters-title">
-                <span>🔍</span>
-                Filtros
+                <span>🔍</span> Filtros
                 {cantidadFiltrosActivos() > 0 && (
-                  <span className="logistics-filters-badge">
-                    {cantidadFiltrosActivos()}
-                  </span>
+                  <span className="logistics-filters-badge">{cantidadFiltrosActivos()}</span>
                 )}
               </h3>
-              <button 
-                onClick={() => setMostrarFiltros(false)}
-                className="logistics-filters-close"
-              >
-                ✕
-              </button>
+              <button onClick={() => setMostrarFiltros(false)} className="logistics-filters-close">✕</button>
             </div>
-
-            {/* Contenido */}
             <div className="logistics-filters-content">
-              
-              {/* Solo en movimiento */}
+              {/* Movimiento */}
               <div className="logistics-filter-group">
                 <label className="logistics-checkbox-label">
-                  <input 
+                  <input
                     type="checkbox"
                     checked={filtroMovimiento}
-                    onChange={(e) => setFiltroMovimiento(e.target.checked)}
+                    onChange={e => setFiltroMovimiento(e.target.checked)}
                     className="logistics-checkbox-input"
                   />
-                  <span className="logistics-checkbox-text">
-                    🚛 Solo en movimiento
-                  </span>
+                  <span className="logistics-checkbox-text">🚛 Solo en movimiento</span>
                 </label>
               </div>
-
               {/* Estados */}
               <div className="logistics-filter-group">
                 <h4 className="logistics-filter-label">Estado</h4>
                 <div className="logistics-filter-options">
                   {estadosDisponibles.map(estado => (
                     <label key={estado} className="logistics-checkbox-label">
-                      <input 
+                      <input
                         type="checkbox"
                         checked={filtroEstados.includes(estado)}
                         onChange={() => toggleEstado(estado)}
                         className="logistics-checkbox-input"
                       />
-                      <span className={getEstadoColorClass(estado)}>
-                        {traducirEstado(estado)}
-                      </span>
+                      <span className={getEstadoColorClass(estado)}>{traducirEstado(estado)}</span>
                     </label>
                   ))}
                 </div>
               </div>
-
               {/* Productos */}
               {productosUnicos.length > 0 && (
                 <div className="logistics-filter-group">
@@ -319,70 +270,72 @@ export default function LogisticsMap() {
                   <div className="logistics-filter-options">
                     {productosUnicos.map(producto => (
                       <label key={producto} className="logistics-checkbox-label">
-                        <input 
+                        <input
                           type="checkbox"
                           checked={filtroProductos.includes(producto)}
                           onChange={() => toggleProducto(producto)}
                           className="logistics-checkbox-input"
                         />
-                        <span className="logistics-checkbox-text logistics-text-truncate">
-                          🍊 {producto}
-                        </span>
+                        <span className="logistics-checkbox-text logistics-text-truncate">🍊 {producto}</span>
                       </label>
                     ))}
                   </div>
                 </div>
               )}
-
-              {/* Botón limpiar */}
+              {/* Destinos */}
+              {destinosUnicos.length > 0 && (
+                <div className="logistics-filter-group">
+                  <h4 className="logistics-filter-label">Destino</h4>
+                  <div className="logistics-filter-options">
+                    {destinosUnicos.map(destino => (
+                      <label key={destino} className="logistics-checkbox-label">
+                        <input
+                          type="checkbox"
+                          checked={filtroDestino.includes(destino)}
+                          onChange={() => toggleDestino(destino)}
+                          className="logistics-checkbox-input"
+                        />
+                        <span className="logistics-checkbox-text logistics-text-truncate">📍 {destino}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+              )}
+              {/* Limpiar */}
               {cantidadFiltrosActivos() > 0 && (
-                <button 
-                  onClick={limpiarFiltros}
-                  className="logistics-clear-filters"
-                >
-                  ✕ Limpiar Filtros
-                </button>
+                <button onClick={limpiarFiltros} className="logistics-clear-filters">✕ Limpiar Filtros</button>
               )}
             </div>
           </div>
         )}
       </div>
 
-      <GoogleMap
-        mapContainerStyle={mapContainerStyle}
-        zoom={6}
-        center={center}
-        options={options}
-      >
-        {/* Camiones */}
-        {camionesFiltrados.map((camion) => (
+      {/* Mapa */}
+      <GoogleMap mapContainerStyle={mapContainerStyle} zoom={6} center={center} options={options}>
+        {camionesFiltrados.map(camion => (
           <Marker
             key={camion.orden_despacho_id}
             position={{ lat: parseFloat(camion.lat), lng: parseFloat(camion.lng) }}
             onClick={() => handleMarkerClick(camion)}
             icon={{
-              url: "https://cdn-icons-png.flaticon.com/512/741/741407.png",
-              scaledSize: new window.google.maps.Size(35, 35)
+              url: 'https://cdn-icons-png.flaticon.com/512/741/741407.png',
+              scaledSize: new window.google.maps.Size(35, 35),
             }}
           />
         ))}
-
-        {/* Ruta */}
         {directions && (
           <DirectionsRenderer
             directions={directions}
             options={{
               polylineOptions: {
-                strokeColor: "#3b82f6",
+                strokeColor: '#3b82f6',
                 strokeWeight: 5,
                 strokeOpacity: 0.7,
               },
-              suppressMarkers: true
+              suppressMarkers: true,
             }}
           />
         )}
-
-        {/* Info Window */}
         {selectedCamion && (
           <InfoWindow
             position={{ lat: parseFloat(selectedCamion.lat), lng: parseFloat(selectedCamion.lng) }}
@@ -413,9 +366,7 @@ export default function LogisticsMap() {
                 <div className="logistics-info-row">
                   <span className="logistics-info-label">Estado:</span>
                   <span className="logistics-info-value">
-                    <span className={getEstadoColorClass(selectedCamion.estado)}>
-                      {traducirEstado(selectedCamion.estado)}
-                    </span>
+                    <span className={getEstadoColorClass(selectedCamion.estado)}>{traducirEstado(selectedCamion.estado)}</span>
                   </span>
                 </div>
                 {selectedCamion.temperatura && (
