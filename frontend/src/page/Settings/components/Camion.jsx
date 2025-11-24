@@ -139,7 +139,11 @@ const Camion = () => {
               ) : (
                 camiones.map((camion) => (
                   <tr key={camion.camion_id}>
-                    <td className="camara-table-cell">{camion.camion_id}</td>
+                    <td className="camara-table-cell">
+                          <span className="camara-capacity-badge">
+                            {camion.camion_id}
+                          </span>
+                        </td>
                     <td className="camara-table-cell">
                       <span className="camara-capacity-badge">{camion.patente}</span>
                     </td>

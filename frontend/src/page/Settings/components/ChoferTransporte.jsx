@@ -344,8 +344,10 @@ const ChoferTransporte = () => {
                   choferes.map((chofer) => (
                     <tr key={chofer.chofer_id}>
                       <td className="camara-table-cell">
-                        {chofer.chofer_id || "N/A"}
-                      </td>
+                          <span className="camara-capacity-badge">
+                            {chofer.chofer_id || "N/A"}
+                          </span>
+                        </td>
 
                       <td className="camara-table-cell">
                         {chofer.nombre || "N/A"}
@@ -448,8 +450,10 @@ const ChoferTransporte = () => {
                   transportes.map((transporte) => (
                     <tr key={transporte.transportista_id}>
                       <td className="camara-table-cell">
-                        {transporte.transportista_id || "N/A"}
-                      </td>
+                          <span className="camara-capacity-badge">
+                            {transporte.transportista_id || "N/A"}
+                          </span>
+                        </td>
 
                       <td className="camara-table-cell">
                         {transporte.nombre || "N/A"}

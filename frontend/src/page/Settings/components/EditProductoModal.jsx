@@ -20,7 +20,6 @@ const EditProductoModal = ({ isOpen, onClose, productData, onProductUpdated }) =
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [localError, setLocalError] = useState(null);
 
-  // Sincronizar el estado local con los datos pasados por props
   useEffect(() => {
     if (productData) {
       setFormData(productData);

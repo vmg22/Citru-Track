@@ -87,11 +87,12 @@ async function listProductsWithVarieties(req, res) {
                 v.descripcion AS descripcion_variedad,
                 v.created_at AS variedad_created_at
             FROM
-                productos p  -- Usamos 'productos' (plural)
+                productos p 
             LEFT JOIN
                 variedades v ON p.producto_id = v.producto_id
             WHERE
-                p.activo = true
+                p.activo = true 
+                AND (v.variedad_id IS NULL OR v.activo = true) -- 🎯 SOLUCIÓN: Solo variedades activas o si no tiene variedades (LEFT JOIN)
             ORDER BY
                 p.producto_id, v.variedad_id;
         `;
@@ -235,4 +236,69 @@ async function eliminarProducto(req, res) {
         res.status(500).json({ success: false, error: 'Error del servidor al realizar la baja lógica.' });
     }
 }
-module.exports = { list, getOne, create,crearVariedad, getProductByName,groupProductsAndVarieties, listProductsWithVarieties, editarProducto, eliminarProducto};
+
+async function editarVariedad(req, res) {
+    const id = req.params.id; 
+    const { nombre, descripcion } = req.body;
+
+    // Validación básica
+    if (!nombre) {
+        return res.status(400).json({ success: false, error: 'El nombre de la variedad es obligatorio.' });
+    }
+
+    try {
+        // 1. Ejecutar la actualización
+        const [result] = await db.query(`
+            UPDATE variedades 
+            SET nombre = ?, descripcion = ?
+            WHERE variedad_id = ?
+        `, [
+            nombre,
+            descripcion || null,
+            id
+        ]);
+
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ success: false, error: 'Variedad no encontrada para actualizar.' });
+        }
+
+        res.status(200).json({
+            success: true,
+            message: `Variedad ${nombre} (ID: ${id}) actualizada con éxito.`,
+            data: { variedad_id: id, nombre, descripcion }
+        });
+
+    } catch (error) {
+        console.error('Error al actualizar variedad:', error);
+        res.status(500).json({ success: false, error: 'Error del servidor al actualizar la variedad.' });
+    }
+}
+
+async function eliminarVariedad(req, res) {
+    const id = req.params.id; // variedad_id
+
+    try {
+        const [result] = await db.query('UPDATE variedades SET activo = false WHERE variedad_id = ?', [id]);
+
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ success: false, error: 'Variedad no encontrada para desactivar.' });
+        }
+
+        res.status(200).json({
+            success: true,
+            message: `Variedad (ID: ${id}) desactivada (baja lógica).`,
+            data: { variedad_id: id, activo: false }
+        });
+
+    } catch (error) {
+        console.error('Error al desactivar variedad:', error);
+        // Manejo de error de clave foránea si es necesario
+        if (error.code === 'ER_ROW_IS_REFERENCED_2' || error.errno === 1451) {
+             return res.status(409).json({ success: false, error: 'La variedad no puede eliminarse porque está siendo referenciada por otros registros (ej: lotes).' });
+        }
+        res.status(500).json({ success: false, error: 'Error del servidor al desactivar la variedad.' });
+    }
+}
+
+
+module.exports = { list, getOne, create,crearVariedad, getProductByName,groupProductsAndVarieties, listProductsWithVarieties, editarProducto, eliminarProducto, editarVariedad, eliminarVariedad};

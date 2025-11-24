@@ -217,7 +217,11 @@ const Camara = () => {
               ) : (
                 camaras.data.map((camara) => (
                   <tr key={camara.camara_id}>
-                    <td className="camara-table-cell">{camara.camara_id}</td>
+                    <td className="camara-table-cell">
+                          <span className="camara-capacity-badge">
+                            {camara.camara_id}
+                          </span>
+                        </td>
                     <td className="camara-table-cell">{camara.nombre}</td>
                     <td className="camara-table-cell">
                       <span

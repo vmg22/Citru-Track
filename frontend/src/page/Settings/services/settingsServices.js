@@ -142,9 +142,12 @@ export const createVariedad = async (variedadData) => {
   return response.data;
 };
 
+export const updateVariedad = async (variedad_id,variedadData) => {
+  const response = await axios.put(`${PRODUCTOS_URL}/${variedad_id}/variedad`, variedadData);
+  return response.data;
+};
 
 export const deleteVariedadById = async (id) => {
-  const VARIEDADES_URL = `${API}/variedades`;
-  const response = await axios.delete(`${VARIEDADES_URL}/${id}`);
+  const response = await axios.put(`${PRODUCTOS_URL}/${id}/eliminar-variedad`);
   return response.data;
 };

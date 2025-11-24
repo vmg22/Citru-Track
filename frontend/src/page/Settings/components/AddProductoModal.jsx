@@ -1,8 +1,6 @@
-// AddProductModal.jsx
-
 import React, { useState, useEffect } from "react";
 import { toast } from "react-toastify";
-import "../../../style/addusermodal.css"; // Estilos comunes
+import "../../../style/addusermodal.css";
 import { createProduct } from "../services/settingsServices";
 
 const CATEGORIES = [
@@ -30,7 +28,6 @@ const AddProductModal = ({ isOpen, onClose, onProductAdded }) => {
   useEffect(() => {
     if (isOpen) {
       setLocalError(null);
-      // Mantener defaults en lugar de limpiar completamente
       setFormData({
         nombre: "",
         categoria: CATEGORIES[0],
@@ -49,7 +46,6 @@ const AddProductModal = ({ isOpen, onClose, onProductAdded }) => {
     let finalValue;
 
     if (type === "checkbox") {
-      // Los campos booleanos se convierten a 1 (True) o 0 (False) para la base de datos
       finalValue = checked ? 1 : 0;
     } else {
       finalValue = value;
