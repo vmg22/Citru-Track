@@ -6,7 +6,9 @@
   "scripts": {
     "start": "node src/server.js",
     "dev": "nodemon src/server.js",
-    "create-admin": "node scripts/create_admin.js"
+    "create-admin": "node scripts/create_admin.js",
+    "simulator": "node src/runSimulator.js",
+    "check-simulator": "node src/checkSimulatorRequirements.js"
   },
   "dependencies": {
     "@react-google-maps/api": "^2.20.7",
