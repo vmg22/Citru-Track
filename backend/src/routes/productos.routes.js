@@ -8,6 +8,11 @@ router.get('/', ctrl.list);
 router.get('/all-with-varieties', ctrl.listProductsWithVarieties);
 router.get('/:id', ctrl.getOne);
 
-router.post('/', permitirRoles('admin','supervisor'), ctrl.create);
+router.post('/', ctrl.create);
+router.post('/variedad', ctrl.crearVariedad);
+router.put("/:id", ctrl.editarProducto)
+router.put("/:id/variedad", ctrl.editarVariedad)
+router.put("/:id/eliminar", ctrl.eliminarProducto)
+router.put("/:id/eliminar-variedad", ctrl.eliminarVariedad)
 
 module.exports = router;

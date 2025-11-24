@@ -10,7 +10,6 @@ const EditProductoresModal = ({ isOpen, onClose, productorData, onProductorUpdat
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [localError, setLocalError] = useState(null);
 
-  // Sincroniza el estado local con los datos pasados por props
   useEffect(() => {
     if (productorData) {
       setFormData(productorData);
@@ -92,7 +91,6 @@ const EditProductoresModal = ({ isOpen, onClose, productorData, onProductorUpdat
           {localError && <div className="modal-error">{localError}</div>}
 
           <form onSubmit={handleSubmit}>
-            {/* Campos del formulario... (Mismos que AddProductoresModal, pero pre-llenados) */}
             <div className="form-group">
               <label className="form-label" htmlFor="nombre">
                 Nombre o Razón Social <span className="required-star">*</span>

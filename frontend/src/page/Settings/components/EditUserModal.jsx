@@ -1,30 +1,18 @@
 import React, { useState, useEffect } from 'react';
-import { editUser } from "../services/settingsServices"; // Asegúrate de que esta ruta sea correcta
-import "../../../style/addusermodal.css" // Reutiliza los estilos del modal de añadir
-import { toast } from 'react-toastify'; // Importar toastify
-
-// Definición de la función de servicio editUser
-// export const editUser = async(id,userData) =>{
-//   const response = await axios.put(`${USER_URL}/${id}`, userData) // Usar PUT o PATCH
-//   return response.data;
-// }
+import { editUser } from "../services/settingsServices"; 
+import "../../../style/addusermodal.css" 
+import { toast } from 'react-toastify';
 
 const EditUserModal = ({ isOpen, onClose, onUserUpdated, initialUserData }) => {
-    // Estado inicial del formulario se carga con los datos del usuario
     const [formData, setFormData] = useState({
         username: '',
         email: '',
         nombre: '',
         telefono: '',
-        // La contraseña no se incluye aquí
     });
     const [isSubmitting, setIsSubmitting] = useState(false);
-    // Cambiamos 'error' a 'localError' si prefieres mostrarlo también en el modal
     const [localError, setLocalError] = useState(null); 
-    
-    //console.log(initialUserData) // Mantener este console.log para debugging
 
-    // Efecto para actualizar el formulario cuando cambian los datos iniciales
     useEffect(() => {
         if (initialUserData) {
             setFormData({
@@ -57,26 +45,19 @@ const EditUserModal = ({ isOpen, onClose, onUserUpdated, initialUserData }) => {
                 setIsSubmitting(false);
                 return;
             }
-            
-            // Crea un objeto con los datos a enviar
-            // Asumiendo que el ID en la tabla es 'user_id'
             const userId = initialUserData.user_id; 
             const dataToUpdate = { ...formData }; 
             
-            // Llama a la función de edición
             await editUser(userId, dataToUpdate);
             
-            // 🌟 Notificación de Éxito
             toast.success(`Usuario ${formData.username} actualizado con éxito!`);
             
-            // Llama a la función de actualización y cierra el modal
             onUserUpdated();
             onClose();
 
         } catch (err) {
             const apiError = err.response?.data?.error || "Error al actualizar el usuario. Por favor, intenta nuevamente.";
             
-            // ❌ Notificación de Error
             toast.error(apiError);
             setLocalError(apiError);
 
@@ -119,7 +100,6 @@ const EditUserModal = ({ isOpen, onClose, onUserUpdated, initialUserData }) => {
                     )}
 
                     <form onSubmit={handleSubmit}>
-                        {/* Nombre Completo */}
                         <div className="form-group">
                             <label className="form-label" htmlFor="nombre">
                                 Nombre Completo <span className="required-star">*</span>
@@ -136,7 +116,6 @@ const EditUserModal = ({ isOpen, onClose, onUserUpdated, initialUserData }) => {
                             />
                         </div>
 
-                        {/* Username */}
                         <div className="form-group">
                             <label className="form-label" htmlFor="username">
                                 Nombre de Usuario <span className="required-star">*</span>
@@ -153,7 +132,6 @@ const EditUserModal = ({ isOpen, onClose, onUserUpdated, initialUserData }) => {
                             />
                         </div>
 
-                        {/* Email */}
                         <div className="form-group">
                             <label className="form-label" htmlFor="email">
                                 Email <span className="required-star">*</span>
@@ -170,7 +148,6 @@ const EditUserModal = ({ isOpen, onClose, onUserUpdated, initialUserData }) => {
                             />
                         </div>
 
-                        {/* Teléfono */}
                         <div className="form-group">
                             <label className="form-label" htmlFor="telefono">
                                 Teléfono
@@ -186,14 +163,12 @@ const EditUserModal = ({ isOpen, onClose, onUserUpdated, initialUserData }) => {
                             />
                         </div>
                         
-                        {/* Nota sobre la contraseña */}
                          <p className="form-note">
                              <i className="fas fa-info-circle"></i> La contraseña debe cambiarse en una sección separada.
                          </p>
                     </form>
                 </div>
 
-                {/* Footer */}
                 <div className="modal-footer">
                     <button
                         type="button"
