@@ -126,3 +126,86 @@
 .logistics-sidebar.closed {
   margin-left: -350px;
 }
+
+/* ======================
+   3. ESTILOS DEL INFO WINDOW (La ventana del camión)
+   ====================== */
+.logistics-info-window {
+  padding: 4px;
+  min-width: 280px; /* Ancho mínimo para que no se vea apretado */
+}
+
+.logistics-info-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #202124;
+  border-bottom: 1px solid #dadce0;
+  padding-bottom: 8px;
+  margin-bottom: 12px;
+  margin-top: 0;
+}
+
+.logistics-info-content {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.logistics-info-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.9rem;
+}
+
+.logistics-info-label {
+  font-weight: 600;
+  color: #5f6368;
+}
+
+.logistics-info-value {
+  color: #202124;
+  text-align: right;
+  font-weight: 500;
+}
+
+/* Badges de estado (Colores) */
+.logistics-status-badge {
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: white;
+  text-transform: uppercase;
+}
+
+.logistics-status-en_ruta { background-color: #1ea362; } /* Verde */
+.logistics-status-pendiente { background-color: #fbbc04; color: #3c4043; } /* Amarillo */
+.logistics-status-en_carga { background-color: #ee675c; } /* Rojo suave */
+.logistics-status-entregado { background-color: #1a73e8; } /* Azul */
+
+/* Caja de Estimación de Viaje (Gris al final) */
+.logistics-info-estimation {
+  margin-top: 12px;
+  padding: 10px;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  border: 1px solid #dadce0;
+}
+
+.logistics-info-estimation-title {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #1a73e8;
+  margin: 0 0 6px 0;
+  text-transform: uppercase;
+}
+
+.logistics-info-estimation-details p {
+  margin: 4px 0;
+  font-size: 0.85rem;
+  color: #3c4043;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}

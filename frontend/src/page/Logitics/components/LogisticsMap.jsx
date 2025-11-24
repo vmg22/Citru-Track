@@ -6,16 +6,12 @@ import './styles/LogisticsMap.css';
 
 // Configuración de Google Maps
 const libraries = ['places'];
-
-// CAMBIO: El mapa ahora debe llenar el contenedor derecho (flex-grow)
-// Quitamos el borde redondeado aquí porque lo maneja el layout padre si se desea
 const mapContainerStyle = { width: '100%', height: '100%' }; 
-
 const center = { lat: -31.4201, lng: -64.1888 };
 const options = {
-  disableDefaultUI: false, // Dejamos los controles de zoom/satélite de Google
+  disableDefaultUI: false,
   zoomControl: true,
-  fullscreenControl: false, // Opcional: quitar fullscreen para no romper el layout
+  fullscreenControl: false,
   streetViewControl: false,
 };
 
@@ -25,7 +21,7 @@ export default function LogisticsMap() {
     libraries,
   });
 
-  // --- ESTADOS Y LÓGICA (Sin cambios importantes aquí) ---
+  // --- ESTADOS ---
   const [camiones, setCamiones] = useState([]);
   const [selectedCamion, setSelectedCamion] = useState(null);
   const [directions, setDirections] = useState(null);
@@ -36,25 +32,23 @@ export default function LogisticsMap() {
   const [filtroEstados, setFiltroEstados] = useState([]);
   const [filtroProductos, setFiltroProductos] = useState([]);
   const [filtroDestino, setFiltroDestino] = useState([]);
-  
-  // Nota: 'mostrarFiltros' ya no es tan necesario si la barra es fija, 
-  // pero podemos dejarlo si quieres colapsar la barra lateral en el futuro.
 
-  // Opciones de filtros disponibles
+  // Opciones disponibles
   const estadosDisponibles = ['en_ruta', 'pendiente', 'en_carga'];
+  
   const { productos: productosUnicos, destinos: destinosUnicos } = useMemo(() => {
     const productos = [...new Set(camiones.map(c => c.producto_nombre).filter(Boolean))];
     const destinos = [...new Set(camiones.map(c => c.destino).filter(Boolean))];
     return { productos: productos.sort(), destinos: destinos.sort() };
   }, [camiones]);
 
-  // Carga inicial y socket (Igual que antes)
+  // --- CARGA DE DATOS ---
   useEffect(() => {
     const cargarFlotaActiva = async () => {
       try {
         const data = await logisticService.getFlotaActiva();
-        const camionesNormalizados = Array.isArray(data) ? data : (data?.data || []); // Simplificado
-        // ... (Tu lógica de mapeo se mantiene igual, la resumo por brevedad)
+        const camionesNormalizados = Array.isArray(data) ? data : (data?.data || []);
+        
         const camionesMapeados = camionesNormalizados.map(camion => ({
              orden_despacho_id: camion.orden_despacho_id || camion.id,
              patente: camion.patente || 'Sin patente',
@@ -62,6 +56,8 @@ export default function LogisticsMap() {
              lng: parseFloat(camion.lng) || -64.1888,
              velocidad: camion.velocidad || 0,
              estado: camion.estado || 'pendiente',
+             // AGREGADO: Mapeo del Origen
+             origen: camion.origen || camion.origen_nombre || 'Sin origen', 
              destino: camion.destino || 'Desconocido',
              chofer: camion.chofer || 'Sin chofer',
              producto_nombre: camion.producto_nombre || 'Varios',
@@ -70,15 +66,46 @@ export default function LogisticsMap() {
         setCamiones(camionesMapeados);
       } catch (error) {
         console.error('Error cargando flota', error);
-        // Mock data por si falla
-        setCamiones([{ orden_despacho_id: 1, patente: 'TEST-01', lat: -31.4201, lng: -64.1888, estado: 'en_ruta', producto_nombre: 'Arándanos', destino: 'Puerto', chofer: 'Juan', velocidad: 45 }]);
+        // Mock data
+        setCamiones([{ 
+          orden_despacho_id: 1, 
+          patente: 'TEST-01', 
+          lat: -31.4201, 
+          lng: -64.1888, 
+          estado: 'en_ruta', 
+          producto_nombre: 'Arándanos', 
+          origen: 'Tucumán', // Mock Origen
+          destino: 'Buenos Aires', 
+          chofer: 'Juan Pérez', 
+          velocidad: 45 
+        }]);
       }
     };
     cargarFlotaActiva();
-    // ... (Socket logic se mantiene igual)
+
+    // Socket Logic
+    const socketUrl = import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:4000';
+    try {
+      const newSocket = io(socketUrl);
+      setSocket(newSocket);
+      newSocket.on('tracking:global_feed', newData => {
+        setCamiones(prev => {
+          const idx = prev.findIndex(c => c.orden_despacho_id === newData.orden_despacho_id);
+          if (idx !== -1) {
+            const updated = [...prev];
+            updated[idx] = { ...updated[idx], ...newData };
+            return updated;
+          }
+          return [...prev, newData];
+        });
+      });
+      return () => newSocket.disconnect();
+    } catch (e) {
+      console.warn('Socket error', e);
+    }
   }, []);
 
-  // Lógica de filtrado (Igual que antes)
+  // --- LÓGICA FILTROS ---
   const camionesFiltrados = useMemo(() => {
     return camiones.filter(camion => {
       if (filtroMovimiento && parseFloat(camion.velocidad) === 0) return false;
@@ -89,7 +116,6 @@ export default function LogisticsMap() {
     });
   }, [camiones, filtroMovimiento, filtroEstados, filtroProductos, filtroDestino]);
 
-  // Handlers de filtros
   const toggleEstado = estado => setFiltroEstados(prev => prev.includes(estado) ? prev.filter(e => e !== estado) : [...prev, estado]);
   const toggleProducto = producto => setFiltroProductos(prev => prev.includes(producto) ? prev.filter(p => p !== producto) : [...prev, producto]);
   const toggleDestino = destino => setFiltroDestino(prev => prev.includes(destino) ? prev.filter(d => d !== destino) : [...prev, destino]);
@@ -101,9 +127,11 @@ export default function LogisticsMap() {
     setFiltroDestino([]);
   };
 
+  // --- MAPA ---
   const handleMarkerClick = useCallback(camion => {
     setSelectedCamion(camion);
     if (!camion.destino || camion.destino === 'Destino no especificado') return;
+    
     const directionsService = new window.google.maps.DirectionsService();
     directionsService.route(
       {
@@ -117,20 +145,20 @@ export default function LogisticsMap() {
     );
   }, []);
 
-  const getEstadoColorClass = estado => `logistics-status-badge logistics-status-${estado}`;
-  const traducirEstado = estado => { /* ... tu lógica ... */ return estado };
+  const getEstadoColorClass = (estado) => `logistics-status-badge logistics-status-${estado}`;
+  const traducirEstado = (estado) => {
+    const map = { en_ruta: 'En Ruta', pendiente: 'Pendiente', en_carga: 'En Carga', entregado: 'Entregado', cancelado: 'Cancelado' };
+    return map[estado] || estado;
+  };
 
   if (loadError) return <div>Error de mapa</div>;
   if (!isLoaded) return <div>Cargando...</div>;
 
-  // --- NUEVO RENDERIZADO FLEXBOX ---
   return (
-    <div className="logistics-layout"> {/* Contenedor Flex Principal */}
+    <div className="logistics-layout"> 
       
-      {/* 1. BARRA LATERAL (FILTROS) */}
+      {/* === IZQUIERDA: FILTROS === */}
       <div className="logistics-sidebar">
-        
-        {/* Cabecera Sidebar: Título y Resumen */}
         <div className="logistics-filters-header">
           <div>
             <h3 className="logistics-filters-title">Monitoreo en Vivo</h3>
@@ -140,10 +168,8 @@ export default function LogisticsMap() {
           </div>
         </div>
 
-        {/* Contenido Scrollable */}
         <div className="logistics-filters-content">
-            
-            {/* Filtro Movimiento */}
+            {/* Movimiento */}
             <div className="logistics-filter-group">
               <label className="logistics-checkbox-label">
                 <input
@@ -156,7 +182,7 @@ export default function LogisticsMap() {
               </label>
             </div>
 
-            {/* Filtro Estados */}
+            {/* Estados */}
             <div className="logistics-filter-group">
               <h4 className="logistics-filter-label">Estado</h4>
               {estadosDisponibles.map(estado => (
@@ -167,12 +193,12 @@ export default function LogisticsMap() {
                     onChange={() => toggleEstado(estado)}
                     className="logistics-checkbox-input"
                   />
-                  <span className="logistics-checkbox-text">{estado}</span>
+                  <span className="logistics-checkbox-text">{traducirEstado(estado)}</span>
                 </label>
               ))}
             </div>
 
-            {/* Filtro Productos */}
+            {/* Productos */}
             {productosUnicos.length > 0 && (
               <div className="logistics-filter-group">
                 <h4 className="logistics-filter-label">Producto</h4>
@@ -190,7 +216,7 @@ export default function LogisticsMap() {
               </div>
             )}
 
-             {/* Filtro Destinos */}
+             {/* Destinos */}
              {destinosUnicos.length > 0 && (
               <div className="logistics-filter-group">
                 <h4 className="logistics-filter-label">Destino</h4>
@@ -208,7 +234,7 @@ export default function LogisticsMap() {
               </div>
             )}
 
-            {/* Botón Limpiar */}
+            {/* Limpiar */}
             {(filtroMovimiento || filtroEstados.length > 0 || filtroProductos.length > 0 || filtroDestino.length > 0) && (
                <div style={{ padding: '0 24px' }}>
                   <button onClick={limpiarFiltros} className="logistics-clear-filters" style={{marginTop: '10px'}}>
@@ -219,7 +245,7 @@ export default function LogisticsMap() {
         </div>
       </div>
 
-      {/* 2. WRAPPER DEL MAPA (Derecha) */}
+      {/* === DERECHA: MAPA === */}
       <div className="logistics-map-wrapper">
         <GoogleMap 
             mapContainerStyle={mapContainerStyle} 
@@ -232,7 +258,6 @@ export default function LogisticsMap() {
               key={camion.orden_despacho_id}
               position={{ lat: parseFloat(camion.lat), lng: parseFloat(camion.lng) }}
               onClick={() => handleMarkerClick(camion)}
-              // Icono opcional, usa default si prefieres
             />
           ))}
           
@@ -246,6 +271,7 @@ export default function LogisticsMap() {
             />
           )}
 
+          {/* === INFO WINDOW COMPLETA CON ORIGEN === */}
           {selectedCamion && (
             <InfoWindow
               position={{ lat: parseFloat(selectedCamion.lat), lng: parseFloat(selectedCamion.lng) }}
@@ -256,14 +282,64 @@ export default function LogisticsMap() {
             >
               <div className="logistics-info-window">
                 <h2 className="logistics-info-title">{selectedCamion.patente}</h2>
-                {/* Contenido del InfoWindow igual que antes */}
-                <div>{selectedCamion.chofer} - {selectedCamion.producto_nombre}</div>
+                
+                <div className="logistics-info-content">
+                  
+                  <div className="logistics-info-row">
+                    <span className="logistics-info-label">Chofer:</span>
+                    <span className="logistics-info-value">{selectedCamion.chofer}</span>
+                  </div>
+                  
+                  <div className="logistics-info-row">
+                    <span className="logistics-info-label">Producto:</span>
+                    <span className="logistics-info-value">{selectedCamion.producto_nombre}</span>
+                  </div>
+
+                  {/* AGREGADO: ORIGEN */}
+                  <div className="logistics-info-row">
+                    <span className="logistics-info-label">Origen:</span>
+                    <span className="logistics-info-value">{selectedCamion.origen}</span>
+                  </div>
+
+                  <div className="logistics-info-row">
+                    <span className="logistics-info-label">Destino:</span>
+                    <span className="logistics-info-value">{selectedCamion.destino}</span>
+                  </div>
+                  
+                  <div className="logistics-info-row">
+                    <span className="logistics-info-label">Velocidad:</span>
+                    <span className="logistics-info-value">{selectedCamion.velocidad} km/h</span>
+                  </div>
+
+                  <div className="logistics-info-row" style={{marginTop: '4px'}}>
+                    <span className="logistics-info-label">Estado:</span>
+                    <span className={getEstadoColorClass(selectedCamion.estado)}>
+                      {traducirEstado(selectedCamion.estado)}
+                    </span>
+                  </div>
+
+                  {selectedCamion.temperatura && (
+                    <div className="logistics-info-row">
+                      <span className="logistics-info-label">Temperatura:</span>
+                      <span className="logistics-info-value">{selectedCamion.temperatura}°C</span>
+                    </div>
+                  )}
+
+                  {directions && directions.routes[0]?.legs[0] && (
+                    <div className="logistics-info-estimation">
+                      <p className="logistics-info-estimation-title">Estimación de arribo</p>
+                      <div className="logistics-info-estimation-details">
+                        <p>🕒 {directions.routes[0].legs[0].duration?.text}</p>
+                        <p>🛣️ {directions.routes[0].legs[0].distance?.text}</p>
+                      </div>
+                    </div>
+                  )}
+                </div>
               </div>
             </InfoWindow>
           )}
         </GoogleMap>
       </div>
-      
     </div>
   );
 }
