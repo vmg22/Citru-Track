@@ -21,12 +21,14 @@ const stockController = {
           p.peso_total,
           p.tipo_pallet,
           p.fecha_armado,
-          p.ubicacion_camara,
+          p.camara_id,              
+          c.nombre as camara_nombre, 
           p.estado,
           p.etiqueta_qr,
           p.created_at
         FROM pallets p
         LEFT JOIN productos prod ON p.producto_id = prod.producto_id
+        LEFT JOIN camaras c ON p.camara_id = c.camara_id  -- <--- AGREGADO: JOIN a camaras
         WHERE 1=1
       `;
 
@@ -88,7 +90,7 @@ const stockController = {
         params.push(fecha_hasta);
       }
 
-      // Total de cajas y pallets
+      // Total de cajas y pallets (No requiere cambios)
       const queryTotales = `
         SELECT 
           COUNT(DISTINCT p.pallet_id) as total_pallets,
@@ -100,7 +102,7 @@ const stockController = {
 
       const [totales] = await db.query(queryTotales, params);
 
-      // Stock por estado
+      // Stock por estado (No requiere cambios)
       const queryPorEstado = `
         SELECT 
           p.estado,
@@ -114,7 +116,7 @@ const stockController = {
 
       const [porEstado] = await db.query(queryPorEstado, params);
 
-      // Stock por producto
+      // Stock por producto (No requiere cambios en la selección de campos)
       const queryPorProducto = `
         SELECT 
           p.producto_id,
@@ -132,16 +134,18 @@ const stockController = {
 
       const [porProducto] = await db.query(queryPorProducto, params);
 
-      // Stock por ubicación
+      // Stock por ubicación (MODIFICADO: Ahora usa el camara_id y obtiene el nombre)
       const queryPorUbicacion = `
         SELECT 
-          p.ubicacion_camara,
+          c.camara_id,               -- <--- MODIFICADO: Usar el ID
+          c.nombre as ubicacion_nombre,  -- <--- AGREGADO: Nombre de la cámara para mostrar
           COUNT(DISTINCT p.pallet_id) as cantidad_pallets,
           COALESCE(SUM(p.cantidad_cajas), 0) as cantidad_cajas
         FROM pallets p
+        LEFT JOIN camaras c ON p.camara_id = c.camara_id  -- <--- AGREGADO: JOIN a camaras
         ${baseCondition}
-        AND p.ubicacion_camara IS NOT NULL
-        GROUP BY p.ubicacion_camara
+        AND p.camara_id IS NOT NULL  -- <--- MODIFICADO: Filtro por el nuevo ID
+        GROUP BY c.camara_id, c.nombre  -- <--- MODIFICADO: Agrupar por ID y Nombre
         ORDER BY cantidad_cajas DESC
       `;
 
@@ -179,9 +183,11 @@ const stockController = {
           p.cantidad_cajas,
           p.peso_total,
           p.fecha_armado,
-          p.ubicacion_camara
+          p.camara_id,              -- <--- MODIFICADO: Nueva columna ID
+          c.nombre as camara_nombre  -- <--- AGREGADO: Nombre de la cámara
         FROM pallets p
         LEFT JOIN productos prod ON p.producto_id = prod.producto_id
+        LEFT JOIN camaras c ON p.camara_id = c.camara_id  -- <--- AGREGADO: JOIN a camaras
         WHERE p.estado = ?
       `;
 
@@ -224,10 +230,12 @@ const stockController = {
           p.peso_total,
           p.tipo_pallet,
           p.fecha_armado,
-          p.ubicacion_camara,
+          p.camara_id,              -- <--- MODIFICADO: Nueva columna ID
+          c.nombre as camara_nombre,  -- <--- AGREGADO: Nombre de la cámara
           p.estado,
           p.etiqueta_qr
         FROM pallets p
+        LEFT JOIN camaras c ON p.camara_id = c.camara_id  -- <--- AGREGADO: JOIN a camaras
         WHERE p.producto_id = ?
       `;
 
@@ -252,7 +260,7 @@ const stockController = {
 
       const [rows] = await db.query(query, params);
 
-      // Obtener resumen
+      // Obtener resumen (No requiere cambios en la selección de campos, solo en los JOINS si aplica)
       const queryResumen = `
         SELECT 
           COUNT(DISTINCT p.pallet_id) as total_pallets,
@@ -281,7 +289,7 @@ const stockController = {
   },
 
   /**
-   * Obtener alertas de stock bajo
+   * Obtener alertas de stock bajo (No requiere cambios de JOIN/SELECT)
    * GET /api/stock/alertas
    */
   getAlertasStock: async (req, res) => {
@@ -314,7 +322,7 @@ const stockController = {
   },
 
   /**
-   * Obtener histórico de movimientos de stock
+   * Obtener histórico de movimientos de stock (No requiere cambios de JOIN/SELECT)
    * GET /api/stock/historico
    */
   getHistoricoStock: async (req, res) => {
