@@ -1,7 +1,7 @@
 import axios from "axios";
 
 // URL base del backend
-const API_URL = "http://localhost:4000/api/auth";
+const API_URL = import.meta.env.VITE_API_URL ? `${import.meta.env.VITE_API_URL}/auth` : "http://localhost:4000/api/auth";
 
 // Instancia de axios
 const api = axios.create({
