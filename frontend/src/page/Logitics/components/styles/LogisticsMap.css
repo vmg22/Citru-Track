@@ -1,570 +1,128 @@
 /* LogisticsMap.css */
 
 /* ======================
-   VARIABLES Y RESET
+   LAYOUT GENERAL (FLEX)
    ====================== */
-:root {
-  --color-primary: #3b82f6;
-  --color-primary-dark: #1d4ed8;
-  --color-success: #10b981;
-  --color-warning: #f59e0b;
-  --color-danger: #ef4444;
-  --color-gray-50: #f9fafb;
-  --color-gray-100: #f3f4f6;
-  --color-gray-200: #e5e7eb;
-  --color-gray-300: #d1d5db;
-  --color-gray-400: #9ca3af;
-  --color-gray-500: #6b7280;
-  --color-gray-600: #4b5563;
-  --color-gray-700: #374151;
-  --color-gray-800: #1f2937;
-  --color-gray-900: #111827;
-  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
-  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
-  --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
-  --shadow-xl: 0 20px 25px rgba(0, 0, 0, 0.1);
-  --border-radius: 12px;
-  --border-radius-sm: 8px;
+.logistics-layout {
+  display: flex;       /* Esto pone los elementos uno al lado del otro */
+  flex-direction: row;
+  width: 100%;
+  height: 100vh;       /* O la altura que desees */
+  overflow: hidden;    /* Evita scroll en la página entera */
+  font-family: 'Roboto', sans-serif;
 }
 
 /* ======================
-   CONTENEDOR PRINCIPAL
+   1. BARRA LATERAL (FILTROS)
    ====================== */
-.logistics-map-container {
-  position: relative;
-  width: 100%;
+.logistics-sidebar {
+  width: 350px;        /* Ancho fijo como la barra lateral de Google */
   height: 100%;
-  box-shadow: var(--shadow-xl);
-  border-radius: var(--border-radius);
-  overflow: hidden;
-  border: 1px solid var(--color-gray-200);
   background: white;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 2px 0 5px rgba(0,0,0,0.1); /* Sombra sutil hacia la derecha */
+  z-index: 10;         /* Por encima del borde del mapa */
+  position: relative;
+  transition: margin-left 0.3s ease; /* Por si quieres un botón para ocultarlo */
 }
 
 /* ======================
-   PANEL DE RESUMEN
+   2. CONTENEDOR DEL MAPA
    ====================== */
-.logistics-summary-panel {
-  position: absolute;
-  top: 16px;
-  left: 16px;
-  z-index: 10;
-  background: white;
-  padding: 16px;
-  border-radius: var(--border-radius-sm);
-  box-shadow: var(--shadow-lg);
-  backdrop-filter: blur(8px);
-  border: 1px solid var(--color-gray-200);
-  min-width: 180px;
-  transition: all 0.3s ease;
-}
-
-.logistics-summary-panel:hover {
-  box-shadow: var(--shadow-xl);
-  transform: translateY(-1px);
-}
-
-.logistics-summary-title {
-  font-weight: 700;
-  color: var(--color-gray-800);
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 0.875rem;
-  margin-bottom: 8px;
-}
-
-.logistics-summary-status {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: var(--color-success);
-  animation: pulse 2s infinite;
-}
-
-@keyframes pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.5; }
-}
-
-.logistics-summary-stats {
-  font-size: 0.75rem;
-  color: var(--color-gray-600);
-  line-height: 1.4;
-}
-
-.logistics-summary-filters {
-  color: var(--color-primary);
-  margin-top: 4px;
-  font-weight: 600;
+.logistics-map-wrapper {
+  flex-grow: 1;        /* Toma TODO el espacio restante a la derecha */
+  height: 100%;
+  position: relative;
+  background: #eef2f6;
 }
 
 /* ======================
-   PANEL DE FILTROS
+   ESTILOS INTERNOS DEL FILTRO
    ====================== */
-.logistics-filters-container {
-  position: absolute;
-  top: 16px;
-  right: 16px;
-  z-index: 10;
-  width: 280px;
-}
 
-.logistics-filters-toggle {
-  background: white;
-  border-radius: var(--border-radius-sm);
-  box-shadow: var(--shadow-lg);
-  padding: 12px;
-  width: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  font-size: 0.875rem;
-  border: 1px solid var(--color-gray-200);
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-.logistics-filters-toggle:hover {
-  background: var(--color-gray-50);
-  box-shadow: var(--shadow-xl);
-}
-
-.logistics-filters-toggle-text {
-  font-weight: 600;
-  color: var(--color-gray-700);
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.logistics-filters-badge {
-  background: var(--color-primary);
-  color: white;
-  font-size: 0.75rem;
-  font-weight: 700;
-  border-radius: 9999px;
-  padding: 2px 8px;
-  min-width: 20px;
-  text-align: center;
-}
-
-.logistics-filters-panel {
-  background: white;
-  border-radius: var(--border-radius);
-  box-shadow: var(--shadow-xl);
-  border: 1px solid var(--color-gray-200);
-  margin-top: 8px;
-  overflow: hidden;
-}
-
+/* Cabecera del filtro (estilo limpio) */
 .logistics-filters-header {
-  background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
-  padding: 16px;
+  padding: 18px 24px;
+  border-bottom: 1px solid #dadce0;
+  background: white;
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
 
 .logistics-filters-title {
-  font-weight: 700;
-  color: white;
+  font-size: 1.1rem;
+  color: #202124;
+  font-weight: 500;
   display: flex;
   align-items: center;
-  gap: 8px;
-  font-size: 0.875rem;
+  gap: 10px;
 }
 
-.logistics-filters-close {
-  color: white;
-  background: none;
-  border: none;
-  cursor: pointer;
-  font-size: 1rem;
-  padding: 4px;
-  border-radius: 4px;
-  transition: background-color 0.2s;
-}
-
-.logistics-filters-close:hover {
-  background: rgba(255, 255, 255, 0.2);
-}
-
+/* Cuerpo de los filtros con scroll propio */
 .logistics-filters-content {
-  padding: 16px;
-  max-height: 320px;
-  overflow-y: auto;
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  font-size: 0.875rem;
+  flex: 1;             /* Ocupa el alto disponible */
+  overflow-y: auto;    /* Scroll solo dentro de la barra blanca */
+  padding: 16px 0;
+}
+
+/* Scrollbar fina estilo Google */
+.logistics-filters-content::-webkit-scrollbar {
+  width: 8px;
+}
+.logistics-filters-content::-webkit-scrollbar-thumb {
+  background: #dadce0;
+  border-radius: 4px;
 }
 
 /* ======================
-   GRUPOS DE FILTROS
+   ITEMS Y CHECKBOXES
    ====================== */
 .logistics-filter-group {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.logistics-filter-label {
-  font-size: 0.75rem;
-  font-weight: 700;
-  color: var(--color-gray-500);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  padding: 0 4px;
-}
-
-.logistics-filter-options {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-/* ======================
-   CHECKBOX PERSONALIZADO
-   ====================== */
-.logistics-checkbox-label {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  cursor: pointer;
-  padding: 8px 12px;
-  border-radius: 6px;
-  transition: background-color 0.2s;
-  user-select: none;
-}
-
-.logistics-checkbox-label:hover {
-  background: var(--color-gray-50);
-}
-
-.logistics-checkbox-input {
-  width: 16px;
-  height: 16px;
-  border: 2px solid var(--color-gray-300);
-  border-radius: 4px;
-  background: white;
-  cursor: pointer;
-  transition: all 0.2s;
-  position: relative;
-}
-
-.logistics-checkbox-input:checked {
-  background: var(--color-primary);
-  border-color: var(--color-primary);
-}
-
-.logistics-checkbox-input:checked::after {
-  content: '✓';
-  position: absolute;
-  color: white;
-  font-size: 12px;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-}
-
-.logistics-checkbox-text {
-  font-size: 0.875rem;
-  font-weight: 500;
-  color: var(--color-gray-700);
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-/* ======================
-   BADGES DE ESTADO
-   ====================== */
-.logistics-status-badge {
-  font-size: 0.75rem;
-  padding: 4px 8px;
-  border-radius: 6px;
-  font-weight: 600;
-  color: white;
-  text-align: center;
-  min-width: 80px;
-}
-
-.logistics-status-en_ruta {
-  background: var(--color-success);
-}
-
-.logistics-status-en_carga {
-  background: var(--color-warning);
-}
-
-.logistics-status-pendiente {
-  background: var(--color-gray-500);
-}
-
-.logistics-status-entregado {
-  background: var(--color-primary);
-}
-
-.logistics-status-cancelado {
-  background: var(--color-danger);
-}
-
-/* ======================
-   BOTONES
-   ====================== */
-.logistics-clear-filters {
-  width: 100%;
-  background: var(--color-danger);
-  color: white;
-  font-weight: 600;
-  padding: 12px 16px;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 0.875rem;
-  transition: all 0.3s ease;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-}
-
-.logistics-clear-filters:hover {
-  background: #dc2626;
-  transform: translateY(-1px);
-  box-shadow: var(--shadow-md);
-}
-
-.logistics-clear-filters:active {
-  transform: translateY(0);
-}
-
-/* ======================
-   INFO WINDOW
-   ====================== */
-.logistics-info-window {
-  padding: 8px;
-  max-width: 280px;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-}
-
-.logistics-info-title {
-  font-weight: 700;
-  font-size: 1.125rem;
-  color: var(--color-gray-800);
-  border-bottom: 2px solid var(--color-gray-200);
-  padding-bottom: 8px;
   margin-bottom: 12px;
 }
 
-.logistics-info-content {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  font-size: 0.875rem;
-  color: var(--color-gray-700);
-}
-
-.logistics-info-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-}
-
-.logistics-info-label {
-  font-weight: 600;
-  color: var(--color-gray-600);
-  min-width: 80px;
-}
-
-.logistics-info-value {
-  color: var(--color-gray-800);
-  text-align: right;
-  flex: 1;
-  margin-left: 12px;
-}
-
-.logistics-info-estimation {
-  margin-top: 12px;
-  padding-top: 12px;
-  border-top: 2px solid var(--color-gray-200);
-  background: #eff6ff;
-  padding: 12px;
-  border-radius: 6px;
-}
-
-.logistics-info-estimation-title {
+.logistics-filter-label {
+  padding: 0 24px;
+  font-size: 0.75rem;
   font-weight: 700;
-  color: var(--color-primary-dark);
-  font-size: 0.75rem;
-  margin-bottom: 6px;
+  color: #5f6368;
+  margin-bottom: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
-.logistics-info-estimation-details {
-  font-size: 0.75rem;
-  color: var(--color-gray-700);
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-/* ======================
-   ESTADOS DE CARGA Y ERROR
-   ====================== */
-.logistics-loading {
+.logistics-checkbox-label {
   display: flex;
   align-items: center;
-  justify-content: center;
-  padding: 40px 20px;
-  font-weight: 600;
-  color: var(--color-primary);
-  font-size: 1rem;
-  background: var(--color-gray-50);
-  border-radius: var(--border-radius);
+  padding: 10px 24px;
+  cursor: pointer;
+  transition: background 0.2s;
 }
 
-.logistics-loading::before {
-  content: "🔄 ";
-  margin-right: 8px;
+.logistics-checkbox-label:hover {
+  background: #f1f3f4; /* Gris muy suave al pasar el mouse */
 }
 
-.logistics-error {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 40px 20px;
-  font-weight: 600;
-  color: var(--color-danger);
-  font-size: 1rem;
-  background: #fef2f2;
-  border: 1px solid #fecaca;
-  border-radius: var(--border-radius);
-  text-align: center;
+/* Checkbox azul simple */
+.logistics-checkbox-input {
+  width: 18px;
+  height: 18px;
+  accent-color: #1a73e8; /* Azul Google */
+  margin-right: 16px;
+  cursor: pointer;
 }
 
-.logistics-error::before {
-  content: "⚠️ ";
-  margin-right: 8px;
+.logistics-checkbox-text {
+  font-size: 0.95rem;
+  color: #3c4043;
 }
 
 /* ======================
-   SCROLLBAR PERSONALIZADO
+   BOTÓN PARA OCULTAR (Opcional)
    ====================== */
-.logistics-filters-content::-webkit-scrollbar {
-  width: 6px;
-}
-
-.logistics-filters-content::-webkit-scrollbar-track {
-  background: var(--color-gray-100);
-  border-radius: 3px;
-}
-
-.logistics-filters-content::-webkit-scrollbar-thumb {
-  background: var(--color-gray-400);
-  border-radius: 3px;
-}
-
-.logistics-filters-content::-webkit-scrollbar-thumb:hover {
-  background: var(--color-gray-500);
-}
-
-/* ======================
-   ANIMACIONES
-   ====================== */
-@keyframes slideIn {
-  from {
-    opacity: 0;
-    transform: translateY(-10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.logistics-filters-panel {
-  animation: slideIn 0.3s ease-out;
-}
-
-/* ======================
-   RESPONSIVE
-   ====================== */
-@media (max-width: 768px) {
-  .logistics-map-container {
-    border-radius: 8px;
-  }
-  
-  .logistics-summary-panel {
-    top: 8px;
-    left: 8px;
-    padding: 12px;
-    min-width: 160px;
-  }
-  
-  .logistics-filters-container {
-    top: 8px;
-    right: 8px;
-    width: 240px;
-  }
-  
-  .logistics-filters-content {
-    max-height: 280px;
-    padding: 12px;
-  }
-  
-  .logistics-info-window {
-    max-width: 240px;
-  }
-}
-
-@media (max-width: 480px) {
-  .logistics-summary-panel {
-    position: relative;
-    top: auto;
-    left: auto;
-    margin-bottom: 8px;
-    width: 100%;
-  }
-  
-  .logistics-filters-container {
-    position: relative;
-    top: auto;
-    right: auto;
-    width: 100%;
-    margin-bottom: 8px;
-  }
-  
-  .logistics-filters-panel {
-    margin-top: 4px;
-  }
-}
-
-/* ======================
-   UTILIDADES
-   ====================== */
-.logistics-text-truncate {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.logistics-flex-center {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.logistics-flex-between {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.logistics-hidden {
-  display: none;
-}
-
-.logistics-visible {
-  display: block;
+/* Si tuvieras un botón para colapsar la barra */
+.logistics-sidebar.closed {
+  margin-left: -350px;
 }
