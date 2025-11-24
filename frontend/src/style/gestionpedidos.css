@@ -562,3 +562,97 @@ h5.text-secondary {
     margin-top: 10px;
   }
 }
+
+/* =========================================
+   ESTILOS DE PAGINACIÓN
+   ========================================= */
+
+/* Contenedor de paginación */
+.pagination {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  gap: 6px; /* Espacio entre botones */
+}
+
+/* Elementos de página */
+.page-item {
+  margin: 0 2px;
+}
+
+/* Links de página (botones) */
+.page-link {
+  border: 1px solid #dee2e6;
+  color: var(--citrus-green);
+  background-color: white;
+  padding: 8px 14px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+  cursor: pointer;
+  min-width: 40px;
+  text-align: center;
+}
+
+/* Hover en botones de página */
+.page-link:hover {
+  background-color: var(--citrus-green-light);
+  border-color: var(--citrus-accent);
+  color: var(--citrus-green-dark);
+  text-decoration: none;
+}
+
+/* Página activa */
+.page-item.active .page-link {
+  background-color: var(--citrus-green);
+  border-color: var(--citrus-green);
+  color: white;
+  font-weight: 700;
+  box-shadow: 0 2px 4px rgba(46, 125, 50, 0.3);
+}
+
+/* Botón deshabilitado */
+.page-item.disabled .page-link {
+  background-color: #f8f9fa;
+  border-color: #dee2e6;
+  color: #adb5bd;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+/* Botones Anterior y Siguiente */
+.page-item:first-child .page-link,
+.page-item:last-child .page-link {
+  font-weight: 600;
+  padding: 8px 18px;
+}
+
+/* Puntos suspensivos (...) */
+.page-item.disabled .page-link {
+  border: none;
+  background-color: transparent;
+}
+
+/* Responsive para móviles */
+@media (max-width: 768px) {
+  .page-link {
+    padding: 6px 10px;
+    font-size: 0.85rem;
+    min-width: 35px;
+  }
+  
+  .page-item:first-child .page-link,
+  .page-item:last-child .page-link {
+    padding: 6px 12px;
+  }
+  
+  .pagination {
+    gap: 4px;
+  }
+}
