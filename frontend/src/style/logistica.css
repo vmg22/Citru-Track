@@ -390,16 +390,66 @@
   color: #1e40af;
 }
 
-.btnCancelado{
+.btnRechazado{
   background-color: #15BA84;
-
+  border: none;
+  padding: 8px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.3s;
 }
 
-.iconCancelado{
+.iconRechazado{
   color: white;
   background-color: inherit;
 }
 
-.btnCancelado:hover{
+.btnRechazado:hover{
   background-color: #6aed89;
+}
+
+/* ======================
+   PAGINADOR
+   ====================== */
+.logi-paginador {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 20px;
+  padding: 20px;
+  background-color: var(--color-gray-50);
+  border-top: 1px solid var(--color-gray-200);
+}
+
+.logi-paginador-btn {
+  padding: 8px 16px;
+  background-color: var(--color-primary);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: all 0.2s;
+  box-shadow: var(--shadow-sm);
+}
+
+.logi-paginador-btn:hover:not(:disabled) {
+  background-color: #2563eb;
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+}
+
+.logi-paginador-btn:disabled {
+  background-color: var(--color-gray-300);
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.logi-paginador-info {
+  font-size: 0.875rem;
+  color: var(--color-gray-700);
+  font-weight: 500;
+  min-width: 120px;
+  text-align: center;
 }

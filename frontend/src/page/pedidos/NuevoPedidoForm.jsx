@@ -1,45 +1,117 @@
-// ✍️ NuevoPedidoForm.jsx
 
-import React, { useState } from 'react';
-import { Form, Button, Row, Col, Card, Alert } from 'react-bootstrap';
-// Importa tus servicios para guardar el pedido y obtener datos
-// import { saveOrder } from '../../services/pedidosService'; 
-// import { fetchClientes } from '../../services/clientesService'; 
-import "../../style/gestionpedidos.css"
-// onOrderSaved, onCancel
-const NuevoPedidoForm = () => {
-    // --- Estado para el formulario ---
-    const [formData, setFormData] = useState({
-        clienteId: '',
-        fechaProgramada: '',
-        destino: '',
-        tipoDestino: 'puerto', // Valor por defecto
-        tempConsigne: '',
-        // Campos para la logística, que podrían dejarse nulos inicialmente
-        transportistaId: '', 
-        camionId: '',
-        choferId: '',
-        observaciones: '',
-        // Pallets se manejaría en una sección separada (Simplificado aquí)
-        palletsIds: [], 
-    });
-    
-    // --- Estados Auxiliares ---
-    const [isLoading, setIsLoading] = useState(false);
-    const [error, setError] = useState(null);
-    const [successMessage, setSuccessMessage] = useState(null);
+//segundo generar pedido con remito // =========================================
+import React, { useEffect, useState } from "react";
+import {
+  Form,
+  Button,
+  Row,
+  Col,
+  Card,
+  Alert,
+  Badge,
+  Table,
+} from "react-bootstrap";
+import {
+  getClientes,
+  getTransportistas,
+  getProductos,
+  getCamiones,
+  getChoferes,
+  getPalletsByProducto,
+  savePedido,
+} from "../../services/pedidosService";
+import { generarRemitoPDF } from "../../services/remitoPDFService";
+import "../../style/gestionpedidos.css";
 
-    // --- Datos de Opciones (Simulados) ---
-    // En un entorno real, estos vendrían de la API (fetchClientes, etc.)
-    const clientes = [
-        { id: 1, nombre: 'Importadora Europea S.A.' },
-        { id: 2, nombre: 'Distribuciones Norte SA' },
-    ];
-    const tiposDestino = [
-        { value: 'puerto', label: 'Marítimo (Puerto)' },
-        { value: 'aeropuerto', label: 'Aéreo (Aeropuerto)' },
-        { value: 'otra_ciudad', label: 'Terrestre (Ciudad)' },
-    ];
+const NuevoPedidoForm = ({ onOrderSaved, onCancel }) => {
+  const [formData, setFormData] = useState({
+    clienteId: "",
+    fechaProgramada: "",
+    destino: "",
+    tipoDestino: "puerto",
+    tempConsigne: "",
+    productoId: "",
+    transportistaId: "",
+    camionId: "",
+    choferId: "",
+    observaciones: "",
+    palletsIds: [],
+  });
+
+  const [clientes, setClientes] = useState([]);
+  const [transportistas, setTransportistas] = useState([]);
+  const [productos, setProductos] = useState([]);
+  const [camiones, setCamiones] = useState([]);
+  const [choferes, setChoferes] = useState([]);
+  const [palletsDisponibles, setPalletsDisponibles] = useState([]);
+  const [palletsSeleccionados, setPalletsSeleccionados] = useState([]);
+  const [loadingPallets, setLoadingPallets] = useState(false);
+
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [successMessage, setSuccessMessage] = useState(null);
+  const [ordenCreada, setOrdenCreada] = useState(null);
+
+  // Cargar clientes, transportistas, productos, camiones y choferes al montar
+  useEffect(() => {
+    let mounted = true;
+    async function loadData() {
+      try {
+        const [cData, tData, pData, camData, chofData] = await Promise.all([
+          getClientes(),
+          getTransportistas(),
+          getProductos(),
+          getCamiones(),
+          getChoferes(),
+        ]);
+        if (!mounted) return;
+        setClientes(Array.isArray(cData) ? cData : []);
+        setTransportistas(Array.isArray(tData) ? tData : []);
+        setProductos(Array.isArray(pData) ? pData : []);
+        setCamiones(Array.isArray(camData) ? camData : []);
+        setChoferes(Array.isArray(chofData) ? chofData : []);
+      } catch (err) {
+        console.error("Error cargando datos:", err);
+        setClientes([]);
+        setTransportistas([]);
+        setProductos([]);
+        setCamiones([]);
+        setChoferes([]);
+      }
+    }
+    loadData();
+    return () => (mounted = false);
+  }, []);
+
+  // Cargar pallets cuando cambie el producto
+  useEffect(() => {
+    if (formData.productoId) {
+      loadPalletsDisponibles(formData.productoId);
+    } else {
+      setPalletsDisponibles([]);
+      setPalletsSeleccionados([]);
+    }
+  }, [formData.productoId]);
+
+  const loadPalletsDisponibles = async (productoId) => {
+    setLoadingPallets(true);
+    try {
+      const pallets = await getPalletsByProducto(productoId);
+      setPalletsDisponibles(Array.isArray(pallets) ? pallets : []);
+    } catch (err) {
+      console.error("Error cargando pallets:", err);
+      setPalletsDisponibles([]);
+      setError("Error al cargar pallets disponibles: " + err.message);
+    } finally {
+      setLoadingPallets(false);
+    }
+  };
+
+  const tiposDestino = [
+    { value: "puerto", label: "Marítimo (Puerto)" },
+    { value: "aeropuerto", label: "Aéreo (Aeropuerto)" },
+    { value: "otra_ciudad", label: "Terrestre (Ciudad)" },
+  ];
 
   const handleChange = (e) => {
     const { name, value } = e.target;

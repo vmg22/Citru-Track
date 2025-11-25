@@ -12,5 +12,6 @@ router.post("/pedidos", controller.createPedido);
 router.patch("/pedidos/:id", controller.updatePedido);
 router.delete("/pedidos/:id", controller.deletePedido);
 router.get('/pedidos/:id/pallets-disponibles', controller.getPalletsDisponiblesParaEditar);
+router.get('/pedidos/:id/pallets', controller.getPalletsDelPedido);
 
 module.exports = router;

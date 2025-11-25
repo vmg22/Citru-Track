@@ -22,6 +22,7 @@ import {
 import Swal from "sweetalert2";
 import "../../style/gestionpedidos.css";
 import NuevoPedidoForm from "./NuevoPedidoForm";
+import { generarRemitoModificado } from "../../services/remitoModificadoService";
 import {
   getPedidos,
   updatePedido,
@@ -73,6 +74,7 @@ const GestionPedidos = () => {
       (p) => p.estado === "en_ruta" || p.estado === "en_carga"
     ).length,
     exportados: pedidos.filter((p) => p.estado === "entregado").length,
+    rechazados: pedidos.filter((p) => p.estado === "rechazado").length,
   };
     
 
@@ -88,15 +90,6 @@ const GestionPedidos = () => {
 }, [filtros]);
 
 
-  // useEffect(() => {
-  //   loadPedidos();
-  //   loadTransportistas();
-  //   loadClientes();
-  //   loadCamiones();
-  //   loadChoferes();
-  //   loadProductos();
-  //   // eslint-disable-next-line react-hooks/exhaustive-deps
-  // }, [filtros]);
 
   // 🔥 PASO 6: Cargar pallets cuando se edita un pedido existente
   useEffect(() => {
@@ -293,6 +286,8 @@ const handlePageChange = (pageNumber) => {
         return <span className="status-pill entregado">Exportado</span>;
       case "cancelado":
         return <span className="status-pill cancelado">Cancelado</span>;
+      case "rechazado":
+        return <span className="status-pill rechazado">Rechazado</span>;
       default:
         return <span className="status-pill">{estado}</span>;
     }
@@ -594,7 +589,25 @@ const handlePageChange = (pageNumber) => {
       }
 
       if (selectedPedido.tipo_destino) {
-        payload.tipo_destino = selectedPedido.tipo_destino.toLowerCase().trim();
+        let tipoDestino = selectedPedido.tipo_destino.toLowerCase().trim();
+        
+        // Mapear valores antiguos/incorrectos a valores correctos del ENUM
+        const mapeoTipos = {
+          'marítimo': 'puerto',
+          'maritimo': 'puerto',
+          'aéreo': 'aeropuerto',
+          'aereo': 'aeropuerto',
+          'terrestre': 'otra_ciudad',
+          'regreso a planta': 'regreso_planta',
+          'regreso_a_planta': 'regreso_planta',
+          // Mantener valores correctos
+          'puerto': 'puerto',
+          'aeropuerto': 'aeropuerto',
+          'otra_ciudad': 'otra_ciudad',
+          'regreso_planta': 'regreso_planta'
+        };
+        
+        payload.tipo_destino = mapeoTipos[tipoDestino] || tipoDestino;
       }
 
       if (selectedPedido.producto_id) {
@@ -674,9 +687,35 @@ const handlePageChange = (pageNumber) => {
       const res = await updatePedido(pedidoId, payload);
       console.log("[GestionPedidos] updatePedido response:", res);
 
+      // Generar PDF del remito modificado
+      try {
+        const datosPDF = {
+          od_id: selectedPedido.od_id,
+          od_code: selectedPedido.od_code,
+          fechaProgramada: selectedPedido.fecha_programada,
+          destino: selectedPedido.destino,
+          tipoDestino: payload.tipo_destino || selectedPedido.tipo_destino,
+          clienteNombre: selectedPedido.cliente_nombre || selectedPedido.clienteNombre,
+          clienteDireccion: selectedPedido.cliente_direccion || selectedPedido.clienteDireccion,
+          clienteCuit: selectedPedido.cliente_cuit || selectedPedido.clienteCuit,
+          choferNombre: selectedPedido.chofer_nombre || selectedPedido.choferNombre,
+          choferDni: selectedPedido.chofer_dni || selectedPedido.choferDni,
+          camionTipo: selectedPedido.camion_tipo || selectedPedido.camionTipo,
+          camionPatente: selectedPedido.camion_patente || selectedPedido.camionPatente,
+          transportistaNombre: selectedPedido.transportista_nombre || selectedPedido.transportistaNombre,
+          observaciones: selectedPedido.observaciones,
+          pallets: selectedPedido.pallets || [],
+        };
+        
+        await generarRemitoModificado(datosPDF);
+      } catch (pdfError) {
+        console.error("Error generando PDF:", pdfError);
+        // No bloqueamos el flujo si falla el PDF
+      }
+
       Swal.fire({
         title: "¡Guardado!",
-        text: "Los cambios se han guardado exitosamente.",
+        text: "Los cambios se han guardado exitosamente y se descargó el remito.",
         icon: "success",
         timer: 2000,
         showConfirmButton: false,
@@ -955,127 +994,7 @@ const ListaPedidosTab = () => {
     </>
   );
 };
-  // const ListaPedidosTab = () => (
-  //   <>
-  //     <div className="tab-content-header mb-3 d-flex justify-content-between align-items-center">
-  //       <h5 className="mb-0 text-secondary" style={{ fontSize: "1.1rem" }}>
-  //         Listado Maestro de Exportaciones
-  //       </h5>
-  //       <div className="acciones">
-  //         <Button
-  //           variant="light"
-  //           className="btn-icon me-2 shadow-sm border"
-  //           onClick={loadPedidos}
-  //           title="Refrescar"
-  //         >
-  //           <FaSync color="#666" />
-  //         </Button>
-  //       </div>
-  //     </div>
-
-  //     {error && <Alert variant="danger">{error}</Alert>}
-
-  //     <div className="table-container">
-  //       <Table responsive hover className="custom-table">
-  //         <thead>
-  //           <tr>
-  //             <th>N° Pedido</th>
-  //             <th>Cliente</th>
-  //             <th>Destino</th>
-  //             <th>Transporte</th>
-  //             <th>Fecha Est.</th>
-  //             <th className="text-center">Pallets</th>
-  //             <th className="text-center">Estado</th>
-  //             <th className="text-end">Acciones</th>
-  //           </tr>
-  //         </thead>
-  //         <tbody>
-  //           {loading ? (
-  //             <tr>
-  //               <td colSpan="8" className="text-center py-4">
-  //                 <Spinner animation="border" size="sm" className="me-2" />{" "}
-  //                 Cargando...
-  //               </td>
-  //             </tr>
-  //           ) : pedidos.length === 0 ? (
-  //             <tr>
-  //               <td colSpan="8" className="text-center py-4 text-muted">
-  //                 No hay pedidos para mostrar.
-  //               </td>
-  //             </tr>
-  //           ) : (
-  //             pedidos.map((p) => {
-  //               let cantidadPallets = 0;
-  //               if (Array.isArray(p.od_pallets)) {
-  //                 cantidadPallets = p.od_pallets.length;
-  //               } else if (p.cantidad_pallets_prevista) {
-  //                 cantidadPallets = p.cantidad_pallets_prevista;
-  //               } else if (p.cantidad_pallets) {
-  //                 cantidadPallets = p.cantidad_pallets;
-  //               }
-
-  //               return (
-  //                 <tr key={p.od_id || p.id || p.odId}>
-  //                   <td className="text-highlight">
-  //                     {p.od_code || p.odCode || `OD-${p.od_id || p.id}`}
-  //                   </td>
-  //                   <td style={{ fontWeight: "500" }}>
-  //                     {p.cliente_nombre || p.cliente}
-  //                   </td>
-  //                   <td>{p.destino}</td>
-  //                   <td style={{ textTransform: "capitalize" }}>
-  //                     {p.tipo_destino || p.tipoDestino}
-  //                   </td>
-  //                   <td>
-  //                     {(
-  //                       p.fecha_programada ||
-  //                       p.fechaProgramada ||
-  //                       ""
-  //                     ).substring(0, 10)}
-  //                   </td>
-  //                   <td className="text-center">
-  //                     <Badge bg="info" className="px-3 py-2">
-  //                       {cantidadPallets}
-  //                     </Badge>
-  //                   </td>
-  //                   <td className="text-center">{badgeEstado(p.estado)}</td>
-  //                   <td className="text-end">
-  //                     <Button
-  //                       variant="link"
-  //                       className="btn-action-table me-2"
-  //                       title="Seguimiento GPS"
-  //                     >
-  //                       <FaTruck size={16} />
-  //                     </Button>
-  //                     <Button
-  //                       variant="link"
-  //                       className="btn-action-table me-2"
-  //                       title="Ver / Editar Detalles"
-  //                       onClick={() => openDetalle(p)}
-  //                     >
-  //                       <FaEye size={16} />
-  //                     </Button>
-  //                     <Button
-  //                       variant="link"
-  //                       className="btn-action-table text-danger"
-  //                       title="Eliminar Pedido"
-  //                       onClick={() => handleDeletePedido(p)}
-  //                     >
-  //                       <FaTrash size={16} />
-  //                     </Button>
-  //                   </td>
-  //                 </tr>
-  //               );
-  //             })
-  //           )}
-  //         </tbody>
-  //       </Table>
-  //     </div>
-  //     <div className="mt-3 text-muted small px-2">
-  //       Mostrando {pedidos.length} registros encontrados.
-  //     </div>
-  //   </>
-  // );
+  
 
   const NuevoPedidoTab = () => (
     <NuevoPedidoForm onOrderSaved={handleFormAction} onCancel={handleCancel} />
@@ -1207,6 +1126,7 @@ const ListaPedidosTab = () => {
               <option value="puerto">Marítimo (Puerto)</option>
               <option value="aeropuerto">Aéreo (Aeropuerto)</option>
               <option value="otra_ciudad">Terrestre (Ciudad)</option>
+              <option value="regreso_planta">Regreso a Planta</option>
             </Form.Select>
           </Form.Group>
 
@@ -1630,6 +1550,15 @@ const ListaPedidosTab = () => {
             <h3 className="text-secondary-dark">{metrics.exportados}</h3>
             <p className="text-secondary">Exportados</p>
           </Card>
+          {metrics.rechazados > 0 && (
+            <Card
+              className="metric-card text-center p-2"
+              style={{ minWidth: 140, borderLeft: "4px solid #c2185b" }}
+            >
+              <h3 style={{ color: "#c2185b" }}>{metrics.rechazados}</h3>
+              <p className="text-secondary">Rechazados</p>
+            </Card>
+          )}
         </div>
       </div>
 
@@ -1649,8 +1578,11 @@ const ListaPedidosTab = () => {
           style={{ width: 160 }}
         >
           <option value="">Estado: Todos</option>
-          <option value="en_ruta">En Tránsito</option>
           <option value="pendiente">Pendiente</option>
+          <option value="en_ruta">En Tránsito</option>
+          <option value="entregado">Exportado</option>
+          <option value="rechazado">Rechazado</option>
+          <option value="cancelado">Cancelado</option>
         </Form.Select>
 
         <Form.Control
