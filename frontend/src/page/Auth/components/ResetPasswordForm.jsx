@@ -20,14 +20,24 @@ export default function ResetPasswordForm() {
     e.preventDefault();
 
     if (password.length < 6) {
-      alert("La contraseña debe tener al menos 6 caracteres");
-      return;
-    }
+       Swal.fire({
+          icon: "warning",
+          title: "Contraseña demasiado corta",
+          text: "La contraseña debe tener al menos 6 caracteres.",
+          confirmButtonText: "Entendido"
+                });
+  return;
+}
 
     if (password !== confirmPassword) {
-      alert("Las contraseñas no coinciden");
-      return;
-    }
+       Swal.fire({
+                  icon: "error",
+                  title: "Contraseñas no coinciden",
+                  text: "Asegurate de que ambas contraseñas sean iguales.",
+                  confirmButtonText: "Entendido"
+                  });
+  return;
+}
 
     const result = await resetPassword(token, password);
 

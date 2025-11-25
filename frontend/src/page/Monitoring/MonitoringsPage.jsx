@@ -13,6 +13,7 @@ import {
 } from "chart.js";
 import { Line, Bar } from "react-chartjs-2";
 import "../../style/monitoreo.css";
+import { getAllCamaras } from "../CamaraFrio/service/camaraService";
 
 // Registrar componentes de Chart.js
 ChartJS.register(
@@ -361,6 +362,10 @@ const MonitoreoTiempoReal = () => {
   const [plantaSeleccionada, setPlantaSeleccionada] = useState("T1");
   const [lineaSeleccionada, setLineaSeleccionada] = useState("A");
 
+  // Estado para cámaras
+  const [camaras, setCamaras] = useState([]);
+  const [camarasLoading, setCamarasLoading] = useState(true);
+
   const [metrics, setMetrics] = useState({
     cajasPorMin: 42,
     pesoPromedio: "15.2 kg",
@@ -401,6 +406,24 @@ const MonitoreoTiempoReal = () => {
     }
     setTemperatureData(newTempData);
   };
+
+  // Cargar datos de cámaras desde la BD
+  useEffect(() => {
+    const fetchCamaras = async () => {
+      try {
+        const response = await getAllCamaras();
+        console.log("Raw camera data from API:", response);
+        console.log("Camera data array:", response.data);
+        setCamaras(response.data || []);
+      } catch (error) {
+        console.error("Error al cargar datos de cámaras:", error);
+        setCamaras([]);
+      } finally {
+        setCamarasLoading(false);
+      }
+    };
+    fetchCamaras();
+  }, []);
 
   useEffect(() => {
     const now = new Date();
@@ -639,113 +662,179 @@ const MonitoreoTiempoReal = () => {
             </div>
           </div>
 
-          <div className="monitoreo-panels-container">
-            <div className="monitoreo-panel">
-              <div className="monitoreo-section-title">
-                <i className="fas fa-thermometer-half"></i>
-                Sensores Ambientales de Camara N1
-              </div>
-              <div className="monitoreo-sensor-grid">
-                <SensorCard
-                  name="Temperatura"
-                  value={metrics.temperaturaMedia}
-                  range={`Rango: ${config.temperatura}`}
-                />
-                <SensorCard name="Humedad" value="68%" range="Rango: 65-75%" />
-                <SensorCard
-                  name="Capacidad"
-                  value="500 palent" // Texto exacto de la imagen
-                  range="Límite: 600 unidades"
-                  alert={true} // Esto activa el fondo rojo
-                  icon="" // Sin icono específico, solo valor grande
-                />
-                <SensorCard name="Presión" value="101.3 kPa" range="Normal" />
-              </div>
-            </div>
-
-            <div className="monitoreo-panel">
-              <div className="monitoreo-section-title">
-                <i className="fas fa-microchip"></i>
-                Sensores IoT - Estado Camara N1 
-              </div>
-              <div className="monitoreo-sensor-grid">
-                <SensorCard
-                  name={`Sensor ${config.planta}-${config.linea}1`}
-                  icon="fas fa-check monitoreo-icon-good"
-                  range="Activo"
-                />
-                <SensorCard
-                  name={`Sensor ${config.planta}-${config.linea}2`}
-                  icon="fas fa-check monitoreo-icon-good"
-                  range="Activo"
-                />
-                <SensorCard
-                  name={`Sensor ${config.planta}-${config.linea}3`}
-                  icon="fas fa-exclamation-triangle monitoreo-icon-bad"
-                  range="Fallando"
-                  alert={true}
-                />
-                <SensorCard
-                  name={`Sensor ${config.planta}-${config.linea}4`}
-                  icon="fas fa-sync-alt monitoreo-icon-warning"
-                  range="Calibrando"
-                />
-              </div>
-            </div>
+          {/* Vista compacta de cámaras - Estilo industrial */}
+          <div className="monitoreo-section-title" style={{ marginTop: '2rem' }}>
+            <i className="fas fa-warehouse"></i>
+            Estado General de Cámaras Frigoríficas
           </div>
-          <div className="monitoreo-panels-container">
-            <div className="monitoreo-panel">
-              <div className="monitoreo-section-title">
-                <i className="fas fa-thermometer-half"></i>
-                Sensores Ambientales de Camara N2
-              </div>
-              <div className="monitoreo-sensor-grid">
-                <SensorCard
-                  name="Temperatura"
-                  value={metrics.temperaturaMedia}
-                  range={`Rango: ${config.temperatura}`}
-                />
-                <SensorCard name="Humedad" value="68%" range="Rango: 65-75%" />
-                <SensorCard
-                  name="Capacidad"
-                  value="500 palent" // Texto exacto de la imagen
-                  range="Límite: 600 unidades"
-                  alert={true} // Esto activa el fondo rojo
-                  icon="" // Sin icono específico, solo valor grande
-                />
-                <SensorCard name="Presión" value="101.3 kPa" range="Normal" />
-              </div>
-            </div>
+          
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
+            gap: '1rem',
+            marginTop: '1rem'
+          }}>
+            {camaras.map((camara) => {
+              const ocupacionAlta = camara.porcentaje_ocupacion >= 90;
+              const ocupacionMedia = camara.porcentaje_ocupacion >= 70 && camara.porcentaje_ocupacion < 90;
+              
+              return (
+                <div
+                  key={camara.camara_id}
+                  style={{
+                    background: 'var(--card-bg)',
+                    border: '1px solid var(--border-color)',
+                    borderRadius: '8px',
+                    padding: '1rem',
+                    position: 'relative',
+                    boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+                  }}
+                >
+                  {/* Header de la cámara */}
+                  <div style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    marginBottom: '0.75rem',
+                    paddingBottom: '0.5rem',
+                    borderBottom: '1px solid var(--border-color)'
+                  }}>
+                    <h3 style={{
+                      margin: 0,
+                      fontSize: '0.95rem',
+                      fontWeight: '600',
+                      color: 'var(--text-primary)'
+                    }}>
+                      <i className="fas fa-snowflake" style={{ marginRight: '0.5rem', color: '#4FA3D1' }}></i>
+                      {camara.nombre}
+                    </h3>
+                    <span style={{
+                      width: '10px',
+                      height: '10px',
+                      borderRadius: '50%',
+                      background: '#4ade80',
+                      boxShadow: '0 0 8px #4ade80',
+                      display: 'inline-block'
+                    }}></span>
+                  </div>
 
-            <div className="monitoreo-panel">
-              <div className="monitoreo-section-title">
-                <i className="fas fa-microchip"></i>
-                Sensores IoT - Estado Camara N2
-              </div>
-              <div className="monitoreo-sensor-grid">
-                <SensorCard
-                  name={`Sensor ${config.planta}-${config.linea}1`}
-                  icon="fas fa-check monitoreo-icon-good"
-                  range="Activo"
-                />
-                <SensorCard
-                  name={`Sensor ${config.planta}-${config.linea}2`}
-                  icon="fas fa-check monitoreo-icon-good"
-                  range="Activo"
-                />
-                <SensorCard
-                  name={`Sensor ${config.planta}-${config.linea}3`}
-                  icon="fas fa-exclamation-triangle monitoreo-icon-bad"
-                  range="Fallando"
-                  alert={true}
-                />
-                <SensorCard
-                  name={`Sensor ${config.planta}-${config.linea}4`}
-                  icon="fas fa-sync-alt monitoreo-icon-warning"
-                  range="Calibrando"
-                />
-              </div>
-            </div>
+                  {/* Grid de métricas compacto */}
+                  <div style={{
+                    display: 'grid',
+                    gridTemplateColumns: '1fr 1fr',
+                    gap: '0.5rem',
+                    marginBottom: '0.75rem'
+                  }}>
+                    <div style={{
+                      background: 'var(--bg-secondary)',
+                      padding: '0.5rem',
+                      borderRadius: '4px',
+                      border: '1px solid var(--border-color)'
+                    }}>
+                      <div style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', marginBottom: '0.25rem' }}>
+                        <i className="fas fa-thermometer-half" style={{ marginRight: '0.25rem' }}></i>
+                        Temperatura
+                      </div>
+                      <div style={{ fontSize: '1.1rem', fontWeight: '700', color: 'var(--text-primary)' }}>
+                        {camara.temperatura_aproximada ? `${camara.temperatura_aproximada}°C` : "N/D"}
+                      </div>
+                    </div>
+
+                    <div style={{
+                      background: 'var(--bg-secondary)',
+                      padding: '0.5rem',
+                      borderRadius: '4px',
+                      border: '1px solid var(--border-color)'
+                    }}>
+                      <div style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', marginBottom: '0.25rem' }}>
+                        <i className="fas fa-tint" style={{ marginRight: '0.25rem' }}></i>
+                        Humedad
+                      </div>
+                      <div style={{ fontSize: '1.1rem', fontWeight: '700', color: 'var(--text-primary)' }}>
+                        {camara.humedad_optima ? `${camara.humedad_optima}%` : "N/D"}
+                      </div>
+                    </div>
+
+                    <div style={{
+                      background: 'var(--bg-secondary)',
+                      padding: '0.5rem',
+                      borderRadius: '4px',
+                      border: '1px solid var(--border-color)'
+                    }}>
+                      <div style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', marginBottom: '0.25rem' }}>
+                        <i className="fas fa-tachometer-alt" style={{ marginRight: '0.25rem' }}></i>
+                        Presión
+                      </div>
+                      <div style={{ fontSize: '1.1rem', fontWeight: '700', color: 'var(--text-primary)' }}>
+                        {camara.presion_optima ? `${camara.presion_optima} kPa` : "N/D"}
+                      </div>
+                    </div>
+
+                    <div style={{
+                      background: ocupacionAlta ? 'rgba(239, 68, 68, 0.1)' : ocupacionMedia ? 'rgba(251, 191, 36, 0.1)' : 'var(--bg-secondary)',
+                      padding: '0.5rem',
+                      borderRadius: '4px',
+                      border: `1px solid ${ocupacionAlta ? '#ef4444' : ocupacionMedia ? '#fbbf24' : 'var(--border-color)'}`
+                    }}>
+                      <div style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', marginBottom: '0.25rem' }}>
+                        <i className="fas fa-boxes" style={{ marginRight: '0.25rem' }}></i>
+                        Ocupación
+                      </div>
+                      <div style={{ 
+                        fontSize: '1.1rem', 
+                        fontWeight: '700', 
+                        color: ocupacionAlta ? '#ef4444' : ocupacionMedia ? '#fbbf24' : 'var(--text-primary)' 
+                      }}>
+                        {camara.porcentaje_ocupacion ? `${Math.round(camara.porcentaje_ocupacion)}%` : "0%"}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Barra de capacidad */}
+                  <div style={{ marginBottom: '0.5rem' }}>
+                    <div style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      fontSize: '0.7rem',
+                      color: 'var(--text-secondary)',
+                      marginBottom: '0.25rem'
+                    }}>
+                      <span>Capacidad</span>
+                      <span>{camara.pallets_en_uso || 0} / {camara.capacidad_pallets || 0} pallets</span>
+                    </div>
+                    <div style={{
+                      width: '100%',
+                      height: '6px',
+                      background: 'var(--bg-secondary)',
+                      borderRadius: '3px',
+                      overflow: 'hidden'
+                    }}>
+                      <div style={{
+                        width: `${Math.min(camara.porcentaje_ocupacion || 0, 100)}%`,
+                        height: '100%',
+                        background: ocupacionAlta ? '#ef4444' : ocupacionMedia ? '#fbbf24' : '#4ade80',
+                        transition: 'width 0.3s ease'
+                      }}></div>
+                    </div>
+                  </div>
+
+                  {/* Footer con ubicación */}
+                  {camara.ubicacion && (
+                    <div style={{
+                      fontSize: '0.7rem',
+                      color: 'var(--text-secondary)',
+                      paddingTop: '0.5rem',
+                      borderTop: '1px solid var(--border-color)',
+                      display: 'flex',
+                      alignItems: 'center'
+                    }}>
+                      <i className="fas fa-map-marker-alt" style={{ marginRight: '0.25rem' }}></i>
+                      {camara.ubicacion}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
           </div>
 
           <div className="monitoreo-alertas-container">
