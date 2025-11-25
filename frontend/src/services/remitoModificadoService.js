@@ -23,10 +23,10 @@ const loadImageAsBase64 = (url) => {
 };
 
 /**
- * Genera un PDF de remito para órdenes rechazadas
- * @param {Object} datosPDF - Datos de la orden rechazada
+ * Genera un PDF de remito para órdenes modificadas
+ * @param {Object} datosPDF - Datos de la orden modificada
  */
-export const generarRemitoRechazado = async (datosPDF) => {
+export const generarRemitoModificado = async (datosPDF) => {
   const {
     od_id,
     od_code,
@@ -39,10 +39,10 @@ export const generarRemitoRechazado = async (datosPDF) => {
     choferDni,
     camionTipo,
     camionPatente,
-    observaciones,
-    pallets,
     transportistaNombre,
     tipoDestino,
+    observaciones,
+    pallets,
   } = datosPDF;
 
   const doc = new jsPDF();
@@ -108,35 +108,26 @@ export const generarRemitoRechazado = async (datosPDF) => {
   doc.text(`Código: ${Date.now()}`, pageWidth - 15, 68, { align: "right" });
 
   // ==========================================
-  // ESTADO Y ACCIÓN (ARRIBA DE CLIENTE)
+  // ACCIÓN (SIN ESTADO RECHAZADO)
   // ==========================================
   let yPos = 80;
   
   doc.setDrawColor(0, 0, 0);
   doc.setLineWidth(0.5);
-  doc.rect(15, yPos, pageWidth - 30, 15);
+  doc.rect(15, yPos, pageWidth - 30, 10);
 
-  doc.setFontSize(10);
-  doc.setFont("helvetica", "bold");
-  doc.text("ESTADO:", 18, yPos + 6);
-  
-  doc.setTextColor(220, 53, 69); // Rojo
-  doc.setFontSize(10);
-  doc.setFont("helvetica", "bold");
-  doc.text("RECHAZADO", 45, yPos + 6);
-  
   doc.setTextColor(0, 0, 0);
   doc.setFontSize(10);
   doc.setFont("helvetica", "bold");
-  doc.text("ACCIÓN:", 18, yPos + 11);
+  doc.text("ACCIÓN:", 18, yPos + 7);
   
   doc.setFont("helvetica", "normal");
-  doc.text("Vuelta a Planta", 45, yPos + 11);
+  doc.text("Modificado", 45, yPos + 7);
 
   // ==========================================
   // DATOS DEL CLIENTE
   // ==========================================
-  yPos += 20;
+  yPos += 15;
   
   doc.setDrawColor(0, 0, 0);
   doc.setLineWidth(0.5);
@@ -157,7 +148,7 @@ export const generarRemitoRechazado = async (datosPDF) => {
   // ==========================================
   yPos += 30;
   
-  doc.rect(15, yPos, pageWidth - 30, 25); // antes era 20
+  doc.rect(15, yPos, pageWidth - 30, 25);
 
   doc.setFont("helvetica", "bold");
   doc.setFontSize(10);
@@ -174,7 +165,7 @@ export const generarRemitoRechazado = async (datosPDF) => {
   // ==========================================
   // DESTINO
   // ==========================================
-  yPos += 30; // antes era 25
+  yPos += 30;
   
   doc.rect(15, yPos, pageWidth - 30, 15);
 
@@ -305,6 +296,6 @@ export const generarRemitoRechazado = async (datosPDF) => {
   // ==========================================
   // GUARDAR PDF
   // ==========================================
-  const fileName = `Remito_${od_code || `OD-${od_id}`}_${Date.now()}.pdf`;
+  const fileName = `Remito_Modificado_${od_code || `OD-${od_id}`}_${Date.now()}.pdf`;
   doc.save(fileName);
 };

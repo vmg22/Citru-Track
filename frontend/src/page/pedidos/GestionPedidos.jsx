@@ -22,6 +22,7 @@ import {
 import Swal from "sweetalert2";
 import "../../style/gestionpedidos.css";
 import NuevoPedidoForm from "./NuevoPedidoForm";
+import { generarRemitoModificado } from "../../services/remitoModificadoService";
 import {
   getPedidos,
   updatePedido,
@@ -686,9 +687,35 @@ const handlePageChange = (pageNumber) => {
       const res = await updatePedido(pedidoId, payload);
       console.log("[GestionPedidos] updatePedido response:", res);
 
+      // Generar PDF del remito modificado
+      try {
+        const datosPDF = {
+          od_id: selectedPedido.od_id,
+          od_code: selectedPedido.od_code,
+          fechaProgramada: selectedPedido.fecha_programada,
+          destino: selectedPedido.destino,
+          tipoDestino: payload.tipo_destino || selectedPedido.tipo_destino,
+          clienteNombre: selectedPedido.cliente_nombre || selectedPedido.clienteNombre,
+          clienteDireccion: selectedPedido.cliente_direccion || selectedPedido.clienteDireccion,
+          clienteCuit: selectedPedido.cliente_cuit || selectedPedido.clienteCuit,
+          choferNombre: selectedPedido.chofer_nombre || selectedPedido.choferNombre,
+          choferDni: selectedPedido.chofer_dni || selectedPedido.choferDni,
+          camionTipo: selectedPedido.camion_tipo || selectedPedido.camionTipo,
+          camionPatente: selectedPedido.camion_patente || selectedPedido.camionPatente,
+          transportistaNombre: selectedPedido.transportista_nombre || selectedPedido.transportistaNombre,
+          observaciones: selectedPedido.observaciones,
+          pallets: selectedPedido.pallets || [],
+        };
+        
+        await generarRemitoModificado(datosPDF);
+      } catch (pdfError) {
+        console.error("Error generando PDF:", pdfError);
+        // No bloqueamos el flujo si falla el PDF
+      }
+
       Swal.fire({
         title: "¡Guardado!",
-        text: "Los cambios se han guardado exitosamente.",
+        text: "Los cambios se han guardado exitosamente y se descargó el remito.",
         icon: "success",
         timer: 2000,
         showConfirmButton: false,
