@@ -49,7 +49,7 @@ const Sidebar = ({
       title: "Admin",
       items: [
         { id: "kpis", icon: "fas fa-chart-line", text: "KPIs" },
-        { id: "stock", icon: "fas fa-clipboard-list", text: "stock" },
+        { id: "stock", icon: "fas fa-clipboard-list", text: "Stock" },
         { id: "ajustes", icon: "fas fa-cog", text: "Ajustes" },
       ],
     },

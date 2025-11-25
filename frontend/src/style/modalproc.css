@@ -364,3 +364,103 @@
     padding: 12px 15px;
   }
 }
+
+/* modalproc.css */
+.modal-overlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background: white;
+  padding: 25px;
+  border-radius: 12px;
+  width: 90%;
+  max-width: 600px; /* Ancho máximo para que no se vea gigante */
+  max-height: 90vh;
+  overflow-y: auto; /* Scroll si es muy alto */
+  box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+}
+
+.modal-content h3 {
+  margin-top: 0;
+  color: #2c3e50;
+  border-bottom: 2px solid #eee;
+  padding-bottom: 10px;
+  margin-bottom: 20px;
+}
+
+/* Estilos de Formulario */
+.form-group {
+  margin-bottom: 15px;
+}
+
+.form-group label {
+  display: block; /* IMPORTANTE: Para que el label esté arriba del input */
+  margin-bottom: 5px;
+  font-weight: 600;
+  color: #555;
+  font-size: 0.9rem;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+  width: 100%; /* Ocupar todo el ancho disponible */
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 1rem;
+  box-sizing: border-box; /* Evita que el padding rompa el ancho */
+}
+
+/* Grilla para inputs dobles (Peso entrada / salida) */
+.row-2-col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 15px;
+  margin-bottom: 15px;
+}
+
+/* Sección Dinámica (Donde van los campos de Azúcar/Limón) */
+.dynamic-section {
+  background-color: #f8f9fa;
+  padding: 15px;
+  border-radius: 8px;
+  border: 1px dashed #ccc;
+  margin: 20px 0;
+}
+
+.dynamic-section h4 {
+  margin-top: 0;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  color: #888;
+}
+
+/* Botones */
+.footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 25px;
+  padding-top: 15px;
+  border-top: 1px solid #eee;
+}
+
+button {
+  padding: 10px 20px;
+  border-radius: 6px;
+  cursor: pointer;
+  border: none;
+  font-weight: bold;
+}
+
+.btn-secundario { background: #e0e0e0; color: #333; }
+.btn-primario { background: #2ecc71; color: white; }
+.btn-primario:hover { background: #27ae60; }

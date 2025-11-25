@@ -1,0 +1,170 @@
+/* =========================================
+   ESTILOS EXCLUSIVOS GESTIÓN DE LOTES (Prefijo: gl-)
+   ========================================= */
+
+.gl-container {
+  padding: 20px 0;
+  animation: fadeIn 0.3s ease;
+}
+
+/* --- CARD DE FILTROS --- */
+.gl-filter-card {
+  background: #e5f5ec; /* Azul muy suave */
+  border-left: 5px solid #8ffab8;
+  padding: 20px;
+  border-radius: 8px;
+  margin-bottom: 25px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+}
+
+.gl-filter-group {
+  display: flex;
+  flex-direction: column;
+  max-width: 400px;
+}
+
+.gl-filter-group label {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #333;
+  margin-bottom: 8px;
+}
+
+.gl-filter-group select {
+  padding: 10px;
+  border: 1px solid #27c49d;
+  border-radius: 6px;
+  font-size: 1rem;
+  color: #333;
+  background: white;
+  outline: none;
+}
+
+/* --- TABLA --- */
+.gl-table-wrapper {
+  background: white;
+  border-radius: 10px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+  overflow: hidden;
+  border: 1px solid #eee;
+}
+
+.gl-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.95rem;
+}
+
+.gl-table thead {
+  background-color: #f8f9fa;
+}
+
+.gl-table th {
+  padding: 15px;
+  text-align: left;
+  font-weight: 600;
+  color: #6c757d;
+  border-bottom: 2px solid #e9ecef;
+  text-transform: uppercase;
+  font-size: 0.8rem;
+}
+
+.gl-table td {
+  padding: 15px;
+  border-bottom: 1px solid #f1f3f5;
+  color: #495057;
+  vertical-align: middle;
+}
+
+.gl-checkbox {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+}
+
+.gl-calidad-text {
+  font-size: 0.95rem;
+  color: #666;
+  max-width: 400px;
+  line-height: 1.4;
+}
+
+/* Fila seleccionada */
+.gl-row-selected {
+  background-color: #e8f5e9 !important;
+}
+.gl-row-selected td {
+  color: #2e7d32;
+  font-weight: 500;
+}
+
+.gl-empty-msg {
+  text-align: center;
+  padding: 30px;
+  color: #999;
+  font-style: italic;
+}
+
+.gl-loading {
+  text-align: center;
+  padding: 40px;
+  color: #666;
+}
+
+/* --- FOOTER FLOTANTE --- */
+.gl-floating-footer {
+  position: fixed;
+  bottom: 30px;
+  right: 30px;
+  background: white;
+  border: 1px solid #e0e0e0;
+  padding: 10px 25px;
+  border-radius: 50px;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  box-shadow: 0 5px 20px rgba(0,0,0,0.15);
+  z-index: 1000;
+  animation: slideUp 0.3s ease-out;
+}
+
+.gl-floating-footer span {
+  font-weight: 600;
+  color: #333;
+  border-right: 2px solid #eee;
+  padding-right: 20px;
+}
+
+.gl-btn-create {
+  background-color: #2e7d32; /* Verde fuerte */
+  color: white;
+  border: none;
+  padding: 10px 25px;
+  border-radius: 25px;
+  font-weight: 700;
+  cursor: pointer;
+  font-size: 0.85rem;
+  letter-spacing: 0.5px;
+  transition: transform 0.2s, background 0.2s;
+}
+
+.gl-btn-create:hover {
+  background-color: #1b5e20;
+  transform: scale(1.05);
+}
+
+.gl-btn-create:disabled {
+  background-color: #a5d6a7;
+  cursor: not-allowed;
+  transform: none;
+}
+
+@keyframes slideUp {
+  from { transform: translateY(30px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}

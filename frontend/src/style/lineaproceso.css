@@ -399,96 +399,106 @@
   }
 }
 
-/* ============================================
-   PAGINACIÓN
-   ============================================ */
-
-/* Contenedor de paginación */
-.pagination {
-  display: flex;
-  flex-direction: row;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: center;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-  gap: 6px;
+/* ESTILOS PESTAÑAS */
+.header-proceso {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    
 }
 
-/* Elementos de página */
-.page-item {
-  margin: 0 2px;
+
+.tabs-container {
+    display: flex;
+    gap: 10px;
+    background: #f1f6f3;
+    padding: 5px;
+    border-radius: 8px;
 }
 
-/* Links de página (botones) */
-.page-link {
-  border: 1px solid #dee2e6;
-  color: #4a7c2f;
-  background-color: white;
-  padding: 8px 14px;
-  font-size: 0.9rem;
-  font-weight: 500;
-  border-radius: 6px;
-  transition: all 0.2s ease;
-  cursor: pointer;
-  min-width: 40px;
-  text-align: center;
+.tab-btn {
+    padding: 10px 20px;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    font-weight: 700;
+    color: #4a7c2f;
+    border-radius: 6px;
+    transition: 0.3s;
+    font-size: 16px;
 }
 
-/* Hover en botones de página */
-.page-link:hover {
-  background-color: #f1f8e9;
-  border-color: #4caf50;
-  color: #2e7d32;
-  text-decoration: none;
+.tab-btn.active {
+    background: rgb(253, 253, 253);
+    color: #4a7c2f;
+    box-shadow: 0 2px 5px rgba(0,0,1,0.1);
 }
 
-/* Página activa */
-.page-item.active .page-link {
-  background-color: #4a7c2f;
-  border-color: #4a7c2f;
-  color: white;
-  font-weight: 700;
-  box-shadow: 0 2px 4px rgba(74, 124, 47, 0.3);
+/* ESTILOS TABLA LOTEO */
+.loteo-wrapper {
+    animation: fadeIn 0.3s ease;
 }
 
-/* Botón deshabilitado */
-.page-item.disabled .page-link {
-  background-color: #f8f9fa;
-  border-color: #dee2e6;
-  color: #adb5bd;
-  cursor: not-allowed;
-  opacity: 0.6;
+.alerta-loteo {
+    background: #e3f2fd;
+    border-left: 4px solid #2196f3;
+    padding: 15px;
 }
 
-/* Botones Anterior y Siguiente */
-.page-item:first-child .page-link,
-.page-item:last-child .page-link {
-  font-weight: 600;
-  padding: 8px 18px;
+.tabla-contenedor {
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    padding: 20px;
+    margin-top: 20px;
 }
 
-/* Puntos suspensivos (...) */
-.page-item.disabled .page-link {
-  border: none;
-  background-color: transparent;
+.tabla-lotes {
+    width: 100%;
+    border-collapse: collapse;
 }
 
-/* Responsive para móviles */
-@media (max-width: 768px) {
-  .page-link {
-    padding: 6px 10px;
-    font-size: 0.85rem;
-    min-width: 35px;
-  }
-  
-  .page-item:first-child .page-link,
-  .page-item:last-child .page-link {
-    padding: 6px 12px;
-  }
-  
-  .pagination {
-    gap: 4px;
-  }
+.tabla-lotes th, .tabla-lotes td {
+    padding: 12px;
+    text-align: left;
+    border-bottom: 1px solid #eee;
+}
+
+.fila-seleccionada {
+    background-color: #e8f5e9;
+}
+
+.footer-flotante {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background: #2c3e50;
+    color: white;
+    padding: 15px 25px;
+    border-radius: 30px;
+    display: flex;
+    gap: 20px;
+    align-items: center;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+    z-index: 100;
+}
+
+.btn-crear-lote {
+    background: #27ae60;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 20px;
+    cursor: pointer;
+    font-weight: bold;
+}
+.btn-crear-lote:disabled {
+    background: #7f8c8d;
+    cursor: not-allowed;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
 }

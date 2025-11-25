@@ -38,9 +38,11 @@ const getProductores = async (req, res) => {
 
 const getProductos = async (req, res) => {
   try {
+    // ELIMINAMOS "WHERE p.perecedero = TRUE"
     const [productos] = await db.query(`
       SELECT p.producto_id, p.nombre AS producto_nombre, p.categoria 
-      FROM productos p WHERE p.perecedero = TRUE ORDER BY p.nombre
+      FROM productos p 
+      ORDER BY p.nombre
     `);
 
     for (let producto of productos) {
