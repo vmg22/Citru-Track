@@ -36,12 +36,23 @@ const GestionLotes = ({ productos }) => {
         producto_id: filtroProducto,
         observaciones: 'Generado desde panel'
       });
-      alert("¡Lote Creado!");
+
+        Swal.fire({
+                   icon: "success",
+                   title: "¡Lote Creado!",
+                   confirmButtonText: "Aceptar"
+                });
+
       setSeleccionados([]);
       cargarBins();
-    } catch (err) { alert(err.message); }
+    } catch (err) { Swal.fire({
+                               icon: "error",
+                               title: "Error",
+                               text: err.message,
+                               confirmButtonText: "Entendido"
+                                  });}
   };
-
+  
   const renderCalidad = (data) => {
     if (!data) return '-';
     try {

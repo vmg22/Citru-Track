@@ -47,7 +47,12 @@ const ModalRegistrarProceso = ({ bin, onClose, onSuccess }) => {
       });
       onSuccess();
     } catch (err) {
-      alert("Error: " + (err.response?.data?.message || err.message));
+      Swal.fire({
+                  icon: "error",
+                  title: "Error",
+                  text: "Error: " + (err.response?.data?.message || err.message),
+                  confirmButtonText: "Entendido"
+                  });
     } finally { setLoading(false); }
   };
 

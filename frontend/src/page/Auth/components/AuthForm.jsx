@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
+import Swal from "sweetalert2";
 import { useAuthStore } from "../store/authStore";
 
 export default function AuthForm() {
@@ -52,14 +53,24 @@ export default function AuthForm() {
     e.preventDefault();
     
     if (newPassword.length < 6) {
-      alert("La contraseña debe tener al menos 6 caracteres");
+     Swal.fire({
+                icon: "warning",
+                title: "Contraseña inválida",
+                text: "La contraseña debe tener al menos 6 caracteres",
+                confirmButtonText: "Entendido",
+               });      
       return;
     }
     
     if (newPassword !== confirmPassword) {
-      alert("Las contraseñas no coinciden");
-      return;
-    }
+       Swal.fire({
+                 icon: "error",
+                 title: "Contraseñas no coinciden",
+                 text: "Verificá que ambas contraseñas sean iguales.",
+                 confirmButtonText: "Intentar de nuevo"
+                 });
+  return;
+}
     
     const success = await resetPassword(resetToken, newPassword);
     if (success) {

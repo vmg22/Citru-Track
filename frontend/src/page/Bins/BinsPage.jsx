@@ -141,14 +141,20 @@ const BinsPage = () => {
       // Asumimos que la respuesta trae los datos del bin creado en response.data o response.data.bin
       const binCreado = response.data.bin || response.data; 
 
-      alert(
-        `✅ Bin registrado exitosamente!\n\n` +
-        `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n` +
-        `📦 BIN ID: ${binCreado.bin_id}\n` +
-        `⚖️  Peso: ${formData.peso_bruto} kg\n` +
-        `📄 Remito: ${formData.remito}\n` +
-        `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`
-      );
+     Swal.fire({
+                icon: "success",
+                title: "BIN registrado exitosamente",
+                html: `
+                     <div style="text-align: left; font-size: 1.1rem;">
+                     <hr>
+                     <p><strong>📦 BIN ID:</strong> ${binCreado.bin_id}</p>
+                     <p><strong>⚖️ Peso:</strong> ${formData.peso_bruto} kg</p>
+                     <p><strong>📄 Remito:</strong> ${formData.remito}</p>
+                     <hr>
+                     </div>
+                     `,
+                confirmButtonText: "Aceptar",
+               });
 
       // Limpiar formulario
       setFormData({
