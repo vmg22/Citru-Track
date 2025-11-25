@@ -1391,15 +1391,16 @@ exports.getCamarasKPIs = async (req, res) => {
 
     // --- 4) pallets en cámara por producto
     const [palletsPorProducto] = await pool.query(
-      `SELECT pr.producto_id, pr.nombre AS producto_nombre, 
-              COUNT(p.pallet_id) AS cantidad_pallets,
-              SUM(CASE WHEN p.estado = 'en_camara' THEN 1 ELSE 0 END) AS pallets_en_camara
-       FROM productos pr
-       LEFT JOIN pallets p ON p.producto_id = pr.producto_id
-       GROUP BY pr.producto_id, pr.nombre
-       HAVING pallets_en_camara > 0
-       ORDER BY pallets_en_camara DESC`
-    );
+    `SELECT pr.producto_id, pr.nombre AS producto_nombre, 
+             COUNT(p.pallet_id) AS cantidad_pallets,
+             SUM(CASE WHEN p.estado = 'en_camara' THEN 1 ELSE 0 END) AS pallets_en_camara
+    FROM productos pr
+    LEFT JOIN pallets p ON p.producto_id = pr.producto_id
+    WHERE pr.activo = 1 /* <--- FILTRO APLICADO A PRODUCTOS */
+    GROUP BY pr.producto_id, pr.nombre
+    HAVING pallets_en_camara > 0
+    ORDER BY pallets_en_camara DESC`
+);
 
     res.json({
       tiempo_promedio_minutos: promedioMinutos,
@@ -1633,13 +1634,16 @@ exports.getAuditKPIs = async (req, res) => {
  * Productos list
  */
 exports.getProductos = async (req, res) => {
-  try {
-    const [rows] = await pool.query(
-      `SELECT producto_id, nombre FROM productos ORDER BY nombre`
-    );
-    res.json(rows);
-  } catch (err) {
-    console.error("getProductos error:", err);
-    res.status(500).json({ error: err.message });
-  }
+  try {
+    const [rows] = await pool.query(
+      `SELECT producto_id, nombre 
+       FROM productos 
+       WHERE activo = 1 
+       ORDER BY nombre`
+    );
+    res.json(rows);
+  } catch (err) {
+    console.error("getProductos error:", err);
+    res.status(500).json({ error: err.message });
+  }
 };

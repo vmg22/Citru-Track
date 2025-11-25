@@ -1,11 +1,24 @@
-const API = import.meta.env.VITE_API_URL?.replace('/api', '') || "http://localhost:4000";
+const API =
+  import.meta.env.VITE_API_URL?.replace("/api", "") || "http://localhost:4000";
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import {
-  LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend,
-  BarChart, Bar, PieChart, Pie, Cell, ResponsiveContainer
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  BarChart,
+  Bar,
+  PieChart,
+  Pie,
+  Cell,
+  ResponsiveContainer,
 } from "recharts";
 import "../../style/kpi.css";
+import { getAllProductosActivos } from "../Settings/services/settingsServices";
 
 export default function KpiDashboard() {
   const [productos, setProductos] = useState([]);
@@ -15,81 +28,270 @@ export default function KpiDashboard() {
   const [volume, setVolume] = useState(null);
   const [rendimiento, setRendimiento] = useState(null);
   const [empaque, setEmpaque] = useState(null);
-  const [camaras, setCamaras] = useState(null);
-  const [movimientos, setMovimientos] = useState(null);
+  const [camaras, setCamaras] = useState(null); // Mantener como null inicialmente
+  const [movimientos, setMovimientos] = useState(null); // Mantener como null inicialmente
 
-
-
-  // Cargar productos
   useEffect(() => {
-    axios.get(`${API}/api/kpi/productos`)
-      .then(r => setProductos(r.data))
-      .catch(console.error);
-  }, []);
+    const getAllProduct = async () => {
+      const response = await getAllProductosActivos();
+      setProductos(response);
+    };
+    getAllProduct();
+  }, []); 
 
-  // Cargar KPIs cuando cambia producto o filtros
   useEffect(() => {
-    if (!producto) {
+    if (producto) {
+      setCamaras(null);
+      setMovimientos(null);
+      const params = { producto_id: producto, ...filters };
+
+      axios
+        .get(`${API}/api/kpi/volume`, { params })
+        .then((r) => setVolume(r.data))
+        .catch(console.error);
+
+      axios
+        .get(`${API}/api/kpi/rendimiento`, { params })
+        .then((r) => setRendimiento(r.data))
+        .catch(console.error);
+
+      axios
+        .get(`${API}/api/kpi/empaque`, { params })
+        .then((r) => setEmpaque(r.data))
+        .catch(console.error);
+    } else {
       setVolume(null);
       setRendimiento(null);
       setEmpaque(null);
-      setCamaras(null);
-      setMovimientos(null);
-      return;
+
+      const params = { ...filters }; 
+
+      axios
+        .get(`${API}/api/kpi/camaras`, { params })
+        .then((r) => setCamaras(r.data))
+        .catch(console.error);
+
+      axios
+        .get(`${API}/api/kpi/movimientos`, { params })
+        .then((r) => setMovimientos(r.data))
+        .catch(console.error);
     }
-
-    const params = { producto_id: producto, ...filters };
-
-    axios.get(`${API}/api/kpi/volume`, { params })
-      .then(r => setVolume(r.data))
-      .catch(console.error);
-
-    axios.get(`${API}/api/kpi/rendimiento`, { params })
-      .then(r => setRendimiento(r.data))
-      .catch(console.error);
-
-    axios.get(`${API}/api/kpi/empaque`, { params })
-      .then(r => setEmpaque(r.data))
-      .catch(console.error);
-
-    axios.get(`${API}/api/kpi/camaras`, { params })
-      .then(r => setCamaras(r.data))
-      .catch(console.error);
-
-    axios.get(`${API}/api/kpi/movimientos`, { params })
-      .then(r => setMovimientos(r.data))
-      .catch(console.error);
-
   }, [producto, filters]);
+
+    const formatDate = (dateString) => {
+    if (!dateString) return "N/A";
+    const date = new Date(dateString);
+    return date.toLocaleDateString("es-AR");
+  };
+
 
   return (
     <div className="kpi-container">
-      <h2 className="kpi-title">KPIs - CitrusTrack</h2>
-
-      <div className="kpi-filtros">
-        <label>Producto:</label>
-        <select value={producto || ""} onChange={e => setProducto(e.target.value || null)}>
-          <option value="">-- Elegir --</option>
-          {productos.map(p =>
-            <option key={p.producto_id} value={p.producto_id}>
+      <div className="monitoreo-header">
+        <h2>
+          <i className="fas fa-chart-line"></i> KPIs - CitrusTrack
+        </h2>
+        <div className="monitoreo-user-info">
+          <i className="fas fa-user-circle"></i>
+          <span>Supervisor de Planta</span>
+        </div>
+      </div>
+      <div>
+        <div className="kpi-filtros">
+         <label>Producto:</label>
+          <select
+            value={producto || ""}
+            onChange={(e) => setProducto(e.target.value || null)}
+          >
+          <option value="">Elegir producto</option>
+            {productos.map((p) => (
+              <option key={p.producto_id} value={p.producto_id}>
               {p.nombre}
-            </option>
-          )}
-        </select>
+              </option>
+            ))}
+          </select>
+          <label>Desde:</label>
+          <input
+            type="date"
+            value={filters.fecha_from}
+            onChange={(e) =>
+              setFilters((f) => ({ ...f, fecha_from: e.target.value }))
+            }
+          />
+          <label>Hasta:</label>
+          <input
+            type="date"
+            value={filters.fecha_to}
+            onChange={(e) =>
+              setFilters((f) => ({ ...f, fecha_to: e.target.value }))
+            }
+          />
+        </div>
+        {/* Cámaras */}
+        {producto === null && camaras && (
+          <>
+            <h3 style={{ marginTop: 20 }}>Cámaras</h3>
 
-        <label>Desde:</label>
-        <input
-          type="date"
-          value={filters.fecha_from}
-          onChange={e => setFilters(f => ({ ...f, fecha_from: e.target.value }))}
-        />
+            <div className="kpi-cards">
+              <div className="kpi-card blue">
+                <h3>Tiempo promedio de productos en cámara</h3>
+                <div className="kpi-value">
+                  {Math.round(camaras.tiempo_promedio_minutos)} min
+                </div>
+              </div>
+            </div>
+            {console.log(camaras)}
+            <div className="kpi-graficos">
+              <div className="grafico-box">
+                <h4>Pallets por estado</h4>
+                <ResponsiveContainer width="100%" height={260}>
+                  <PieChart>
+                    <Pie
+                      data={
+                        camaras.porEstado
+                          ? camaras.porEstado.map((r) => ({
+                              name: r.estado,
+                              value: r.cantidad,
+                            }))
+                          : []
+                      }
+                      dataKey="value"
+                      nameKey="name"
+                      outerRadius={80}
+                      label
+                    >
+                      {(camaras.porEstado || []).map((entry, index) => (
+                        <Cell
+                          key={index}
+                          fill={(() => {
+                            switch (entry.estado) {
+                              case "armado":
+                                return "#007bff";
+                              case "despachado":
+                                return "#28a745";
+                              case "en_camara":
+                                return "#0d5661ff";
+                              case "reservado":
+                                return "#ffc107";
+                              case "en_transporte":
+                                return "#fd7e14";
+                              case "anulado":
+                                return "#dc3545";
+                              default:
+                                return "#6c757d";
+                            }
+                          })()}
+                        />
+                      ))}
+                    </Pie>
+                    <Legend />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
 
-        <label>Hasta:</label>
-        <input
-          type="date"
-          value={filters.fecha_to}
-          onChange={e => setFilters(f => ({ ...f, fecha_to: e.target.value }))}
-        />
+              <div className="grafico-box">
+                <h4>Pallets por producto en cámara</h4>
+                {camaras.palletsPorProducto &&
+                camaras.palletsPorProducto.length > 0 ? (
+                  <ResponsiveContainer width="100%" height={350}>
+                    <PieChart>
+                      <Pie
+                        data={camaras.palletsPorProducto.map((r) => ({
+                          name: r.producto_nombre,
+                          value: Number(r.pallets_en_camara),
+                        }))}
+                        dataKey="value"
+                        nameKey="name"
+                        cx="50%"
+                        cy="45%"
+                        outerRadius={80}
+                        innerRadius={50}
+                        label={({ name, percent }) =>
+                          `${name}: ${(percent * 100).toFixed(0)}%`
+                        }
+                        labelLine={true}
+                      >
+                        {camaras.palletsPorProducto.map((entry, index) => {
+                          const productName =
+                            entry.producto_nombre.toLowerCase();
+                          let fillColor;
+
+                          if (productName.includes("palta")) {
+                            fillColor = "#28a745"; // Verde para Palta
+                          } else if (productName.includes("arándano")) {
+                            fillColor = "#6f42c1"; // Morado para Arándanos
+                          } else if (productName.includes("limón")) {
+                            fillColor = "#ffc107"; // Amarillo para Limón
+                          } else if (productName.includes("frutilla")) {
+                            fillColor = "#e83e8c"; // Rosado Fuerte para Frutillas
+                          } else if (productName.includes("naranja")) {
+                            fillColor = "#fd7e14"; // Naranja para Naranjas
+                          } else if (productName.includes("toronjas")) {
+                            fillColor = "#dc3545"; // Rojo/Coral para Toronjas
+                          } else {
+                            // Colores de reserva, usando el índice original si no hay coincidencia
+                            const defaultColors = [
+                              "#17a2b8",
+                              "#007bff",
+                              "#6610f2",
+                              "#6f42c1",
+                              "#e83e8c",
+                            ];
+                            fillColor =
+                              defaultColors[index % defaultColors.length];
+                          }
+
+                          return (
+                            <Cell key={`cell-${index}`} fill={fillColor} />
+                          );
+                        })}
+                      </Pie>
+                      <Tooltip />
+                      <Legend />
+                    </PieChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <div
+                    style={{
+                      padding: "40px",
+                      textAlign: "center",
+                      color: "#666",
+                    }}
+                  >
+                    No hay pallets en cámara en este momento
+                  </div>
+                )}
+              </div>
+            </div>
+          </>
+        )}
+        {/* Movimientos */}
+        {producto === null && movimientos && (
+          <>
+            <h3 style={{ marginTop: 20 }}>Movimientos pallets</h3>
+            <div className="grafico-box">
+              <h4>Movimientos por operario</h4>
+              <ResponsiveContainer width="100%" height={260}>
+                <BarChart
+                  data={
+                    movimientos.movPorOperario
+                      ? movimientos.movPorOperario.map((r) => ({
+                          operario: r.operario,
+                          movimientos: r.movimientos,
+                        }))
+                      : []
+                  }
+                >
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="operario" />
+                  <YAxis />
+                  <Tooltip />
+                  <Bar dataKey="movimientos" fill="#23a92eff" />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </>
+        )}
       </div>
 
       {/* Volume */}
@@ -101,7 +303,8 @@ export default function KpiDashboard() {
               <div className="kpi-value">
                 {volume.perDay && volume.perDay.length
                   ? Number(volume.perDay[0].kg_ingresados).toLocaleString()
-                  : 0} kg
+                  : 0}{" "}
+                kg
               </div>
             </div>
 
@@ -110,7 +313,8 @@ export default function KpiDashboard() {
               <div className="kpi-value">
                 {volume.byProductor && volume.byProductor.length
                   ? Number(volume.byProductor[0].kg_ingresados).toLocaleString()
-                  : 0} kg
+                  : 0}{" "}
+                kg
               </div>
             </div>
 
@@ -119,7 +323,8 @@ export default function KpiDashboard() {
               <div className="kpi-value">
                 {volume.byFinca && volume.byFinca.length
                   ? Number(volume.byFinca[0].kg_ingresados).toLocaleString()
-                  : 0} kg
+                  : 0}{" "}
+                kg
               </div>
             </div>
           </div>
@@ -129,13 +334,15 @@ export default function KpiDashboard() {
               <h4>Ingresos por día</h4>
               <ResponsiveContainer width="100%" height={260}>
                 <BarChart
-                  data={volume.perDay
-                    ? volume.perDay.map(r => ({
-                      fecha: r.fecha,
-                      kg: Number(r.kg_ingresados)
-                    }))
-                    : []
-                  }>
+                  data={
+                    volume.perDay
+                      ? volume.perDay.map((r) => ({
+                          fecha: formatDate(r.fecha),
+                          kg: Number(r.kg_ingresados),
+                        }))
+                      : []
+                  }
+                >
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="fecha" />
                   <YAxis />
@@ -149,12 +356,15 @@ export default function KpiDashboard() {
               <h4>Kg por productor</h4>
               <ResponsiveContainer width="100%" height={260}>
                 <BarChart
-                  data={volume.byProductor
-                    ? volume.byProductor.map(r => ({
-                      nombre: r.productor,
-                      kg: Number(r.kg_ingresados)
-                    }))
-                    : []}>
+                  data={
+                    volume.byProductor
+                      ? volume.byProductor.map((r) => ({
+                          nombre: r.productor,
+                          kg: Number(r.kg_ingresados),
+                        }))
+                      : []
+                  }
+                >
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="nombre" />
                   <YAxis />
@@ -171,37 +381,21 @@ export default function KpiDashboard() {
       {rendimiento && (
         <>
           <h3 style={{ marginTop: 20 }}>Rendimiento de lotes</h3>
+          {console.log(rendimiento)}
           <div className="kpi-graficos">
-            <div className="grafico-box">
-              <h4>Últimos lotes (rendimiento %)</h4>
-              <ResponsiveContainer width="100%" height={260}>
-                <BarChart
-                  data={rendimiento.rows
-                    ? rendimiento.rows.map(r => ({
-                        lote: r.descripcion,
-                        rendimiento: Number(r.rendimiento_pct || 0),
-                        cajas: Number(r.cajas_totales)
-                      }))
-                    : []}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="lote" />
-                  <YAxis />
-                  <Tooltip />
-                  <Bar dataKey="rendimiento" fill="#fd7e14" />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-
             <div className="grafico-box">
               <h4>Descarte por calibre (%)</h4>
               <ResponsiveContainer width="100%" height={260}>
                 <BarChart
-                  data={rendimiento.byCalibre
-                    ? rendimiento.byCalibre.map(r => ({
-                      calibre: r.calibre,
-                      desc_prom: Number(r.desc_prom)
-                    }))
-                    : []}>
+                  data={
+                    rendimiento.byCalibre
+                      ? rendimiento.byCalibre.map((r) => ({
+                          calibre: r.calibre,
+                          desc_prom: Number(r.desc_prom),
+                        }))
+                      : []
+                  }
+                >
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="calibre" />
                   <YAxis />
@@ -224,7 +418,8 @@ export default function KpiDashboard() {
               <div className="kpi-value">
                 {empaque.pesoPromedio
                   ? Number(empaque.pesoPromedio).toFixed(2)
-                  : 0} kg
+                  : 0}{" "}
+                kg
               </div>
             </div>
 
@@ -252,12 +447,15 @@ export default function KpiDashboard() {
               <h4>Empaque de cajas por día</h4>
               <ResponsiveContainer width="100%" height={260}>
                 <BarChart
-                  data={empaque.cajasPorOperario
-                    ? empaque.cajasPorOperario.map(r => ({
-                      operario: r.operario || "Empaque de cajas",
-                      cajas: r.cajas
-                    }))
-                    : []}>
+                  data={
+                    empaque.cajasPorOperario
+                      ? empaque.cajasPorOperario.map((r) => ({
+                          operario: r.operario || "Empaque de cajas",
+                          cajas: r.cajas,
+                        }))
+                      : []
+                  }
+                >
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="operario" />
                   <YAxis />
@@ -269,165 +467,6 @@ export default function KpiDashboard() {
           </div>
         </>
       )}
-
-      {/* Cámaras */}
-      {camaras && (
-        <>
-          <h3 style={{ marginTop: 20 }}>Cámaras</h3>
-
-          <div className="kpi-cards">
-            <div className="kpi-card blue">
-              <h3>Tiempo promedio en cámara</h3>
-              <div className="kpi-value">
-                {Math.round(camaras.tiempo_promedio_minutos)} min
-              </div>
-            </div>
-          </div>
-
-          <div className="kpi-graficos">
-            <div className="grafico-box">
-              <h4>Ocupación por cámara</h4>
-              <ResponsiveContainer width="100%" height={380}>
-                <PieChart>
-                  <Pie
-                    data={
-                      camaras.ocupacion
-                        ? camaras.ocupacion
-                            .filter(r => r.pallets_en_camara > 0)
-                            .map(r => ({
-                              name: r.nombre ? r.nombre.replace(/^Frio para /i, '') : r.nombre,
-                              value: r.pallets_en_camara
-                            }))
-                        : []
-                    }
-                    dataKey="value"
-                    nameKey="name"
-                    cx="50%"
-                    cy="40%"
-                    outerRadius={70}
-                    innerRadius={0}
-                    label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
-                  >
-                    {(camaras.ocupacion
-                      ? camaras.ocupacion.filter(r => r.pallets_en_camara > 0)
-                      : []
-                    ).map((entry, index) => (
-                      <Cell
-                        key={`cell-${index}`}
-                        fill={['#28a745', '#17a2b8', '#ffc107', '#fd7e14', '#dc3545'][index % 5]}
-                      />
-                    ))}
-                  </Pie>
-                  <Tooltip />
-                  <Legend />
-                </PieChart>
-              </ResponsiveContainer>
-            </div>
-
-            <div className="grafico-box">
-              <h4>Pallets por estado</h4>
-              <ResponsiveContainer width="100%" height={260}>
-                <PieChart>
-                  <Pie
-                    data={
-                      camaras.porEstado
-                        ? camaras.porEstado.map(r => ({
-                          name: r.estado,
-                          value: r.cantidad
-                        }))
-                        : []
-                    }
-                    dataKey="value"
-                    nameKey="name"
-                    outerRadius={80}
-                    label
-                  >
-                    {(camaras.porEstado || []).map((entry, index) => (
-                      <Cell
-                        key={index}
-                        fill={
-                          ["#007bff", "#28a745", "#dc3545", "#fd7e14"][
-                          index % 4
-                          ]
-                        }
-                      />
-                    ))}
-                  </Pie>
-                  <Legend />
-                </PieChart>
-              </ResponsiveContainer>
-            </div>
-
-            <div className="grafico-box">
-              <h4>Pallets en cámara por producto</h4>
-              {camaras.palletsPorProducto && camaras.palletsPorProducto.length > 0 ? (
-                <ResponsiveContainer width="100%" height={350}>
-                  <PieChart>
-                    <Pie
-                      data={
-                        camaras.palletsPorProducto.map(r => ({
-                          name: r.producto_nombre,
-                          value: r.pallets_en_camara
-                        }))
-                      }
-                      dataKey="value"
-                      nameKey="name"
-                      cx="50%"
-                      cy="45%"
-                      outerRadius={80}
-                      innerRadius={50}
-                      label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
-                      labelLine={true}
-                    >
-                      {camaras.palletsPorProducto.map((entry, index) => (
-                        <Cell
-                          key={`cell-${index}`}
-                          fill={['#17a2b8', '#007bff', '#6610f2', '#6f42c1', '#e83e8c'][index % 5]}
-                        />
-                      ))}
-                    </Pie>
-                    <Tooltip />
-                    <Legend />
-                  </PieChart>
-                </ResponsiveContainer>
-              ) : (
-                <div style={{ padding: '40px', textAlign: 'center', color: '#666' }}>
-                  No hay pallets en cámara en este momento
-                </div>
-              )}
-            </div>
-          </div>
-        </>
-      )}
-
-      {/* Movimientos */}
-      {movimientos && (
-        <>
-          <h3 style={{ marginTop: 20 }}>Movimientos pallets</h3>
-          <div className="grafico-box">
-            <h4>Movimientos por operario (ej.)</h4>
-            <ResponsiveContainer width="100%" height={260}>
-              <BarChart
-                data={
-                  movimientos.movPorOperario
-                    ? movimientos.movPorOperario.map(r => ({
-                      operario: r.operario,
-                      movimientos: r.movimientos
-                    }))
-                    : []
-                }
-              >
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="operario" />
-                <YAxis />
-                <Tooltip />
-                <Bar dataKey="movimientos" fill="#6f42c1" />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        </>
-      )}
-
     </div>
   );
 }

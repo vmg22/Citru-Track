@@ -119,6 +119,11 @@ export const eliminarCamion = async(id_camion) =>{
   return response.data;
 }
 
+export const getAllProductosActivos = async()=>{
+  const response = await axios.get(PRODUCTOS_URL);
+  return response.data;
+}
+
 export const createProduct = async (productData) => {
   const response = await axios.post(PRODUCTOS_URL, productData);
   return response.data;
