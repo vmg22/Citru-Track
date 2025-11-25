@@ -416,6 +416,7 @@ h5.text-secondary {
 .status-pill.pendiente { background-color: #fff3e0; color: #ef6c00; border: 1px solid #ffe0b2; } /* Naranja */
 .status-pill.entregado { background-color: #eceff1; color: #455a64; border: 1px solid #cfd8dc; } /* Gris */
 .status-pill.cancelado { background-color: #ffebee; color: #c62828; border: 1px solid #ffcdd2; } /* Rojo */
+.status-pill.rechazado { background-color: #fce4ec; color: #c2185b; border: 1px solid #f8bbd0; } /* Rosa/Magenta */
 
 /* Botones de acción dentro de la tabla */
 .btn-action-table {

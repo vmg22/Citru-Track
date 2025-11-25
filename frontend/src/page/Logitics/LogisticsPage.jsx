@@ -3,6 +3,7 @@ import React, { useEffect, useState } from "react";
 import { API } from "../../service/api";
 import "../../style/logistica.css";
 import LogisticsMap from "./components/LogisticsMap";
+import ModalEditarRechazado from "../Logitics/ModalEditarRechazado";
 
 const Logistica = () => {
   const [camiones, setCamiones] = useState([]);
@@ -14,9 +15,19 @@ const Logistica = () => {
   const [tab, setTab] = useState("mapa");
   const [filtroTipo, setFiltroTipo] = useState("Todos");
   const [filtroEmpresa, setFiltroEmpresa] = useState("Todas");
+  const [modalRechazado, setModalRechazado] = useState(false);
+  const [pedidoSeleccionado, setPedidoSeleccionado] = useState(null);
+  
+  // Estados de paginación
+  const [paginaCamiones, setPaginaCamiones] = useState(1);
+  const [paginaChoferes, setPaginaChoferes] = useState(1);
+  const [paginaHistorial, setPaginaHistorial] = useState(1);
+  const [paginaOperaciones, setPaginaOperaciones] = useState(1);
+  const itemsPorPagina = 10;
 
   useEffect(() => {
     cargarDatos();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const normalizeResponse = (respData) => {
@@ -106,7 +117,7 @@ const Logistica = () => {
       o &&
       (o.estado === "en_carga" ||
         o.estado === "en_ruta" ||
-        o.estado === "cancelado")
+        o.estado === "rechazado")
   );
 
   const diasRestantes = (fecha) => {
@@ -126,6 +137,63 @@ const Logistica = () => {
     if (dias < 0) return "chofer-expired";
     if (dias <= 90) return "chofer-soon";
     return "chofer-ok";
+  };
+
+  const handleVerRechazado = (pedido) => {
+    setPedidoSeleccionado(pedido);
+    setModalRechazado(true);
+  };
+
+  const handleGuardarCambios = async () => {
+    await cargarDatos();
+  };
+
+  // Funciones de paginación
+  const paginar = (array, pagina) => {
+    const inicio = (pagina - 1) * itemsPorPagina;
+    const fin = inicio + itemsPorPagina;
+    return array.slice(inicio, fin);
+  };
+
+  const totalPaginas = (total) => Math.ceil(total / itemsPorPagina);
+
+  const cambiarPagina = (setPagina, nuevaPagina, maxPaginas) => {
+    if (nuevaPagina >= 1 && nuevaPagina <= maxPaginas) {
+      setPagina(nuevaPagina);
+    }
+  };
+
+  // Datos paginados
+  const camionesPaginados = paginar(camionesFiltrados, paginaCamiones);
+  const choferesPaginados = paginar(choferesOrdenados, paginaChoferes);
+  const historialPaginado = paginar(safeArray(ordenes), paginaHistorial);
+  const operacionesPaginadas = paginar(operacionesActivas, paginaOperaciones);
+
+  // Componente de paginador
+  const Paginador = ({ paginaActual, totalPags, onCambiarPagina }) => {
+    if (totalPags <= 1) return null;
+    
+    return (
+      <div className="logi-paginador">
+        <button
+          onClick={() => onCambiarPagina(paginaActual - 1)}
+          disabled={paginaActual === 1}
+          className="logi-paginador-btn"
+        >
+          ← Anterior
+        </button>
+        <span className="logi-paginador-info">
+          Página {paginaActual} de {totalPags}
+        </span>
+        <button
+          onClick={() => onCambiarPagina(paginaActual + 1)}
+          disabled={paginaActual === totalPags}
+          className="logi-paginador-btn"
+        >
+          Siguiente →
+        </button>
+      </div>
+    );
   };
 
   return (
@@ -205,7 +273,10 @@ const Logistica = () => {
             <div className="logi-filter-box">
               <select
                 value={filtroTipo}
-                onChange={(e) => setFiltroTipo(e.target.value)}
+                onChange={(e) => {
+                  setFiltroTipo(e.target.value);
+                  setPaginaCamiones(1);
+                }}
               >
                 <option>Todos</option>
                 <option>frigorifico</option>
@@ -214,7 +285,10 @@ const Logistica = () => {
               </select>
               <select
                 value={filtroEmpresa}
-                onChange={(e) => setFiltroEmpresa(e.target.value)}
+                onChange={(e) => {
+                  setFiltroEmpresa(e.target.value);
+                  setPaginaCamiones(1);
+                }}
               >
                 <option>Todas</option>
                 {safeArray(transportistas).map((t) => (
@@ -237,7 +311,7 @@ const Logistica = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {camionesFiltrados.map((c) => {
+                  {camionesPaginados.map((c) => {
                     const empresa = safeArray(transportistas).find(
                       (t) => t.transportista_id === c.transportista_id
                     );
@@ -255,6 +329,11 @@ const Logistica = () => {
                   })}
                 </tbody>
               </table>
+              <Paginador
+                paginaActual={paginaCamiones}
+                totalPags={totalPaginas(camionesFiltrados.length)}
+                onCambiarPagina={(pag) => cambiarPagina(setPaginaCamiones, pag, totalPaginas(camionesFiltrados.length))}
+              />
             </div>
           </>
         )}
@@ -273,7 +352,7 @@ const Logistica = () => {
                 </tr>
               </thead>
               <tbody>
-                {choferesOrdenados.map((ch) => {
+                {choferesPaginados.map((ch) => {
                   const dias = diasRestantes(ch.licencia_vencimiento);
                   const clase = getChoferRowClass(ch.licencia_vencimiento);
                   return (
@@ -306,6 +385,11 @@ const Logistica = () => {
                 })}
               </tbody>
             </table>
+            <Paginador
+              paginaActual={paginaChoferes}
+              totalPags={totalPaginas(choferesOrdenados.length)}
+              onCambiarPagina={(pag) => cambiarPagina(setPaginaChoferes, pag, totalPaginas(choferesOrdenados.length))}
+            />
           </div>
         )}
 
@@ -322,7 +406,7 @@ const Logistica = () => {
                 </tr>
               </thead>
               <tbody>
-                {safeArray(ordenes).map((o) => (
+                {historialPaginado.map((o) => (
                   <tr key={o.orden_id}>
                     <td>{o.od_code}</td>
                     <td>{o.cliente_nombre}</td>
@@ -337,6 +421,11 @@ const Logistica = () => {
                 ))}
               </tbody>
             </table>
+            <Paginador
+              paginaActual={paginaHistorial}
+              totalPags={totalPaginas(safeArray(ordenes).length)}
+              onCambiarPagina={(pag) => cambiarPagina(setPaginaHistorial, pag, totalPaginas(safeArray(ordenes).length))}
+            />
           </div>
         )}
 
@@ -349,11 +438,11 @@ const Logistica = () => {
                   <th>Cliente</th>
                   <th>Patente</th>
                   <th>Estado</th>
-                  <th>Cancelado</th>
+                  <th>Rechazado</th>
                 </tr>
               </thead>
               <tbody>
-                {operacionesActivas.map((o) => (
+                {operacionesPaginadas.map((o) => (
                   <tr key={o.orden_id}>
                     <td className="font-bold text-blue-600">{o.od_code}</td>
                     <td>{o.cliente_nombre}</td>
@@ -362,20 +451,40 @@ const Logistica = () => {
                         {o.estado.toUpperCase()}
                       </td>
                       <td>
-                        {o.estado === "cancelado" ? (
-                         <button className="btnCancelado"><i className="fa-regular fa-eye iconCancelado"></i></button>
-                    ) : (
-                      null
-                    )}
+                        {o.estado === "rechazado" ? (
+                          <button 
+                            className="btnRechazado"
+                            onClick={() => handleVerRechazado(o)}
+                            title="Ver y editar pedido rechazado"
+                          >
+                            <i className="fa-regular fa-eye iconRechazado"></i>
+                          </button>
+                        ) : null}
                       </td>
                     
                   </tr>
                 ))}
               </tbody>
             </table>
+            <Paginador
+              paginaActual={paginaOperaciones}
+              totalPags={totalPaginas(operacionesActivas.length)}
+              onCambiarPagina={(pag) => cambiarPagina(setPaginaOperaciones, pag, totalPaginas(operacionesActivas.length))}
+            />
           </div>
         )}
       </div>
+
+      {modalRechazado && (
+        <ModalEditarRechazado
+          pedido={pedidoSeleccionado}
+          onClose={() => {
+            setModalRechazado(false);
+            setPedidoSeleccionado(null);
+          }}
+          onSave={handleGuardarCambios}
+        />
+      )}
     </div>
   );
 };

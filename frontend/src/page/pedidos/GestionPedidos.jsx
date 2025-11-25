@@ -73,6 +73,7 @@ const GestionPedidos = () => {
       (p) => p.estado === "en_ruta" || p.estado === "en_carga"
     ).length,
     exportados: pedidos.filter((p) => p.estado === "entregado").length,
+    rechazados: pedidos.filter((p) => p.estado === "rechazado").length,
   };
     
 
@@ -284,6 +285,8 @@ const handlePageChange = (pageNumber) => {
         return <span className="status-pill entregado">Exportado</span>;
       case "cancelado":
         return <span className="status-pill cancelado">Cancelado</span>;
+      case "rechazado":
+        return <span className="status-pill rechazado">Rechazado</span>;
       default:
         return <span className="status-pill">{estado}</span>;
     }
@@ -585,7 +588,25 @@ const handlePageChange = (pageNumber) => {
       }
 
       if (selectedPedido.tipo_destino) {
-        payload.tipo_destino = selectedPedido.tipo_destino.toLowerCase().trim();
+        let tipoDestino = selectedPedido.tipo_destino.toLowerCase().trim();
+        
+        // Mapear valores antiguos/incorrectos a valores correctos del ENUM
+        const mapeoTipos = {
+          'marítimo': 'puerto',
+          'maritimo': 'puerto',
+          'aéreo': 'aeropuerto',
+          'aereo': 'aeropuerto',
+          'terrestre': 'otra_ciudad',
+          'regreso a planta': 'regreso_planta',
+          'regreso_a_planta': 'regreso_planta',
+          // Mantener valores correctos
+          'puerto': 'puerto',
+          'aeropuerto': 'aeropuerto',
+          'otra_ciudad': 'otra_ciudad',
+          'regreso_planta': 'regreso_planta'
+        };
+        
+        payload.tipo_destino = mapeoTipos[tipoDestino] || tipoDestino;
       }
 
       if (selectedPedido.producto_id) {
@@ -1078,6 +1099,7 @@ const ListaPedidosTab = () => {
               <option value="puerto">Marítimo (Puerto)</option>
               <option value="aeropuerto">Aéreo (Aeropuerto)</option>
               <option value="otra_ciudad">Terrestre (Ciudad)</option>
+              <option value="regreso_planta">Regreso a Planta</option>
             </Form.Select>
           </Form.Group>
 
@@ -1501,6 +1523,15 @@ const ListaPedidosTab = () => {
             <h3 className="text-secondary-dark">{metrics.exportados}</h3>
             <p className="text-secondary">Exportados</p>
           </Card>
+          {metrics.rechazados > 0 && (
+            <Card
+              className="metric-card text-center p-2"
+              style={{ minWidth: 140, borderLeft: "4px solid #c2185b" }}
+            >
+              <h3 style={{ color: "#c2185b" }}>{metrics.rechazados}</h3>
+              <p className="text-secondary">Rechazados</p>
+            </Card>
+          )}
         </div>
       </div>
 
@@ -1520,8 +1551,11 @@ const ListaPedidosTab = () => {
           style={{ width: 160 }}
         >
           <option value="">Estado: Todos</option>
-          <option value="en_ruta">En Tránsito</option>
           <option value="pendiente">Pendiente</option>
+          <option value="en_ruta">En Tránsito</option>
+          <option value="entregado">Exportado</option>
+          <option value="rechazado">Rechazado</option>
+          <option value="cancelado">Cancelado</option>
         </Form.Select>
 
         <Form.Control

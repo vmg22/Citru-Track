@@ -255,7 +255,7 @@ async function updatePedido(req, res) {
         tipoDestino = tipoDestino.toLowerCase().trim();
       }
       
-      const tiposValidos = ['aeropuerto', 'puerto', 'otra_ciudad'];
+      const tiposValidos = ['aeropuerto', 'puerto', 'otra_ciudad', 'regreso_planta'];
       
       if (!tiposValidos.includes(tipoDestino)) {
         console.warn(`⚠️ tipo_destino inválido: "${tipoDestino}"`);
@@ -280,7 +280,7 @@ async function updatePedido(req, res) {
         estado = estado.toLowerCase().trim();
       }
       
-      const estadosValidos = ['pendiente', 'en_carga', 'en_ruta', 'entregado', 'cancelado'];
+      const estadosValidos = ['pendiente', 'en_carga', 'en_ruta', 'entregado', 'cancelado', 'rechazado'];
       
       if (!estadosValidos.includes(estado)) {
         console.warn(`⚠️ estado inválido: "${estado}"`);
@@ -324,6 +324,7 @@ async function updatePedido(req, res) {
 
     const sets = [];
     const params = [];
+    const processedColumns = new Set(); // 🔥 Evitar duplicados
 
     // Procesar solo campos válidos de la tabla orden_despacho
     for (const key in body) {
@@ -335,10 +336,16 @@ async function updatePedido(req, res) {
       // Mapear camelCase a snake_case
       const dbColumn = fieldMapping[key] || key;
 
-      // Solo agregar si es columna válida
-      if (validColumns.includes(dbColumn)) {
+      // Solo agregar si es columna válida Y no se ha procesado ya
+      if (validColumns.includes(dbColumn) && !processedColumns.has(dbColumn)) {
+        processedColumns.add(dbColumn); // Marcar como procesado
         sets.push(`${dbColumn} = ?`);
-        params.push(body[key]);
+        // 🔥 Usar el valor correcto: si existe body[dbColumn] usarlo, sino body[key]
+        const value = body.hasOwnProperty(dbColumn) ? body[dbColumn] : body[key];
+        params.push(value);
+        console.log(`📝 Agregando campo: ${dbColumn} = ${value}`);
+      } else if (validColumns.includes(dbColumn) && processedColumns.has(dbColumn)) {
+        console.log(`⚠️ Campo duplicado ignorado: ${key} -> ${dbColumn}`);
       } else {
         console.warn(`⚠️ Campo ignorado (no es columna válida): ${key}`);
       }
@@ -560,6 +567,35 @@ async function getPalletsDisponiblesParaEditar(req, res) {
   }
 }
 
+/* GET /api/ordenes-despacho/pedidos/:id/pallets */
+async function getPalletsDelPedido(req, res) {
+  try {
+    const { id } = req.params;
+    
+    console.log("==> getPalletsDelPedido - od_id:", id);
+    
+    const [pallets] = await pool.query(`
+      SELECT 
+        p.*,
+        l.descripcion as lote_descripcion
+      FROM pallets p
+      INNER JOIN od_pallets op ON p.pallet_id = op.pallet_id
+      LEFT JOIN lotes l ON p.lote_id = l.lote_id
+      WHERE op.od_id = ?
+      ORDER BY p.pallet_id
+    `, [id]);
+    
+    console.log(`✅ Pallets encontrados: ${pallets.length}`);
+    res.json(pallets);
+  } catch (err) {
+    console.error("❌ Error en getPalletsDelPedido:", err);
+    res.status(500).json({ 
+      ok: false, 
+      error: "Error al obtener pallets del pedido",
+      details: err.message 
+    });
+  }
+}
 
 module.exports = {
   getAllOrdenes,
@@ -568,5 +604,6 @@ module.exports = {
   createPedido,
   updatePedido,
   deletePedido,
-  getPalletsDisponiblesParaEditar
+  getPalletsDisponiblesParaEditar,
+  getPalletsDelPedido
 };
