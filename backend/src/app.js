@@ -22,6 +22,7 @@ const procesoRoutes = require('./routes/proceso.routes');
 const rolesRoutes = require("./routes/roles.routes");
 const trackingRoutes = require("./routes/tracking.routes");
 const stockRoutes = require('./routes/stock.routes');
+const cajasRoutes = require('./routes/cajas.routes');
 
 const app = express();
 app.use(cors());
@@ -51,6 +52,7 @@ app.use('/api/proceso', procesoRoutes);
 app.use("/api/roles", rolesRoutes);
 app.use("/api/tracking", trackingRoutes);
 app.use('/api/stock', stockRoutes);
+app.use('/api/cajas', cajasRoutes);
 // health
 app.get('/health', (req, res) => res.json({ ok: true, env: process.env.NODE_ENV || 'dev' }));
 

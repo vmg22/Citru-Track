@@ -24,7 +24,6 @@ import LineaDeProceso from "./page/LineaProceso/LineaDeProceso";
 import Pallet from "./page/Pallet/Pallet";
 import CamaraFrio from "./page/CamaraFrio/CamaraFrio";
 import MonitoringsPage from "./page/Monitoring/MonitoringsPage";
-// Importamos la página de Gestión de Pedidos
 import GestionPedidos from "./page/pedidos/GestionPedidos"; 
 import KPIsPage from "./page/KPIs/KPIsPage";
 import Ajustes from "./page/Settings/Ajustes";
@@ -33,6 +32,7 @@ import Logistica from "./page/Logitics/LogisticsPage";
 import Camara from "./page/Settings/components/Camara";
 import ProductoVariedades from "./page/Settings/components/ProductoVariedades";
 import Stock from './page/Stock/Stock';
+import GeneradorQR from "./page/GeneradorQR/GeneradorQR"; // Nueva página
 // ---------------------------------------------------
 
 const routeToItemMap = {
@@ -48,6 +48,7 @@ const routeToItemMap = {
     "/logistica": "logistica",
     "/productos": "productos",
     "/stock": "stock",
+    "/generador-qr": "generador-qr",
 };
 
 const itemToPathMap = {
@@ -63,6 +64,7 @@ const itemToPathMap = {
     "gestion-pedidos": "/gestion-pedidos",
     productos:"/productos", 
     stock:"/stock",
+    "generador-qr": "/generador-qr",
 };
 
 // ---------------------------------------------------
@@ -81,9 +83,7 @@ const AppContent = () => {
         const currentItem = routeToItemMap[location.pathname];
         if (currentItem && currentItem !== activeItem) {
             setActiveItem(currentItem);
-        }
-        // Corregido: Si la ruta es solo "/", activa 'dashboard'
-        else if (location.pathname === "/") {
+        } else if (location.pathname === "/") {
             setActiveItem("dashboard");
         }
     }, [location.pathname, activeItem]);
@@ -92,7 +92,6 @@ const AppContent = () => {
     const handleNavigation = (itemId) => {
         const path = itemToPathMap[itemId];
         if (!path) return;
-
         if (path !== location.pathname) {
             setActiveItem(itemId);
             navigate(path);
@@ -102,17 +101,15 @@ const AppContent = () => {
     return (
         <Layout activeItem={activeItem} onItemClick={handleNavigation}>
             <Routes>
-                {/* Ruta principal que redirige al dashboard */}
+                {/* Ruta principal que redirige al login */}
                 <Route path="/" element={<Navigate to="/login" replace />} />
-                
                 <Route path="/dashboard" element={<DashboardPrincipal />} />
                 <Route path="/bins" element={<BinsPage />} />
                 <Route path="/linea-de-proceso" element={<LineaDeProceso />} />
                 <Route path="/armado-pallet" element={<Pallet />} />
                 <Route path="/camara" element={<CamaraFrio />} />
                 <Route path="/camara-config" element={<Camara />} />
-
-                {/* --- RUTAS FALTANTES AÑADIDAS --- */}
+                {/* Rutas añadidas */}
                 <Route path="/monitoreo" element={<MonitoringsPage />} />
                 <Route path="/gestion-pedidos" element={<GestionPedidos />} />
                 <Route path="/kpis" element={<KPIsPage />} />
@@ -121,7 +118,7 @@ const AppContent = () => {
                 <Route path="/logistica" element={<Logistica />} />
                 <Route path="/productos" element={<ProductoVariedades />} />
                 <Route path="/stock" element={<Stock />} />
-
+                <Route path="/generador-qr" element={<GeneradorQR />} />
             </Routes>
         </Layout>
     );
@@ -134,8 +131,7 @@ const AppContent = () => {
 export default function App() {
     return (
         <BrowserRouter>
-            {/* 💡 CONTENEDOR DE TOASTIFY COLOCADO FUERA DE ROUTES 
-                 PARA QUE ESTÉ DISPONIBLE EN TODAS LAS PÁGINAS (públicas y privadas) */}
+            {/* Contenedor Toastify disponible en todas las páginas */}
             <ToastContainer 
                 position="top-right" 
                 autoClose={5000}
@@ -148,14 +144,12 @@ export default function App() {
                 pauseOnHover
                 theme="light"
             />
-            
             <Routes>
-                {/* Rutas Públicas (sin Layout) */}
+                {/* Rutas Públicas */}
                 <Route path="/login" element={<LoginPage />} />
                 <Route path="/forgot-password" element={<ForgotPasswordPage />} />
                 <Route path="/reset-password" element={<ResetPasswordPage />} />
-
-                {/* Rutas Privadas (con Layout) */}
+                {/* Rutas Privadas con Layout */}
                 <Route path="/*" element={<AppContent />} />
             </Routes>
         </BrowserRouter>

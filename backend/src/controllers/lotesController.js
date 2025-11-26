@@ -43,17 +43,35 @@ const createLote = async (req, res) => {
  */
 const getAllLotes = async (req, res) => {
   try {
+    console.log('📦 Solicitud GET /api/lotes');
     const sql = `
-      SELECT l.*, p.nombre as producto_nombre 
+      SELECT 
+        l.lote_id,
+        l.producto_id,
+        l.variedad_id,
+        l.descripcion,
+        l.cantidad_bins,
+        l.peso_total,
+        l.calibre,
+        l.fecha_ingreso,
+        l.estado,
+        l.cerrado,
+        p.nombre as producto_nombre,
+        v.nombre as variedad_nombre
       FROM lotes l
       LEFT JOIN productos p ON l.producto_id = p.producto_id
-    `; // Hacemos JOIN para traer el nombre del producto
+      LEFT JOIN variedades v ON l.variedad_id = v.variedad_id
+      ORDER BY l.lote_id DESC
+    `;
     
     const [lotes] = await db.query(sql);
+    console.log(`✅ Lotes obtenidos: ${lotes.length} registros`);
     
     res.status(200).json({ message: "Lotes obtenidos", data: lotes });
 
   } catch (error) {
+    console.error('❌ Error al obtener lotes:', error.message);
+    console.error('Stack:', error.stack);
     res.status(500).json({ message: "Error en el servidor al obtener lotes", error: error.message });
   }
 };
