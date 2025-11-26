@@ -809,7 +809,7 @@ const NuevoPedidoForm = ({ onOrderSaved, onCancel }) => {
         </Row>
 
                 <div className="d-flex justify-content-end">
-                    <Button variant="secondary" onClick={onCancel} className="me-2">
+                    <Button variant="secondary" onClick={handleCancelar} className="me-2">
                         Cancelar
                     </Button>
                     <Button variant="success" type="submit" disabled={isLoading}>

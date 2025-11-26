@@ -32,24 +32,11 @@ const ModalEditarRechazado = ({ pedido, onClose, onSave }) => {
     if (pedido) {
       console.log('📦 Pedido recibido en modal:', pedido);
       console.log('🆔 od_id:', pedido.od_id, 'orden_id:', pedido.orden_id);
-      console.log('🔍 tipo_destino del pedido:', pedido.tipo_destino);
-      
-      // Normalizar tipo_destino al cargar
-      let tipoDestinoNormalizado = (pedido.tipo_destino || '').toLowerCase().trim();
-      
-      // Convertir "regreso a planta" → "regreso_planta"
-      if (tipoDestinoNormalizado === 'regreso a planta') {
-        tipoDestinoNormalizado = 'regreso_planta';
-      } else if (tipoDestinoNormalizado === 'otra ciudad') {
-        tipoDestinoNormalizado = 'otra_ciudad';
-      }
-      
-      console.log('✅ tipo_destino normalizado:', tipoDestinoNormalizado);
       
       cargarDatos();
       setFormData({
         destino: pedido.destino || '',
-        tipoDestino: tipoDestinoNormalizado,
+        tipoDestino: 'regreso_planta', // Siempre fijo en regreso_planta
         fechaProgramada: pedido.fecha_programada ? pedido.fecha_programada.split('T')[0] : '',
         transportistaId: pedido.transportista_id || '',
         camionId: pedido.camion_id || '',
@@ -343,11 +330,9 @@ const ModalEditarRechazado = ({ pedido, onClose, onSave }) => {
                   name="tipoDestino"
                   value={formData.tipoDestino}
                   onChange={handleChange}
+                  disabled
+                  style={{ color: '#000', opacity: 1 }}
                 >
-                  <option value="">Seleccione...</option>
-                  <option value="aeropuerto">Aeropuerto</option>
-                  <option value="puerto">Puerto</option>
-                  <option value="otra_ciudad">Otra Ciudad</option>
                   <option value="regreso_planta">Regreso a Planta</option>
                 </Form.Select>
               </Form.Group>
@@ -516,3 +501,5 @@ const ModalEditarRechazado = ({ pedido, onClose, onSave }) => {
 };
 
 export default ModalEditarRechazado;
+
+

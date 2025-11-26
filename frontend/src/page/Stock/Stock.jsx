@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import io from 'socket.io-client';
 import stockService from '../../services/stockService';
 import '../../style/stock.css';
 
@@ -89,11 +90,41 @@ const Stock = () => {
   // Efecto: actualizar stock cuando cambian los filtros
   useEffect(() => {
     fetchStockData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filtros]);
+
+  // Efecto: WebSocket para actualizaciones en tiempo real
+  useEffect(() => {
+    const socketUrl = import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:4000';
     
-    // Actualizar cada 30 segundos para tiempo real
-    const interval = setInterval(fetchStockData, 30000);
-    
-    return () => clearInterval(interval);
+    try {
+      const newSocket = io(socketUrl);
+      
+      // Escuchar eventos de cambios en pallets
+      newSocket.on('pallet:created', () => {
+        console.log('Pallet creado - actualizando stock');
+        fetchStockData();
+      });
+      
+      newSocket.on('pallet:updated', () => {
+        console.log('Pallet actualizado - actualizando stock');
+        fetchStockData();
+      });
+      
+      newSocket.on('pallet:deleted', () => {
+        console.log('Pallet eliminado - actualizando stock');
+        fetchStockData();
+      });
+      
+      newSocket.on('orden:updated', () => {
+        console.log('Orden actualizada - actualizando stock');
+        fetchStockData();
+      });
+      
+      return () => newSocket.disconnect();
+    } catch (error) {
+      console.error('Error conectando WebSocket:', error);
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filtros]);
 
