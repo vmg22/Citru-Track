@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import io from 'socket.io-client';
 import stockService from "../../../services/stockService";
 import "../../../style/DashboardPrincipal.css";
 import { Link } from "react-router-dom";
@@ -254,44 +255,76 @@ const DashboardPrincipal = () => {
     };
   };
 
+  // Función para cargar datos (movida fuera del useEffect para reutilizarla)
+  const fetchStockData = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      // Cargar stock y operaciones en paralelo
+      const [stockResponse, ordenesResponse] = await Promise.all([
+        stockService.getResumenStock({}),
+        axios.get("/api/ordenes-despacho")
+      ]);
+      
+      setStockData(stockResponse);
+
+      // Procesar operaciones
+      const ordenesRaw = normalizeResponse(ordenesResponse.data);
+      const ordenesArr = safeArray(ordenesRaw).map(mapOrderFields);
+      
+      // Filtrar solo operaciones activas (en_carga o en_ruta)
+      const activas = ordenesArr.filter(
+        (o) => o && (o.estado === "en_carga" || o.estado === "en_ruta")
+      );
+      
+      setOperacionesActivas(activas);
+    } catch (err) {
+      console.error('Error al cargar datos de stock:', err);
+      setError('Error al cargar los datos de stock');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const fetchStockData = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-        
-        // Cargar stock y operaciones en paralelo
-        const [stockResponse, ordenesResponse] = await Promise.all([
-          stockService.getResumenStock({}),
-          axios.get("/api/ordenes-despacho")
-        ]);
-        
-        setStockData(stockResponse);
-
-        // Procesar operaciones
-        const ordenesRaw = normalizeResponse(ordenesResponse.data);
-        const ordenesArr = safeArray(ordenesRaw).map(mapOrderFields);
-        
-        // Filtrar solo operaciones activas (en_carga o en_ruta)
-        const activas = ordenesArr.filter(
-          (o) => o && (o.estado === "en_carga" || o.estado === "en_ruta")
-        );
-        
-        setOperacionesActivas(activas);
-      } catch (err) {
-        console.error('Error al cargar datos de stock:', err);
-        setError('Error al cargar los datos de stock');
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchStockData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // WebSocket para actualizaciones en tiempo real
+  useEffect(() => {
+    const socketUrl = import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:4000';
     
-    // Actualizar cada 30 segundos
-    const interval = setInterval(fetchStockData, 30000);
-    
-    return () => clearInterval(interval);
+    try {
+      const newSocket = io(socketUrl);
+      
+      // Escuchar eventos de cambios en pallets y órdenes
+      newSocket.on('pallet:created', () => {
+        console.log('Pallet creado - actualizando dashboard');
+        fetchStockData();
+      });
+      
+      newSocket.on('pallet:updated', () => {
+        console.log('Pallet actualizado - actualizando dashboard');
+        fetchStockData();
+      });
+      
+      newSocket.on('pallet:deleted', () => {
+        console.log('Pallet eliminado - actualizando dashboard');
+        fetchStockData();
+      });
+      
+      newSocket.on('orden:updated', () => {
+        console.log('Orden actualizada - actualizando dashboard');
+        fetchStockData();
+      });
+      
+      return () => newSocket.disconnect();
+    } catch (error) {
+      console.error('Error conectando WebSocket:', error);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Calcular porcentaje

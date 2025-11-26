@@ -516,3 +516,5 @@ const ModalEditarRechazado = ({ pedido, onClose, onSave }) => {
 };
 
 export default ModalEditarRechazado;
+
+
