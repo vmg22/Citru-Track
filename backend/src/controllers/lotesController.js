@@ -67,7 +67,7 @@ const getAllLotes = async (req, res) => {
     const [lotes] = await db.query(sql);
     console.log(`✅ Lotes obtenidos: ${lotes.length} registros`);
     
-    res.status(200).json({ message: "Lotes obtenidos", data: lotes });
+    res.status(200).json(lotes);
 
   } catch (error) {
     console.error('❌ Error al obtener lotes:', error.message);
