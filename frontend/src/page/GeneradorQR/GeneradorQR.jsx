@@ -116,7 +116,7 @@ const GeneradorQR = () => {
 
   const handlePrint = useReactToPrint({
     content: () => printRef.current,
-    documentTitle: `Códigos_QR_${configuracion.prefijo}`,
+    documentTitle: `Códigos_QR_${configuracion.prefijo || 'SinPrefijo'}`,
   });
 
   const limpiarCodigos = () => {
@@ -324,7 +324,9 @@ const GeneradorQR = () => {
             <div className="config-preview">
               <strong>Vista previa:</strong>
               <div className="preview-code">
-                {configuracion.prefijo}-{configuracion.cantidadInicial.toString().padStart(4, '0')}
+                {configuracion.prefijo 
+                  ? `${configuracion.prefijo}-${(configuracion.cantidadInicial || 1).toString().padStart(4, '0')}`
+                  : '(Ingresa un prefijo)'}
               </div>
               {productoSeleccionado && (
                 <small style={{display: 'block', marginTop: '0.5rem', color: '#64748b'}}>
