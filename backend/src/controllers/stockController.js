@@ -1,4 +1,4 @@
-const db = require('../config/db');
+const db = require("../config/db");
 
 const stockController = {
   /**
@@ -21,45 +21,45 @@ const stockController = {
           p.peso_total,
           p.tipo_pallet,
           p.fecha_armado,
-          p.camara_id,              
+          p.camara_id, 					
           c.nombre as camara_nombre, 
           p.estado,
           p.etiqueta_qr,
           p.created_at
         FROM pallets p
         LEFT JOIN productos prod ON p.producto_id = prod.producto_id
-        LEFT JOIN camaras c ON p.camara_id = c.camara_id  -- <--- AGREGADO: JOIN a camaras
-        WHERE 1=1
+        LEFT JOIN camaras c ON p.camara_id = c.camara_id
+        WHERE 1=1 AND prod.activo = 1 -- <--- MODIFICADO: Solo productos activos
       `;
 
       const params = [];
 
       // Aplicar filtros
       if (producto_id) {
-        query += ' AND p.producto_id = ?';
+        query += " AND p.producto_id = ?";
         params.push(producto_id);
       }
 
       if (fecha_desde) {
-        query += ' AND DATE(p.fecha_armado) >= ?';
+        query += " AND DATE(p.fecha_armado) >= ?";
         params.push(fecha_desde);
       }
 
       if (fecha_hasta) {
-        query += ' AND DATE(p.fecha_armado) <= ?';
+        query += " AND DATE(p.fecha_armado) <= ?";
         params.push(fecha_hasta);
       }
 
-      query += ' ORDER BY p.fecha_armado DESC';
+      query += " ORDER BY p.fecha_armado DESC";
 
       const [rows] = await db.query(query, params);
 
       res.json(rows);
     } catch (error) {
-      console.error('Error al obtener stock:', error);
-      res.status(500).json({ 
-        error: 'Error al obtener datos de stock',
-        message: error.message 
+      console.error("Error al obtener stock:", error);
+      res.status(500).json({
+        error: "Error al obtener datos de stock",
+        message: error.message,
       });
     }
   },
@@ -72,25 +72,29 @@ const stockController = {
     try {
       const { producto_id, fecha_desde, fecha_hasta } = req.query;
 
-      let baseCondition = 'WHERE 1=1';
+      // Base condition para las consultas que NO usan JOIN a productos o camaras (totales, porEstado)
+      let baseCondition = "WHERE 1=1";
       const params = [];
 
       if (producto_id) {
-        baseCondition += ' AND p.producto_id = ?';
+        baseCondition += " AND p.producto_id = ?";
         params.push(producto_id);
       }
 
       if (fecha_desde) {
-        baseCondition += ' AND DATE(p.fecha_armado) >= ?';
+        baseCondition += " AND DATE(p.fecha_armado) >= ?";
         params.push(fecha_desde);
       }
 
       if (fecha_hasta) {
-        baseCondition += ' AND DATE(p.fecha_armado) <= ?';
+        baseCondition += " AND DATE(p.fecha_armado) <= ?";
         params.push(fecha_hasta);
       }
 
-      // Total de cajas y pallets (No requiere cambios)
+      // Condición de producto activo para consultas que hacen JOIN a 'productos'
+      // Esto es crucial para queryPorProducto. Se aplicará la condición `prod.activo = 1` en el WHERE de esas consultas.
+
+      // Total de cajas y pallets (Se beneficia del producto_id, NO requiere JOIN a productos)
       const queryTotales = `
         SELECT 
           COUNT(DISTINCT p.pallet_id) as total_pallets,
@@ -100,9 +104,10 @@ const stockController = {
         ${baseCondition}
       `;
 
+      // Los parámetros para totales y porEstado son los mismos que para baseCondition
       const [totales] = await db.query(queryTotales, params);
 
-      // Stock por estado (No requiere cambios)
+      // Stock por estado (NO requiere JOIN a productos)
       const queryPorEstado = `
         SELECT 
           p.estado,
@@ -116,7 +121,7 @@ const stockController = {
 
       const [porEstado] = await db.query(queryPorEstado, params);
 
-      // Stock por producto (No requiere cambios en la selección de campos)
+      // Stock por producto (REQUIERE JOIN a productos y filtro de ACTIVO)
       const queryPorProducto = `
         SELECT 
           p.producto_id,
@@ -127,27 +132,28 @@ const stockController = {
           COALESCE(SUM(p.peso_total), 0) as peso_total
         FROM pallets p
         LEFT JOIN productos prod ON p.producto_id = prod.producto_id
-        ${baseCondition}
+        ${baseCondition} AND prod.activo = 1 -- <--- MODIFICADO: Solo productos activos
         GROUP BY p.producto_id, prod.nombre, prod.categoria
         ORDER BY cantidad_cajas DESC
       `;
 
       const [porProducto] = await db.query(queryPorProducto, params);
 
-      // Stock por ubicación (MODIFICADO: Ahora usa el camara_id y obtiene el nombre)
+      // Stock por ubicación (REQUIERE JOIN a camaras, NO requiere JOIN a productos)
       const queryPorUbicacion = `
-        SELECT 
-          c.camara_id,               -- <--- MODIFICADO: Usar el ID
-          c.nombre as ubicacion_nombre,  -- <--- AGREGADO: Nombre de la cámara para mostrar
-          COUNT(DISTINCT p.pallet_id) as cantidad_pallets,
-          COALESCE(SUM(p.cantidad_cajas), 0) as cantidad_cajas
-        FROM pallets p
-        LEFT JOIN camaras c ON p.camara_id = c.camara_id  -- <--- AGREGADO: JOIN a camaras
-        ${baseCondition}
-        AND p.camara_id IS NOT NULL  -- <--- MODIFICADO: Filtro por el nuevo ID
-        GROUP BY c.camara_id, c.nombre  -- <--- MODIFICADO: Agrupar por ID y Nombre
-        ORDER BY cantidad_cajas DESC
-      `;
+SELECT 
+c.camara_id, 
+c.nombre as ubicacion_nombre,
+COUNT(DISTINCT p.pallet_id) as cantidad_pallets,
+COALESCE(SUM(p.cantidad_cajas), 0) as cantidad_cajas
+FROM pallets p
+LEFT JOIN camaras c ON p.camara_id = c.camara_id
+${baseCondition}
+AND p.camara_id IS NOT NULL 
+AND p.estado = 'en_camara' -- <--- AÑADIDO: Filtra solo pallets que están físicamente en la cámara
+GROUP BY c.camara_id, c.nombre
+ORDER BY cantidad_cajas DESC
+`;
 
       const [porUbicacion] = await db.query(queryPorUbicacion, params);
 
@@ -155,13 +161,13 @@ const stockController = {
         totales: totales[0],
         porEstado,
         porProducto,
-        porUbicacion
+        porUbicacion,
       });
     } catch (error) {
-      console.error('Error al obtener resumen de stock:', error);
-      res.status(500).json({ 
-        error: 'Error al obtener resumen de stock',
-        message: error.message 
+      console.error("Error al obtener resumen de stock:", error);
+      res.status(500).json({
+        error: "Error al obtener resumen de stock",
+        message: error.message,
       });
     }
   },
@@ -183,31 +189,31 @@ const stockController = {
           p.cantidad_cajas,
           p.peso_total,
           p.fecha_armado,
-          p.camara_id,              -- <--- MODIFICADO: Nueva columna ID
-          c.nombre as camara_nombre  -- <--- AGREGADO: Nombre de la cámara
+          p.camara_id,
+          c.nombre as camara_nombre
         FROM pallets p
         LEFT JOIN productos prod ON p.producto_id = prod.producto_id
-        LEFT JOIN camaras c ON p.camara_id = c.camara_id  -- <--- AGREGADO: JOIN a camaras
-        WHERE p.estado = ?
+        LEFT JOIN camaras c ON p.camara_id = c.camara_id
+        WHERE p.estado = ? AND prod.activo = 1 -- <--- MODIFICADO: Solo productos activos
       `;
 
       const params = [estado];
 
       if (producto_id) {
-        query += ' AND p.producto_id = ?';
+        query += " AND p.producto_id = ?";
         params.push(producto_id);
       }
 
-      query += ' ORDER BY p.fecha_armado DESC';
+      query += " ORDER BY p.fecha_armado DESC";
 
       const [rows] = await db.query(query, params);
 
       res.json(rows);
     } catch (error) {
-      console.error('Error al obtener stock por estado:', error);
-      res.status(500).json({ 
-        error: 'Error al obtener stock por estado',
-        message: error.message 
+      console.error("Error al obtener stock por estado:", error);
+      res.status(500).json({
+        error: "Error al obtener stock por estado",
+        message: error.message,
       });
     }
   },
@@ -221,6 +227,7 @@ const stockController = {
       const { producto_id } = req.params;
       const { estado, fecha_desde, fecha_hasta } = req.query;
 
+      // 1. Obtener pallets de ese producto
       let query = `
         SELECT 
           p.pallet_id,
@@ -230,66 +237,80 @@ const stockController = {
           p.peso_total,
           p.tipo_pallet,
           p.fecha_armado,
-          p.camara_id,              -- <--- MODIFICADO: Nueva columna ID
-          c.nombre as camara_nombre,  -- <--- AGREGADO: Nombre de la cámara
+          p.camara_id,
+          c.nombre as camara_nombre,
           p.estado,
           p.etiqueta_qr
         FROM pallets p
-        LEFT JOIN camaras c ON p.camara_id = c.camara_id  -- <--- AGREGADO: JOIN a camaras
-        WHERE p.producto_id = ?
+        LEFT JOIN camaras c ON p.camara_id = c.camara_id
+        LEFT JOIN productos prod ON p.producto_id = prod.producto_id -- <--- AGREGADO: JOIN a productos para el filtro
+        WHERE p.producto_id = ? AND prod.activo = 1 -- <--- MODIFICADO: Verificar que el producto esté activo
       `;
 
       const params = [producto_id];
 
       if (estado) {
-        query += ' AND p.estado = ?';
+        query += " AND p.estado = ?";
         params.push(estado);
       }
 
       if (fecha_desde) {
-        query += ' AND DATE(p.fecha_armado) >= ?';
+        query += " AND DATE(p.fecha_armado) >= ?";
         params.push(fecha_desde);
       }
 
       if (fecha_hasta) {
-        query += ' AND DATE(p.fecha_armado) <= ?';
+        query += " AND DATE(p.fecha_armado) <= ?";
         params.push(fecha_hasta);
       }
 
-      query += ' ORDER BY p.fecha_armado DESC';
+      query += " ORDER BY p.fecha_armado DESC";
 
       const [rows] = await db.query(query, params);
 
-      // Obtener resumen (No requiere cambios en la selección de campos, solo en los JOINS si aplica)
+      // Si no se encuentran pallets (ej. producto_id no existe o no está activo),
+      // se puede devolver una respuesta vacía o un error 404/400.
+      // Aquí, simplemente continuamos con el resumen.
+
+      // 2. Obtener resumen (Asegura que solo cuenta si el producto está activo, aunque el producto_id ya está en el WHERE)
+      // Usaremos un conjunto de parámetros que solo incluye el producto_id y los filtros opcionales.
+      // Reconstruimos los params para el resumen, ya que la lógica del query condicional es un poco diferente.
+      const resumenParams = [producto_id];
+      if (estado) resumenParams.push(estado);
+      if (fecha_desde) resumenParams.push(fecha_desde);
+      if (fecha_hasta) resumenParams.push(fecha_hasta);
+
       const queryResumen = `
         SELECT 
           COUNT(DISTINCT p.pallet_id) as total_pallets,
           COALESCE(SUM(p.cantidad_cajas), 0) as total_cajas,
           COALESCE(SUM(p.peso_total), 0) as peso_total
         FROM pallets p
-        WHERE p.producto_id = ?
-        ${estado ? 'AND p.estado = ?' : ''}
-        ${fecha_desde ? 'AND DATE(p.fecha_armado) >= ?' : ''}
-        ${fecha_hasta ? 'AND DATE(p.fecha_armado) <= ?' : ''}
+        LEFT JOIN productos prod ON p.producto_id = prod.producto_id -- <--- AGREGADO: JOIN a productos para el filtro
+        WHERE p.producto_id = ? AND prod.activo = 1 -- <--- MODIFICADO: Verificar que el producto esté activo
+        ${estado ? "AND p.estado = ?" : ""}
+        ${fecha_desde ? "AND DATE(p.fecha_armado) >= ?" : ""}
+        ${fecha_hasta ? "AND DATE(p.fecha_armado) <= ?" : ""}
       `;
+      // Nota: Si el producto_id no está activo, ambas consultas devolverán conjuntos vacíos o totales en cero, lo cual es correcto.
 
-      const [resumen] = await db.query(queryResumen, params);
+      const [resumen] = await db.query(queryResumen, resumenParams);
 
       res.json({
         pallets: rows,
-        resumen: resumen[0]
+        resumen: resumen[0],
       });
     } catch (error) {
-      console.error('Error al obtener stock por producto:', error);
-      res.status(500).json({ 
-        error: 'Error al obtener stock por producto',
-        message: error.message 
+      console.error("Error al obtener stock por producto:", error);
+      res.status(500).json({
+        error: "Error al obtener stock por producto",
+        message: error.message,
       });
     }
   },
 
   /**
-   * Obtener alertas de stock bajo (No requiere cambios de JOIN/SELECT)
+   * Obtener alertas de stock bajo (Solo productos disponibles y activos)
    * GET /api/stock/alertas
    */
   getAlertasStock: async (req, res) => {
@@ -303,7 +324,7 @@ const stockController = {
           COALESCE(SUM(p.cantidad_cajas), 0) as cajas_disponibles
         FROM pallets p
         LEFT JOIN productos prod ON p.producto_id = prod.producto_id
-        WHERE p.estado IN ('armado', 'en_camara')
+        WHERE p.estado IN ('armado', 'en_camara') AND prod.activo = 1 -- <--- MODIFICADO: Solo productos activos
         GROUP BY p.producto_id, prod.nombre, prod.categoria
         ORDER BY cajas_disponibles ASC
         LIMIT 10
@@ -313,16 +334,16 @@ const stockController = {
 
       res.json(rows);
     } catch (error) {
-      console.error('Error al obtener alertas de stock:', error);
-      res.status(500).json({ 
-        error: 'Error al obtener alertas de stock',
-        message: error.message 
+      console.error("Error al obtener alertas de stock:", error);
+      res.status(500).json({
+        error: "Error al obtener alertas de stock",
+        message: error.message,
       });
     }
   },
 
   /**
-   * Obtener histórico de movimientos de stock (No requiere cambios de JOIN/SELECT)
+   * Obtener histórico de movimientos de stock (Solo para productos activos)
    * GET /api/stock/historico
    */
   getHistoricoStock: async (req, res) => {
@@ -339,13 +360,13 @@ const stockController = {
           COALESCE(SUM(p.cantidad_cajas), 0) as cantidad_cajas
         FROM pallets p
         LEFT JOIN productos prod ON p.producto_id = prod.producto_id
-        WHERE p.fecha_armado >= DATE_SUB(CURDATE(), INTERVAL ? DAY)
+        WHERE p.fecha_armado >= DATE_SUB(CURDATE(), INTERVAL ? DAY) AND prod.activo = 1 -- <--- MODIFICADO: Solo productos activos
       `;
 
       const params = [dias];
 
       if (producto_id) {
-        query += ' AND p.producto_id = ?';
+        query += " AND p.producto_id = ?";
         params.push(producto_id);
       }
 
@@ -358,14 +379,13 @@ const stockController = {
 
       res.json(rows);
     } catch (error) {
-      console.error('Error al obtener histórico de stock:', error);
-      res.status(500).json({ 
-        error: 'Error al obtener histórico de stock',
-        message: error.message 
+      console.error("Error al obtener histórico de stock:", error);
+      res.status(500).json({
+        error: "Error al obtener histórico de stock",
+        message: error.message,
       });
     }
   },
-
 };
 
 module.exports = stockController;
