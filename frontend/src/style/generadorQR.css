@@ -1,0 +1,397 @@
+/* Generador QR - Container */
+.generador-qr-container {
+  padding: 2rem;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+/* Header */
+.generador-qr-header {
+  margin-bottom: 2rem;
+}
+
+.generador-qr-header h2 {
+  font-size: 2rem;
+  color: #1e293b;
+  margin: 0 0 0.5rem 0;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.generador-qr-header h2 i {
+  color: #6366f1;
+}
+
+.generador-qr-subtitle {
+  color: #64748b;
+  font-size: 1rem;
+  margin: 0;
+}
+
+/* Content Layout */
+.generador-qr-content {
+  display: grid;
+  grid-template-columns: 400px 1fr;
+  gap: 2rem;
+}
+
+/* Configuration Panel */
+.generador-qr-config-panel {
+  background: white;
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  height: fit-content;
+  position: sticky;
+  top: 2rem;
+}
+
+.generador-qr-config-panel h3 {
+  font-size: 1.25rem;
+  color: #1e293b;
+  margin: 0 0 1.5rem 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.generador-qr-config-panel h3 i {
+  color: #6366f1;
+}
+
+/* Form Styles */
+.config-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.form-group label {
+  font-weight: 600;
+  color: #475569;
+  font-size: 0.875rem;
+}
+
+.form-group input {
+  padding: 0.75rem;
+  border: 2px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 1rem;
+  transition: all 0.2s;
+}
+
+.form-group input:focus {
+  outline: none;
+  border-color: #6366f1;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+
+.form-group small {
+  color: #94a3b8;
+  font-size: 0.75rem;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+/* Preview */
+.config-preview {
+  background: #f8fafc;
+  padding: 1rem;
+  border-radius: 8px;
+  border: 2px dashed #cbd5e1;
+  text-align: center;
+}
+
+.config-preview strong {
+  display: block;
+  color: #475569;
+  font-size: 0.875rem;
+  margin-bottom: 0.5rem;
+}
+
+.preview-code {
+  font-family: 'Courier New', monospace;
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #6366f1;
+}
+
+/* Actions */
+.config-actions {
+  margin-top: 0.5rem;
+}
+
+.btn {
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: all 0.2s;
+  font-size: 0.875rem;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+  color: white;
+  width: 100%;
+  justify-content: center;
+}
+
+.btn-primary:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(99, 102, 241, 0.3);
+}
+
+.btn-primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-secondary {
+  background: #f1f5f9;
+  color: #475569;
+}
+
+.btn-secondary:hover {
+  background: #e2e8f0;
+}
+
+.btn-danger {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+.btn-danger:hover {
+  background: #fecaca;
+}
+
+/* Results Panel */
+.generador-qr-results-panel {
+  background: white;
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  min-height: 400px;
+}
+
+/* Empty State */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 400px;
+  color: #94a3b8;
+text-align: center;
+}
+
+.empty-state i {
+  color: #cbd5e1;
+  margin-bottom: 1rem;
+}
+
+.empty-state p {
+  font-size: 1.125rem;
+  font-weight: 600;
+  margin: 0 0 0.5rem 0;
+}
+
+.empty-state small {
+  font-size: 0.875rem;
+}
+
+/* Results Header */
+.results-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 2px solid #f1f5f9;
+}
+
+.results-header h3 {
+  font-size: 1.25rem;
+  color: #1e293b;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.results-header h3 i {
+  color: #10b981;
+}
+
+.results-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+/* QR Grid */
+.qr-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 1.5rem;
+}
+
+.qr-card {
+  background: #f8fafc;
+  border: 2px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 1rem;
+  text-align: center;
+  transition: all 0.2s;
+}
+
+.qr-card:hover {
+  border-color: #6366f1;
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.15);
+  transform: translateY(-4px);
+}
+
+.qr-image-container {
+  background: white;
+  padding: 0.5rem;
+  border-radius: 8px;
+  margin-bottom: 0.75rem;
+}
+
+.qr-image-container img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.qr-code-label {
+  font-family: 'Courier New', monospace;
+  font-weight: bold;
+  color: #1e293b;
+  font-size: 0.875rem;
+  margin-bottom: 0.25rem;
+}
+
+.qr-product-label {
+  font-size: 0.75rem;
+  color: #64748b;
+}
+
+/* More Items Indicator */
+.more-items-indicator {
+  margin-top: 1.5rem;
+  padding: 1rem;
+  background: #f8fafc;
+  border-radius: 8px;
+  text-align: center;
+  color: #64748b;
+  font-size: 0.875rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+/* Print Styles */
+.print-area {
+  padding: 2rem;
+}
+
+.print-header {
+  text-align: center;
+  margin-bottom: 2rem;
+  border-bottom: 2px solid #000;
+  padding-bottom: 1rem;
+}
+
+.print-header h1 {
+  margin: 0 0 0.5rem 0;
+  font-size: 1.5rem;
+}
+
+.print-header p {
+  margin: 0.25rem 0;
+  font-size: 0.875rem;
+}
+
+.print-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.5rem;
+  page-break-inside: avoid;
+}
+
+.print-qr-item {
+  border: 2px solid #000;
+  padding: 1rem;
+  text-align: center;
+  page-break-inside: avoid;
+}
+
+.print-qr-item img {
+  width: 100%;
+  max-width: 150px;
+  height: auto;
+  margin: 0 auto 0.5rem;
+  display: block;
+}
+
+.print-qr-label {
+  font-family: 'Courier New', monospace;
+  font-weight: bold;
+  font-size: 1rem;
+  margin-bottom: 0.25rem;
+}
+
+.print-qr-product {
+  font-size: 0.875rem;
+  margin-bottom: 0.25rem;
+}
+
+.print-qr-meta {
+  font-size: 0.75rem;
+  color: #666;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .generador-qr-content {
+    grid-template-columns: 1fr;
+  }
+
+  .generador-qr-config-panel {
+    position: relative;
+    top: 0;
+  }
+
+  .qr-grid {
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  }
+}
+
+@media print {
+  .generador-qr-container,
+  .generador-qr-header,
+  .generador-qr-content,
+  .results-header {
+    display: none !important;
+  }
+
+  .print-area {
+    display: block !important;
+  }
+}
