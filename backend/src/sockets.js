@@ -35,6 +35,19 @@ const configurarSockets = (io) => {
     socket.on("evento:operacion", (data) => {
       io.emit("evento:notify", data);
     });
+
+    // 🔥 CAJAS ESCANEADAS EN CINTA TRANSPORTADORA
+    socket.on("caja:escaneada", async (data) => {
+      const { codigo_qr, linea, producto_id } = data;
+
+      // Emitir a todos los clientes conectados
+      io.emit("caja:ingresada", {
+        codigo_qr,
+        linea,
+        producto_id,
+        timestamp: new Date().toISOString(),
+      });
+    });
   });
 };
 

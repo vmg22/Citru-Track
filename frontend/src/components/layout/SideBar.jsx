@@ -42,7 +42,7 @@ const Sidebar = ({
       items: [
         { id: "logistica", icon: "fas fa-truck", text: "Logística" },
         { id: "gestion-pedidos", icon: "fas fa-clipboard-list", text: "Gestión de Pedidos" },
-        
+        { id: "generador-qr", icon: "fas fa-qrcode", text: "Generador QR" },
       ],
     },
     {

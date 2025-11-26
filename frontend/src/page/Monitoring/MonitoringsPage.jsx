@@ -12,8 +12,10 @@ import {
   Filler,
 } from "chart.js";
 import { Line, Bar } from "react-chartjs-2";
+import { io } from "socket.io-client";
 import "../../style/monitoreo.css";
 import { getAllCamaras } from "../CamaraFrio/service/camaraService";
+import QRCameraScanner from "./components/QRCameraScanner";
 
 // Registrar componentes de Chart.js
 ChartJS.register(
@@ -137,41 +139,46 @@ const MetricCard = ({ label, value, sublabel, statusClass = "" }) => {
   );
 };
 
-const Conveyor = ({ producto }) => {
+const Conveyor = ({ producto, cajasActivas = [] }) => {
   const config = productosConfig[producto];
 
-  const boxes = [
+  // Combinar cajas estáticas con cajas dinámicas escaneadas
+  const cajasEstaticas = [
     {
       id: `${config.planta}${config.linea}31218`,
       text: config.nombre,
       delay: "0s",
       colorClass: config.colorClass,
+      estatica: true,
     },
     {
       id: `${config.planta}${config.linea}31217`,
       text: config.nombre,
       delay: "4s",
       colorClass: config.colorClass,
+      estatica: true,
     },
     {
       id: `${config.planta}${config.linea}31216`,
       text: config.nombre,
       delay: "8s",
       colorClass: config.colorClass,
-    },
-    {
-      id: `${config.planta}${config.linea}31215`,
-      text: config.nombre,
-      delay: "12s",
-      colorClass: config.colorClass,
-    },
-    {
-      id: `${config.planta}${config.linea}31214`,
-      text: config.nombre,
-      delay: "16s",
-      colorClass: config.colorClass,
+      estatica: true,
     },
   ];
+
+  // Filtrar solo las cajas de la línea actual y agregar delay dinámico
+  const cajasDinamicas = cajasActivas
+    .filter(caja => caja.linea === config.linea)
+    .map((caja, index) => ({
+      id: caja.codigo_qr || caja.id,
+      text: caja.producto_nombre || config.nombre,
+      delay: `${(index + cajasEstaticas.length) * 4}s`,
+      colorClass: config.colorClass,
+      dinamica: true,
+    }));
+
+  const boxes = [...cajasEstaticas, ...cajasDinamicas];
 
   return (
     <div className="monitoreo-conveyor-section">
@@ -366,6 +373,10 @@ const MonitoreoTiempoReal = () => {
   const [camaras, setCamaras] = useState([]);
   const [camarasLoading, setCamarasLoading] = useState(true);
 
+  // Estado para cajas escaneadas dinámicamente
+  const [cajasActivas, setCajasActivas] = useState([]);
+  const [socketConnected, setSocketConnected] = useState(false);
+
   const [metrics, setMetrics] = useState({
     cajasPorMin: 42,
     pesoPromedio: "15.2 kg",
@@ -406,6 +417,41 @@ const MonitoreoTiempoReal = () => {
     }
     setTemperatureData(newTempData);
   };
+
+  // Configurar Socket.io para cajas en tiempo real
+  useEffect(() => {
+    const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:4000';
+    const socket = io(API_URL);
+
+    socket.on('connect', () => {
+      console.log('Socket.io conectado para monitoreo de cajas');
+      setSocketConnected(true);
+    });
+
+    socket.on('disconnect', () => {
+      console.log('Socket.io desconectado');
+      setSocketConnected(false);
+    });
+
+    // Escuchar evento de caja ingresada
+    socket.on('caja:ingresada', (data) => {
+      console.log('Nueva caja ingresada:', data);
+      setCajasActivas(prev => {
+        // Evitar duplicados
+        const existe = prev.find(c => c.codigo_qr === data.codigo_qr);
+        if (existe) return prev;
+        
+        // Agregar nueva caja
+        const nuevasCajas = [data, ...prev];
+        // Mantener solo las últimas 10 cajas
+        return nuevasCajas.slice(0, 10);
+      });
+    });
+
+    return () => {
+      socket.disconnect();
+    };
+  }, []);
 
   // Cargar datos de cámaras desde la BD
   useEffect(() => {
@@ -635,7 +681,7 @@ const MonitoreoTiempoReal = () => {
             />
           </div>
 
-          <Conveyor producto={productoSeleccionado} />
+          <Conveyor producto={productoSeleccionado} cajasActivas={cajasActivas} />
 
           <div className="monitoreo-panels-container">
             <div className="monitoreo-panel">
@@ -883,6 +929,15 @@ const MonitoreoTiempoReal = () => {
             />
           </div>
         </div>
+
+        {/* Componente de escaneo QR */}
+        <QRCameraScanner
+          lineaActual={lineaSeleccionada}
+          productoActual={productoSeleccionado}
+          onCajaDetectada={(caja) => {
+            console.log('Caja detectada desde scanner:', caja);
+          }}
+        />
       </div>
     </>
   );
