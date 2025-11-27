@@ -1,9 +1,8 @@
-import React, { useState, useEffect } from 'react';
-import binloteServices from './services/binloteServices';
-import '../../style/bins.css';
+import React, { useState, useEffect } from "react";
+import binloteServices from "./services/binloteServices";
+import "../../style/bins.css";
 
 const BinsPage = () => {
-
   const [productores, setProductores] = useState([]);
   const [productos, setProductos] = useState([]);
   const [fincasDisponibles, setFincasDisponibles] = useState([]);
@@ -13,15 +12,15 @@ const BinsPage = () => {
   const [itemsPerPage] = useState(5);
 
   const [formData, setFormData] = useState({
-    producto_id: '',
-    variedad_id: '',
-    productor_id: '',
-    finca_id: '',
-    fecha_cosecha: '',
-    peso_bruto: '',
-    remito: '',
-    observaciones: '',
-    responsable: 'Admin'
+    producto_id: "",
+    variedad_id: "",
+    productor_id: "",
+    finca_id: "",
+    fecha_cosecha: "",
+    peso_bruto: "",
+    remito: "",
+    observaciones: "",
+    responsable: "Admin",
   });
 
   const [loading, setLoading] = useState(false);
@@ -39,16 +38,15 @@ const BinsPage = () => {
       const [productoresData, productosData, binsData] = await Promise.all([
         binloteServices.getProductores(),
         binloteServices.getProductos(),
-        binloteServices.getBinsRecientes(10)
+        binloteServices.getBinsRecientes(10),
       ]);
 
       setProductores(productoresData.data || []);
       setProductos(productosData.data || []);
       setBinsRecientes(binsData.data || []);
-
     } catch (err) {
-      console.error('Error cargando datos iniciales:', err);
-      setError('Error al cargar los datos iniciales');
+      console.error("Error cargando datos iniciales:", err);
+      setError("Error al cargar los datos iniciales");
     } finally {
       setLoading(false);
     }
@@ -59,10 +57,10 @@ const BinsPage = () => {
     setFormData({
       ...formData,
       productor_id: productorId,
-      finca_id: ''
+      finca_id: "",
     });
 
-    const productor = productores.find(p => p.productor_id === productorId);
+    const productor = productores.find((p) => p.productor_id === productorId);
     setFincasDisponibles(productor?.fincas || []);
   };
 
@@ -71,10 +69,10 @@ const BinsPage = () => {
     setFormData({
       ...formData,
       producto_id: productoId,
-      variedad_id: ''
+      variedad_id: "",
     });
 
-    const producto = productos.find(p => p.producto_id === productoId);
+    const producto = productos.find((p) => p.producto_id === productoId);
     setVariedadesDisponibles(producto?.variedades || []);
   };
 
@@ -82,7 +80,7 @@ const BinsPage = () => {
     const { name, value } = e.target;
     setFormData({
       ...formData,
-      [name]: value
+      [name]: value,
     });
   };
 
@@ -97,12 +95,12 @@ const BinsPage = () => {
       const response = await binloteServices.validarRemito(remito);
       setRemitoValido(!response.existe);
       if (response.existe) {
-        setError('⚠️ Este número de remito ya existe en el sistema');
+        setError("⚠️ Este número de remito ya existe en el sistema");
       } else {
         setError(null);
       }
     } catch (err) {
-      console.error('Error validando remito:', err);
+      console.error("Error validando remito:", err);
     }
   };
 
@@ -113,8 +111,13 @@ const BinsPage = () => {
     setSuccess(false);
 
     try {
-      if (!formData.producto_id || !formData.fecha_cosecha || !formData.peso_bruto || !formData.remito) {
-        setError('Por favor complete todos los campos obligatorios');
+      if (
+        !formData.producto_id ||
+        !formData.fecha_cosecha ||
+        !formData.peso_bruto ||
+        !formData.remito
+      ) {
+        setError("Por favor complete todos los campos obligatorios");
         setLoading(false);
         return;
       }
@@ -123,28 +126,32 @@ const BinsPage = () => {
       // Nota: Asegúrate de que en tu archivo services exista este método y apunte al endpoint correcto (ej: POST /api/bins)
       const response = await binloteServices.crearBin({
         producto_id: parseInt(formData.producto_id),
-        variedad_id: formData.variedad_id ? parseInt(formData.variedad_id) : null,
-        productor_id: formData.productor_id ? parseInt(formData.productor_id) : null,
+        variedad_id: formData.variedad_id
+          ? parseInt(formData.variedad_id)
+          : null,
+        productor_id: formData.productor_id
+          ? parseInt(formData.productor_id)
+          : null,
         finca_id: formData.finca_id ? parseInt(formData.finca_id) : null,
         fecha_cosecha: formData.fecha_cosecha,
         peso_bruto: parseFloat(formData.peso_bruto),
         remito: formData.remito,
         observaciones: formData.observaciones,
-        responsable: formData.responsable
+        responsable: formData.responsable,
       });
 
-      console.log('✅ Respuesta del servidor:', response);
+      console.log("✅ Respuesta del servidor:", response);
 
       setSuccess(true);
-      
+
       // Ajustamos la alerta para no buscar datos del lote que ya no existen
       // Asumimos que la respuesta trae los datos del bin creado en response.data o response.data.bin
-      const binCreado = response.data.bin || response.data; 
+      const binCreado = response.data.bin || response.data;
 
-     Swal.fire({
-                icon: "success",
-                title: "BIN registrado exitosamente",
-                html: `
+      Swal.fire({
+        icon: "success",
+        title: "BIN registrado exitosamente",
+        html: `
                      <div style="text-align: left; font-size: 1.1rem;">
                      <hr>
                      <p><strong>📦 BIN ID:</strong> ${binCreado.bin_id}</p>
@@ -153,20 +160,20 @@ const BinsPage = () => {
                      <hr>
                      </div>
                      `,
-                confirmButtonText: "Aceptar",
-               });
+        confirmButtonText: "Aceptar",
+      });
 
       // Limpiar formulario
       setFormData({
-        producto_id: '',
-        variedad_id: '',
-        productor_id: '',
-        finca_id: '',
-        fecha_cosecha: '',
-        peso_bruto: '',
-        remito: '',
-        observaciones: '',
-        responsable: 'Admin'
+        producto_id: "",
+        variedad_id: "",
+        productor_id: "",
+        finca_id: "",
+        fecha_cosecha: "",
+        peso_bruto: "",
+        remito: "",
+        observaciones: "",
+        responsable: "Admin",
       });
 
       setFincasDisponibles([]);
@@ -176,16 +183,21 @@ const BinsPage = () => {
       // Recargar bins recientes
       const binsData = await binloteServices.getBinsRecientes(10);
       setBinsRecientes(binsData.data || []);
-
     } catch (err) {
-      console.error('❌ Error creando bin:', err);
-      
+      console.error("❌ Error creando bin:", err);
+
       if (err.response?.status === 409) {
-        setError('⚠️ El número de remito ya existe en el sistema');
+        setError("⚠️ El número de remito ya existe en el sistema");
       } else if (err.response?.status === 400) {
-        setError('⚠️ Datos inválidos: ' + (err.response.data.message || 'Verifique los campos'));
+        setError(
+          "⚠️ Datos inválidos: " +
+            (err.response.data.message || "Verifique los campos")
+        );
       } else {
-        setError('❌ Error al crear el bin: ' + (err.response?.data?.message || err.message));
+        setError(
+          "❌ Error al crear el bin: " +
+            (err.response?.data?.message || err.message)
+        );
       }
     } finally {
       setLoading(false);
@@ -193,17 +205,17 @@ const BinsPage = () => {
   };
 
   const formatearFecha = (fecha) => {
-    if (!fecha) return 'N/A';
+    if (!fecha) return "N/A";
     try {
-      return new Date(fecha).toLocaleString('es-AR', {
-        day: '2-digit',
-        month: '2-digit',
-        year: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit'
+      return new Date(fecha).toLocaleString("es-AR", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
       });
     } catch {
-      return 'Fecha inválida';
+      return "Fecha inválida";
     }
   };
 
@@ -217,7 +229,7 @@ const BinsPage = () => {
     return {
       currentItems,
       totalPages,
-      totalItems: binsRecientes.length
+      totalItems: binsRecientes.length,
     };
   };
 
@@ -229,7 +241,7 @@ const BinsPage = () => {
     const { totalPages } = getPaginatedBins();
     const pages = [];
     const maxVisiblePages = 5;
-    
+
     if (totalPages <= maxVisiblePages) {
       for (let i = 1; i <= totalPages; i++) {
         pages.push(i);
@@ -237,23 +249,23 @@ const BinsPage = () => {
     } else {
       if (currentPage <= 3) {
         for (let i = 1; i <= 4; i++) pages.push(i);
-        pages.push('...');
+        pages.push("...");
         pages.push(totalPages);
       } else if (currentPage >= totalPages - 2) {
         pages.push(1);
-        pages.push('...');
+        pages.push("...");
         for (let i = totalPages - 3; i <= totalPages; i++) pages.push(i);
       } else {
         pages.push(1);
-        pages.push('...');
+        pages.push("...");
         pages.push(currentPage - 1);
         pages.push(currentPage);
         pages.push(currentPage + 1);
-        pages.push('...');
+        pages.push("...");
         pages.push(totalPages);
       }
     }
-    
+
     return pages;
   };
 
@@ -278,7 +290,6 @@ const BinsPage = () => {
 
       {/* Formulario */}
       <form onSubmit={handleSubmit} className="bin-form">
-        
         {/* Productor */}
         <div className="form-group">
           <label htmlFor="productor_id">Productor</label>
@@ -290,8 +301,11 @@ const BinsPage = () => {
             disabled={loading}
           >
             <option value="">Seleccione productor</option>
-            {productores.map(productor => (
-              <option key={productor.productor_id} value={productor.productor_id}>
+            {productores.map((productor) => (
+              <option
+                key={productor.productor_id}
+                value={productor.productor_id}
+              >
                 {productor.productor_nombre}
               </option>
             ))}
@@ -309,7 +323,7 @@ const BinsPage = () => {
             disabled={!formData.productor_id || loading}
           >
             <option value="">Seleccione finca</option>
-            {fincasDisponibles.map(finca => (
+            {fincasDisponibles.map((finca) => (
               <option key={finca.finca_id} value={finca.finca_id}>
                 {finca.nombre} - {finca.ubicacion}
               </option>
@@ -329,7 +343,7 @@ const BinsPage = () => {
             required
           >
             <option value="">Seleccione producto</option>
-            {productos.map(producto => (
+            {productos.map((producto) => (
               <option key={producto.producto_id} value={producto.producto_id}>
                 {producto.producto_nombre} ({producto.categoria})
               </option>
@@ -348,7 +362,7 @@ const BinsPage = () => {
             disabled={!formData.producto_id || loading}
           >
             <option value="">Seleccione variedad</option>
-            {variedadesDisponibles.map(variedad => (
+            {variedadesDisponibles.map((variedad) => (
               <option key={variedad.variedad_id} value={variedad.variedad_id}>
                 {variedad.nombre}
               </option>
@@ -391,8 +405,12 @@ const BinsPage = () => {
         <div className="form-group">
           <label htmlFor="remito">
             Remito *
-            {remitoValido === false && <span className="error-text"> ⚠️ Ya existe</span>}
-            {remitoValido === true && <span className="success-text"> ✓ Disponible</span>}
+            {remitoValido === false && (
+              <span className="error-text"> ⚠️ Ya existe</span>
+            )}
+            {remitoValido === true && (
+              <span className="success-text"> ✓ Disponible</span>
+            )}
           </label>
           <input
             type="text"
@@ -422,12 +440,12 @@ const BinsPage = () => {
         </div>
 
         {/* Botón submit */}
-        <button 
-          type="submit" 
+        <button
+          type="submit"
           className="btn-submit"
           disabled={loading || remitoValido === false}
         >
-          {loading ? 'Registrando...' : 'Registrar Bin '}
+          {loading ? "Registrando..." : "Registrar Bin "}
         </button>
       </form>
 
@@ -439,17 +457,17 @@ const BinsPage = () => {
         ) : (
           <>
             <ul>
-              {getPaginatedBins().currentItems.map(bin => (
+              {getPaginatedBins().currentItems.map((bin) => (
                 <li key={bin.bin_id}>
                   <div className="bin-header">
                     <strong>{bin.bin_id}</strong>
-                    
-                  
+
                     {/* ya no agregamos lote en el bin solo despues de pasar por la linea de proceso, com */}
                     {/* {bin.lote_id && <span className="lote-badge">Lote #{bin.lote_id}</span>} */}
                   </div>
                   <div className="bin-info">
-                    {bin.producto_nombre} {bin.variedad_nombre && `- ${bin.variedad_nombre}`}
+                    {bin.producto_nombre}{" "}
+                    {bin.variedad_nombre && `- ${bin.variedad_nombre}`}
                   </div>
                   <div className="bin-details">
                     Remito: {bin.remito} | Peso: {bin.peso_bruto} kg
@@ -468,7 +486,11 @@ const BinsPage = () => {
               <div className="d-flex justify-content-center align-items-center mt-4 mb-3">
                 <nav>
                   <ul className="pagination mb-0">
-                    <li className={`page-item ${currentPage === 1 ? 'disabled' : ''}`}>
+                    <li
+                      className={`page-item ${
+                        currentPage === 1 ? "disabled" : ""
+                      }`}
+                    >
                       <button
                         className="page-link"
                         onClick={() => handlePageChange(currentPage - 1)}
@@ -477,13 +499,15 @@ const BinsPage = () => {
                         Anterior
                       </button>
                     </li>
-                    
+
                     {getPageNumbers().map((page, index) => (
                       <li
                         key={index}
-                        className={`page-item ${page === currentPage ? 'active' : ''} ${page === '...' ? 'disabled' : ''}`}
+                        className={`page-item ${
+                          page === currentPage ? "active" : ""
+                        } ${page === "..." ? "disabled" : ""}`}
                       >
-                        {page === '...' ? (
+                        {page === "..." ? (
                           <span className="page-link">...</span>
                         ) : (
                           <button
@@ -495,8 +519,14 @@ const BinsPage = () => {
                         )}
                       </li>
                     ))}
-                    
-                    <li className={`page-item ${currentPage === getPaginatedBins().totalPages ? 'disabled' : ''}`}>
+
+                    <li
+                      className={`page-item ${
+                        currentPage === getPaginatedBins().totalPages
+                          ? "disabled"
+                          : ""
+                      }`}
+                    >
                       <button
                         className="page-link"
                         onClick={() => handlePageChange(currentPage + 1)}
@@ -512,7 +542,16 @@ const BinsPage = () => {
 
             <div className="mt-3 text-muted small px-2 d-flex justify-content-between align-items-center">
               <span>
-                Mostrando {getPaginatedBins().currentItems.length > 0 ? ((currentPage - 1) * itemsPerPage) + 1 : 0} - {Math.min(currentPage * itemsPerPage, getPaginatedBins().totalItems)} de {getPaginatedBins().totalItems} registros
+                Mostrando{" "}
+                {getPaginatedBins().currentItems.length > 0
+                  ? (currentPage - 1) * itemsPerPage + 1
+                  : 0}{" "}
+                -{" "}
+                {Math.min(
+                  currentPage * itemsPerPage,
+                  getPaginatedBins().totalItems
+                )}{" "}
+                de {getPaginatedBins().totalItems} registros
               </span>
               <span>
                 Página {currentPage} de {getPaginatedBins().totalPages || 1}

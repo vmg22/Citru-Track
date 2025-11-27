@@ -6,7 +6,8 @@ const {
   validarRemito, 
   createBin,      
   getBinsRecientes,
-  getBinById 
+  getBinById ,
+  getEstadisticasBins
 } = require('../controllers/binloteController');
 
 
@@ -15,9 +16,18 @@ router.get('/productos', getProductos);
 
 router.get('/recientes', getBinsRecientes);
 router.get('/validar-remito/:remito', validarRemito);
+
+
+router.get('/estadisticas', getEstadisticasBins);  // Ruta para estadísticas de bins
+
+
 router.get('/:binId', getBinById);
 
 
 router.post('/', createBin); 
+
+
+
+
 
 module.exports = router;

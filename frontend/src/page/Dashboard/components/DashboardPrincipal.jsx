@@ -261,27 +261,43 @@ const DashboardPrincipal = () => {
       setLoading(true);
       setError(null);
       
-      // Cargar stock y operaciones en paralelo
-      const [stockResponse, ordenesResponse] = await Promise.all([
-        stockService.getResumenStock({}),
-        axios.get("/api/ordenes-despacho")
-      ]);
+      console.log('📊 Dashboard: Iniciando carga de datos...');
       
-      setStockData(stockResponse);
+      // Cargar stock primero (siempre debe funcionar)
+      try {
+        const stockResponse = await stockService.getResumenStock({});
+        console.log('📦 Respuesta de stock:', stockResponse);
+        setStockData(stockResponse);
+      } catch (stockErr) {
+        console.error('❌ Error al cargar stock:', stockErr);
+        setError('Error al cargar datos de stock');
+      }
 
-      // Procesar operaciones
-      const ordenesRaw = normalizeResponse(ordenesResponse.data);
-      const ordenesArr = safeArray(ordenesRaw).map(mapOrderFields);
-      
-      // Filtrar solo operaciones activas (en_carga o en_ruta)
-      const activas = ordenesArr.filter(
-        (o) => o && (o.estado === "en_carga" || o.estado === "en_ruta")
-      );
-      
-      setOperacionesActivas(activas);
+      // Intentar cargar órdenes (opcional, no debe bloquear el dashboard)
+      try {
+        const ordenesResponse = await axios.get("/api/ordenes-despacho");
+        console.log('🚛 Respuesta de órdenes:', ordenesResponse.data);
+        
+        // Procesar operaciones
+        const ordenesRaw = normalizeResponse(ordenesResponse.data);
+        const ordenesArr = safeArray(ordenesRaw).map(mapOrderFields);
+        
+        console.log('✅ Órdenes procesadas:', ordenesArr);
+        
+        // Filtrar solo operaciones activas (en_carga o en_ruta)
+        const activas = ordenesArr.filter(
+          (o) => o && (o.estado === "en_carga" || o.estado === "en_ruta")
+        );
+        
+        console.log('🔄 Operaciones activas:', activas);
+        setOperacionesActivas(activas);
+      } catch (ordenesErr) {
+        console.warn('⚠️ Error al cargar órdenes (no crítico):', ordenesErr.message);
+        // No mostrar error al usuario, solo mantener operaciones vacías
+        setOperacionesActivas([]);
+      }
     } catch (err) {
-      console.error('Error al cargar datos de stock:', err);
-      setError('Error al cargar los datos de stock');
+      console.error('❌ Error general:', err);
     } finally {
       setLoading(false);
     }

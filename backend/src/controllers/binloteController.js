@@ -185,11 +185,67 @@ const getBinById = async (req, res) => {
   }
 };
 
+
+
+
+//para sacar porcenteaje de bins 
+
+// --- CONTROLADOR PARA ESTADÍSTICAS ---
+const getEstadisticasBins = async (req, res) => {
+  try {
+    // Estadísticas por producto
+    const [porProducto] = await db.query(`
+      SELECT 
+        p.producto_id,
+        p.nombre AS producto_nombre,
+        p.categoria,
+        COUNT(b.bin_id) AS total_bins,
+        ROUND((COUNT(b.bin_id) * 100.0 / (SELECT COUNT(*) FROM bins)), 2) AS porcentaje,
+        SUM(b.peso_bruto) AS peso_total
+      FROM bins b
+      INNER JOIN productos p ON b.producto_id = p.producto_id
+      GROUP BY p.producto_id, p.nombre, p.categoria
+      ORDER BY total_bins DESC
+    `);
+
+    // Estadísticas por productor
+    const [porProductor] = await db.query(`
+      SELECT 
+        COALESCE(pr.productor_id, 0) AS productor_id,
+        COALESCE(pr.nombre, 'Sin Productor') AS productor_nombre,
+        COALESCE(pr.cuit, 'N/A') AS cuit,
+        COUNT(b.bin_id) AS total_bins,
+        ROUND((COUNT(b.bin_id) * 100.0 / (SELECT COUNT(*) FROM bins)), 2) AS porcentaje,
+        SUM(b.peso_bruto) AS peso_total
+      FROM bins b
+      LEFT JOIN productores pr ON b.productor_id = pr.productor_id
+      GROUP BY pr.productor_id, pr.nombre, pr.cuit
+      ORDER BY total_bins DESC
+    `);
+
+    // Total general de bins
+    const [totalGeneral] = await db.query(`SELECT COUNT(*) AS total FROM bins`);
+
+    res.status(200).json({ 
+      success: true, 
+      data: {
+        porProducto,
+        porProductor,
+        totalBins: totalGeneral[0].total
+      }
+    });
+  } catch (error) {
+    console.error('Error en getEstadisticasBins:', error);
+    res.status(500).json({ success: false, message: "Error al obtener estadísticas" });
+  }
+};
+
 module.exports = {
   getProductores,
   getProductos,
   validarRemito,
   createBin,     // <--- NOMBRE CORREGIDO
   getBinsRecientes,
-  getBinById
+  getBinById,
+  getEstadisticasBins
 };
