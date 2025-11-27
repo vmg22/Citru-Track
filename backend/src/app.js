@@ -4,7 +4,7 @@ const authRoutes = require('./routes/auth.routes');
 const usuariosRoutes = require('./routes/usuarios.routes');
 const productosRoutes = require('./routes/productos.routes');
 const lotesRoutes = require('./routes/lotes.routes');
-const palletsRoutes = require('./routes/pallets.routes');
+// const palletsRoutes = require('./routes/pallets.routes');
 const transporteRoutes = require('./routes/transporte.routes');
 const mailRoutes = require('./routes/mail.routes');
 const choferRoutes = require('./routes/chofer.routes');
@@ -32,7 +32,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/usuarios', usuariosRoutes);
 app.use('/api/productos', productosRoutes);
 app.use('/api/lotes', lotesRoutes);
-app.use('/api/pallets', palletsRoutes);
+// app.use('/api/pallets', palletsRoutes);
 app.use('/api/choferes', choferRoutes);
 app.use('/api/transporte', transporteRoutes);
 app.use('/api/productores', productorRoutes);
@@ -51,6 +51,10 @@ app.use('/api/proceso', procesoRoutes);
 app.use("/api/roles", rolesRoutes);
 app.use("/api/tracking", trackingRoutes);
 app.use('/api/stock', stockRoutes);
+
+// 🛑 MODIFICACIÓN CLAVE: Mapeamos el router consolidado a la base /api
+// Esto permite que /pallets y /stock funcionen correctamente.
+app.use('/api', stockRoutes); 
 // health
 app.get('/health', (req, res) => res.json({ ok: true, env: process.env.NODE_ENV || 'dev' }));
 
