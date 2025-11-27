@@ -1,0 +1,433 @@
+audit_logs;
+
+audit_id	bigint	NO	PRI		auto_increment
+tabla	varchar(100)	YES			
+registro_id	varchar(100)	YES			
+accion	varchar(50)	YES			
+usuario_id	int	YES	MUL		
+fecha	datetime	YES		CURRENT_TIMESTAMP	DEFAULT_GENERATED
+detalles	json	YES	
+
+users
+
+user_id	int	NO	PRI		auto_increment
+username	varchar(100)	NO	UNI		
+email	varchar(150)	YES	UNI		
+hashed_password	varchar(255)	NO			
+nombre	varchar(150)	YES			
+telefono	varchar(50)	YES			
+activo	tinyint(1)	YES		1	
+created_at	datetime	YES		CURRENT_TIMESTAMP	DEFAULT_GENERATED
+updated_at	datetime	YES			
+last_login	datetime	YES			
+token_reset	text	YES			
+
+
+roles
+role_id	int	NO	PRI		auto_increment
+name	varchar(50)	NO	UNI		
+description	varchar(255)	YES			
+created_at	datetime	YES		CURRENT_TIMESTAMP	DEFAULT_GENERATED
+
+user_role_id	int	NO	PRI		auto_increment
+user_id	int	NO	MUL		
+role_id	int	NO	MUL		
+assigned_at	datetime	YES		CURRENT_TIMESTAMP	DEFAULT_GENERATED
+
+id	int	NO	PRI		auto_increment
+camion_id	int	YES			
+temperatura	decimal(5,2)	YES			
+humedad	decimal(5,2)	YES			
+timestamp	datetime	YES		CURRENT_TIMESTAMP	DEFAULT_GENERATED
+
+productor_id	int	NO	PRI		auto_increment
+nombre	varchar(200)	NO			
+cuit	varchar(50)	YES			
+direccion	varchar(255)	YES			
+telefono	varchar(50)	YES			
+contactos	text	YES			
+created_at	datetime	YES		CURRENT_TIMESTAMP	DEFAULT_GENERATED
+activo	tinyint(1)	NO		1	
+
+
+finca_id	int	NO	PRI		auto_increment
+productor_id	int	NO	MUL		
+nombre	varchar(150)	NO			
+ubicacion	varchar(255)	YES			
+coordenadas	varchar(100)	YES			
+
+variedad_id	int	NO	PRI		auto_increment
+producto_id	int	NO	MUL		
+nombre	varchar(150)	NO			
+descripcion	text	YES			
+created_at	datetime	YES		CURRENT_TIMESTAMP	DEFAULT_GENERATED
+activo	tinyint(1)	NO		1	
+
+
+cliente_id	int	NO	PRI		auto_increment
+nombre	varchar(200)	NO			
+contacto	varchar(150)	YES			
+telefono	varchar(50)	YES			
+email	varchar(150)	YES			
+pais	varchar(100)	YES			
+direccion	varchar(255)	YES			
+cuit	varchar(50)	YES			
+acceso_sistema	tinyint(1)	YES		0	
+notas	text	YES			
+created_at	datetime	YES		CURRENT_TIMESTAMP	DEFAULT_GENERATED
+
+
+transportista_id	int	NO	PRI		auto_increment
+nombre	varchar(200)	NO			
+cuit	varchar(50)	YES			
+contacto	varchar(150)	YES			
+telefono	varchar(50)	YES			
+email	varchar(150)	YES			
+seguros	text	YES			
+habilitaciones	text	YES			
+created_at	datetime	YES		CURRENT_TIMESTAMP	DEFAULT_GENERATED
+activo	tinyint(1)	NO		1	
+
+
+chofer_id	int	NO	PRI		auto_increment
+transportista_id	int	YES	MUL		
+nombre	varchar(150)	NO			
+dni	varchar(50)	YES			
+licencia_categoria	varchar(20)	YES			
+licencia_vencimiento	date	YES			
+telefono	varchar(50)	YES			
+estado	enum('activo','inactivo','vacaciones')	YES		activo	
+created_at	datetime	YES		CURRENT_TIMESTAMP	DEFAULT_GENERATED
+
+camion_id	int	NO	PRI		auto_increment
+transportista_id	int	YES	MUL		
+patente	varchar(50)	NO	UNI		
+patente_acoplado	varchar(50)	YES			
+tipo_camion	varchar(100)	YES			
+capacidad_pallets	int	YES		0	
+temp_min	decimal(5,2)	YES			
+temp_max	decimal(5,2)	YES			
+ultima_desinfeccion	date	YES			
+documentos	text	YES			
+estado	enum('activo','inactivo','mantenimiento')	YES		activo	
+created_at	datetime	YES		CURRENT_TIMESTAMP	DEFAULT_GENERATED
+
+
+producto_id	int	NO	PRI		auto_increment
+nombre	varchar(150)	NO			
+categoria	varchar(100)	YES			
+unidad_base	varchar(50)	YES		kg	
+perecedero	tinyint(1)	YES		1	
+requiere_frio	tinyint(1)	YES		1	
+permite_sublotes	tinyint(1)	YES		1	
+created_at	datetime	YES		CURRENT_TIMESTAMP	DEFAULT_GENERATED
+activo	tinyint(1)	NO		1	
+
+
+envase_id	int	NO	PRI		auto_increment
+producto_id	int	NO	MUL		
+nombre	varchar(150)	NO			
+peso_unitario	decimal(8,3)	YES			
+unidad	varchar(20)	YES			
+descripcion	text	YES			
+
+lote_id	int	NO	PRI		auto_increment
+producto_id	int	NO	MUL		
+variedad_id	int	YES	MUL		
+descripcion	varchar(255)	YES			
+cantidad_bins	int	YES		0	
+peso_total	decimal(12,3)	YES		0.000	
+es_lote_maestro	tinyint(1)	YES		0	
+calibre	varchar(50)	YES			
+fecha_ingreso	datetime	YES		CURRENT_TIMESTAMP	DEFAULT_GENERATED
+estado	varchar(60)	YES		ingresado	
+responsable	varchar(150)	YES			
+created_by	int	YES	MUL		
+created_at	datetime	YES		CURRENT_TIMESTAMP	DEFAULT_GENERATED
+updated_at	datetime	YES			
+fecha_cierre	datetime	YES			
+cerrado	tinyint(1)	YES		0	
+
+sublote_id	int	NO	PRI		auto_increment
+lote_id	int	NO	MUL		
+calibre	varchar(50)	YES			
+cantidad_cajas	int	YES		0	
+porcentaje_descartes	decimal(5,2)	YES		0.00	
+notas	text	YES			
+created_at	datetime	YES		CURRENT_TIMESTAMP	DEFAULT_GENERATED
+
+
+bin_id	varchar(64)	NO	PRI		
+producto_id	int	NO	MUL		
+variedad_id	int	YES	MUL		
+lote_maestro_id	int	YES	MUL		
+productor_id	int	YES	MUL		
+finca_id	int	YES	MUL		
+fecha_cosecha	date	YES			
+fecha_ingreso_bin	datetime	YES		CURRENT_TIMESTAMP	DEFAULT_GENERATED
+peso_bruto	decimal(10,3)	YES			
+calibre	varchar(50)	YES			
+remito	varchar(100)	YES			
+observaciones	text	YES			
+estado_actual	varchar(100)	YES	MUL	recepcionado	
+cerrado	tinyint(1)	YES		0	
+aprobado	tinyint(1)	YES		0	
+fecha_aprobacion	datetime	YES			
+usuario_aprobo	int	YES	MUL		
+proceso_actual_id	int	YES	MUL		
+fecha_ultimo_proceso	datetime	YES			
+registrado_at	datetime	YES		CURRENT_TIMESTAMP	DEFAULT_GENERATED
+
+
+id	int	NO	PRI		auto_increment
+lote_id	int	NO	MUL		
+bin_id	varchar(64)	NO	MUL		
+fecha_agregado	datetime	YES		CURRENT_TIMESTAMP	DEFAULT_GENERATED
+usuario_agrego	int	YES	MUL		
+peso_bin	decimal(10,3)	YES			
+calibre_bin	varchar(50)	YES		
+
+id	int	NO	PRI		auto_increment
+bin_id	varchar(64)	NO	MUL		
+proceso_id	int	NO	MUL		
+lote_id	int	YES	MUL		
+fecha_inicio	datetime	YES		CURRENT_TIMESTAMP	DEFAULT_GENERATED
+fecha_fin	datetime	YES			
+estado	enum('pendiente','en_proceso','completado','omitido')	YES	MUL	pendiente	
+operario	varchar(150)	YES			
+usuario_id	int	YES	MUL		
+temperatura	decimal(5,2)	YES			
+peso_entrada	decimal(10,3)	YES			
+peso_salida	decimal(10,3)	YES			
+calibre	varchar(50)	YES			
+observaciones	text	YES			
+created_at	datetime	YES		CURRENT_TIMESTAMP	DEFAULT_GENERATED
+atributos_calidad	json	YES			
+
+	camara_id	int	NO	PRI		auto_increment
+nombre	varchar(100)	NO			
+ubicacion	varchar(150)	YES			
+temperatura_aproximada	decimal(5,2)	YES			
+capacidad_pallets	int	YES		0	
+created_at	datetime	YES		CURRENT_TIMESTAMP	DEFAULT_GENERATED
+activo	tinyint(1)	NO		1	
+humedad_optima	decimal(5,2)	YES			
+presion_optima	decimal(5,2)	YES			
+
+
+movimiento_id	int	NO	PRI		auto_increment
+camara_id	int	NO	MUL		
+pallet_id	varchar(64)	NO	MUL		
+tipo_movimiento	enum('ingreso_camara','salida_camara','traslado')	NO			
+fecha_movimiento	datetime	YES		CURRENT_TIMESTAMP	DEFAULT_GENERATED
+desde	varchar(150)	YES			
+hasta	varchar(150)	YES			
+operario	varchar(150)	YES			
+temp_registrada	decimal(5,2)	YES			
+
+
+id	int	NO	PRI		auto_increment
+orden_despacho_id	int	YES			
+camion_id	int	YES			
+lat	decimal(10,7)	YES			
+lng	decimal(10,7)	YES			
+velocidad	decimal(5,2)	YES			
+evento	varchar(45)	YES			
+timestamp	datetime	YES		CURRENT_TIMESTAMP	DEFAULT_GENERATED
+
+
+tracking_id	int	NO	PRI		auto_increment
+od_id	int	NO	MUL		
+timestamp	datetime	YES		CURRENT_TIMESTAMP	DEFAULT_GENERATED
+lat	decimal(10,7)	YES			
+lng	decimal(10,7)	YES			
+velocidad	decimal(6,2)	YES			
+temperatura	decimal(5,2)	YES			
+evento	varchar(255)	YES			
+notas	text	YES			
+
+
+proceso_id	int	NO	PRI		auto_increment
+nombre	varchar(150)	NO	UNI		
+descripcion	text	YES			
+icono	varchar(50)	YES			
+orden_sugerido	int	YES		0	
+created_at	datetime	YES		CURRENT_TIMESTAMP	DEFAULT_GENERATED
+
+
+id	int	NO	PRI		auto_increment
+producto_id	int	NO	MUL		
+proceso_id	int	NO	MUL		
+orden	int	NO			
+es_opcional	tinyint(1)	YES		0	
+tiempo_estimado	int	YES			
+notas	text	YES			
+created_at	datetime	YES		CURRENT_TIMESTAMP	DEFAULT_GENERATED
+
+
+id	int	NO	PRI		auto_increment
+producto_id	int	NO	MUL		
+nombre_campo	varchar(100)	NO			
+etiqueta	varchar(150)	NO			
+tipo_campo	enum('select','number','text','checkbox','multiselect')	NO			
+opciones_json	json	YES			
+es_obligatorio	tinyint(1)	YES		0	
+orden	int	YES		0	
+unidad_medida	varchar(20)	YES			
+activo	tinyint(1)	YES		1	
+
+
+pallet_id	varchar(64)	NO	PRI		
+producto_id	int	NO	MUL		
+lote_id	int	YES	MUL		
+sublote_id	int	YES	MUL		
+cantidad_cajas	int	YES		0	
+peso_total	decimal(10,3)	YES		0.000	
+tipo_pallet	varchar(100)	YES			
+fecha_armado	datetime	YES			
+estado	enum('armado','en_camara','reservado','en_transporte','despachado','anulado')	YES		armado	
+etiqueta_qr	varchar(255)	YES			
+created_at	datetime	YES		CURRENT_TIMESTAMP	DEFAULT_GENERATED
+created_by	int	YES	MUL		
+camara_id	int	YES	MUL		
+
+
+caja_id	varchar(64)	NO	PRI		
+producto_id	int	NO	MUL		
+lote_id	int	YES	MUL		
+sublote_id	int	YES	MUL		
+tipo_caja	varchar(150)	YES			
+peso_neto	decimal(8,3)	YES			
+etiqueta_qr	varchar(255)	YES			
+estado	enum('en_planta','en_pallet','en_camara','despachada','anulada')	YES		en_planta	
+created_at	datetime	YES		CURRENT_TIMESTAMP	DEFAULT_GENERATED
+created_by	int	YES	MUL		
+
+
+id	int	NO	PRI		auto_increment
+pallet_id	varchar(64)	NO	MUL		
+caja_id	varchar(64)	NO	MUL		
+fecha_asociacion	datetime	YES		CURRENT_TIMESTAMP	DEFAULT_GENERATED
+
+movimiento_id	int	NO	PRI		auto_increment
+pallet_id	varchar(64)	NO	MUL		
+tipo_movimiento	varchar(100)	NO			
+fecha_movimiento	datetime	YES		CURRENT_TIMESTAMP	DEFAULT_GENERATED
+desde_lugar	varchar(150)	YES			
+hasta_lugar	varchar(150)	YES			
+operario	varchar(150)	YES			
+detalles	text	YES			
+
+
+od_id	int	NO		0	
+od_code	varchar(100)	NO			
+cliente_nombre	varchar(200)	YES			
+destino	varchar(255)	YES			
+tipo_destino	varchar(14)	YES			
+fecha_programada	date	YES			
+cantidad_pallets_prevista	int	YES		0	
+estado	enum('pendiente','en_carga','en_ruta','entregado','cancelado','rechazado')	YES		pendiente	
+
+
+od_id	int	NO	PRI		auto_increment
+od_code	varchar(100)	NO	UNI		
+cliente_id	int	YES	MUL		
+destino	varchar(255)	YES			
+tipo_destino	enum('aeropuerto','puerto','otra_ciudad','regreso_planta')	YES		puerto	
+producto_id	int	YES	MUL		
+estado	enum('pendiente','en_carga','en_ruta','entregado','cancelado','rechazado')	YES		pendiente	
+transportista_id	int	YES	MUL		
+camion_id	int	YES	MUL		
+chofer_id	int	YES	MUL		
+cantidad_pallets_prevista	int	YES		0	
+peso_total_previsto	decimal(12,3)	YES		0.000	
+temperatura_consigne	decimal(5,2)	YES			
+fecha_creacion	datetime	YES		CURRENT_TIMESTAMP	DEFAULT_GENERATED
+fecha_programada	datetime	YES			
+created_by	int	YES	MUL		
+observaciones	text	YES			
+
+
+id	int	NO	PRI		auto_increment
+od_id	int	NO	MUL		
+pallet_id	varchar(64)	NO	MUL		
+posicion_en_camion	int	YES			
+hora_carga	datetime	YES			
+temp_a_carga	decimal(5,2)	YES			
+sello	varchar(150)	YES			
+
+-- Vistas (Views)
+bin_id	varchar(64)	YES			
+remito	varchar(100)	YES			
+fecha_cosecha	date	YES			
+peso_bruto	decimal(10,3)	YES			
+calibre	varchar(50)	YES			
+estado_actual	varchar(100)	YES		recepcionado	
+aprobado	tinyint(1)	YES		0	
+fecha_aprobacion	datetime	YES			
+lote_maestro_id	int	YES			
+producto_id	int	NO		0	
+producto_nombre	varchar(150)	NO			
+categoria	varchar(100)	YES			
+variedad_id	int	YES		0	
+variedad_nombre	varchar(150)	YES			
+productor_nombre	varchar(200)	YES			
+finca_nombre	varchar(150)	YES			
+procesos_completados	bigint	YES			
+procesos_requeridos	bigint	YES			
+disponible_para_lote	int	NO		0	
+
+
+DESCRIBE vw_lote_maestro_detalle;
+lote_id	int	NO			
+lote_descripcion	varchar(255)	YES			
+lote_calibre	varchar(50)	YES			
+total_bins_lote	int	YES		0	
+peso_total_lote	decimal(12,3)	YES		0.000	
+bin_id	varchar(64)	NO			
+fecha_agregado	datetime	YES		CURRENT_TIMESTAMP	DEFAULT_GENERATED
+peso_bin	decimal(10,3)	YES			
+calibre_bin	varchar(50)	YES			
+remito	varchar(100)	YES			
+fecha_cosecha	date	YES			
+productor_id	int	YES			
+productor_nombre	varchar(200)	YES			
+finca_nombre	varchar(150)	YES			
+usuario_agrego	varchar(150)	YES			
+
+
+DESCRIBE vw_lotes_maestros;
+lote_id	int	NO		0	
+descripcion	varchar(255)	YES			
+es_lote_maestro	tinyint(1)	YES		0	
+calibre	varchar(50)	YES			
+cantidad_bins	int	YES		0	
+peso_total	decimal(12,3)	YES		0.000	
+estado	varchar(60)	YES		ingresado	
+cerrado	tinyint(1)	YES		0	
+fecha_ingreso	datetime	YES		CURRENT_TIMESTAMP	DEFAULT_GENERATED
+fecha_cierre	datetime	YES			
+responsable	varchar(150)	YES			
+producto_id	int	NO		0	
+producto_nombre	varchar(150)	NO			
+categoria	varchar(100)	YES			
+variedad_id	int	YES		0	
+variedad_nombre	varchar(150)	YES			
+usuario_creo	varchar(150)	YES			
+
+DESCRIBE vw_tracking_activo;
+orden_despacho_id	int	YES			
+od_code	varchar(100)	NO			
+camion_id	int	NO		0	
+patente	varchar(50)	NO			
+chofer	varchar(150)	YES			
+lat	decimal(10,7)	YES			
+lng	decimal(10,7)	YES			
+velocidad	decimal(5,2)	YES			
+estado_actual	varchar(45)	YES			
+ultima_actualizacion	datetime	YES		CURRENT_TIMESTAMP	DEFAULT_GENERATED
+destino	varchar(255)	YES			
+tipo_destino	enum('aeropuerto','puerto','otra_ciudad','regreso_planta')	YES		puerto	
+producto_id	int	YES			
+estado	enum('pendiente','en_carga','en_ruta','entregado','cancelado','rechazado')	YES		pendiente	
+producto_nombre	varchar(150)	YES			

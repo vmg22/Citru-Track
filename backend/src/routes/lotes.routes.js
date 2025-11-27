@@ -1,6 +1,27 @@
 const express = require('express');
-const router = express.Router(); // <-- FALTABA ESTA LÍNEA (y la de arriba)
+const router = express.Router();
+const {
+  createLote,
+  getAllLotes,
+  getLoteById,
+  updateLote,
+  deleteLote,
+  getLotesPorProducto,
+  getSublotesPorLote
+} = require('../controllers/lotesController');
 
-// --- (Aquí pondrás tus rutas después) ---
+// IMPORTANTE: Las rutas más específicas PRIMERO
+// Nuevas rutas para filtros - DEBEN IR ANTES DE /:id
+router.get('/por-producto/:productoId', getLotesPorProducto);
 
-module.exports = router; // <-- Esta línea ya la tenías, pero necesitaba las de arriba.
+// Rutas existentes
+router.post('/', createLote);
+router.get('/', getAllLotes);
+router.get('/:id', getLoteById);
+router.put('/:id', updateLote);
+router.delete('/:id', deleteLote);
+
+// Sublotes - debe ir después de otras rutas específicas
+router.get('/:loteId/sublotes', getSublotesPorLote);
+
+module.exports = router;
