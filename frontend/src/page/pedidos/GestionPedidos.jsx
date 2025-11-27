@@ -34,7 +34,7 @@ import {
   getProductos,
   getPalletsParaEditar, // 🔥 IMPORTAR (nueva función)
 } from "../../services/pedidosService";
-
+import "../../style/stock.css"
 const GestionPedidos = () => {
   const [pedidos, setPedidos] = useState([]);
   const [activeTab, setActiveTab] = useState("lista");
@@ -1474,54 +1474,14 @@ const ListaPedidosTab = () => {
 
   return (
     <div className="gestion-pedidos-page">
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "flex-start",
-          gap: 20,
-        }}
-      >
-        <div style={{ flex: 1 }}>
-          <h2>Gestión de Pedidos / Exportaciones</h2>
-          <div
-            style={{
-              marginTop: 10,
-              display: "flex",
-              alignItems: "center",
-              gap: 12,
-            }}
-          >
-            <div
-              style={{ display: "flex", alignItems: "center" }}
-              className="search-bar"
-            >
-              <div className="search-input-group">
-                <FaSearch />
-                <input
-                  type="text"
-                  placeholder="Buscar pedido, cliente..."
-                  name="busqueda"
-                  onChange={handleFilterChange}
-                />
-              </div>
-            </div>
-
-            <Button variant="outline-success" className="btn-filter-icon me-2">
-              <FaFilter /> Filtros
-            </Button>
-
-            <Button
-              variant="success"
-              className="btn-new-op"
-              onClick={() => setActiveTab("nuevo")}
-            >
-              <FaPlus className="me-2" /> Nuevo Pedido
-            </Button>
-          </div>
+      <div className="stock-header">
+        <h1 className="stock-title"><i className="fas fa-clipboard-list"></i> Gestión de Pedidos / Exportaciones</h1>
+        <div className="monitoreo-user-info">
+          <i className="fas fa-user-circle"></i>
+          <span>Supervisor de Planta</span>
         </div>
-
-        <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
+      </div>
+      <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
           <Card
             className="metric-card text-center p-2"
             style={{ minWidth: 140 }}
@@ -1560,62 +1520,125 @@ const ListaPedidosTab = () => {
             </Card>
           )}
         </div>
-      </div>
-
       <div
-        className="inline-filters-row mt-3"
         style={{
           display: "flex",
-          gap: 12,
-          alignItems: "center",
-          flexWrap: "wrap",
+          justifyContent: "space-between",
+          alignItems: "flex-start",
+          gap: 20,
         }}
       >
-        <Form.Select
-          name="estado"
-          onChange={handleFilterChange}
-          className="filter-select"
-          style={{ width: 160 }}
-        >
-          <option value="">Estado: Todos</option>
-          <option value="pendiente">Pendiente</option>
-          <option value="en_ruta">En Tránsito</option>
-          <option value="entregado">Exportado</option>
-          <option value="rechazado">Rechazado</option>
-          <option value="cancelado">Cancelado</option>
-        </Form.Select>
+        <div style={{ flex: 1 }}>
+          <div
+            style={{
+              marginTop: 10,
+              display: "flex",
+              alignItems: "center",
+              gap: 12,
+            }}
+          >
+            <div
+              style={{ display: "flex", alignItems: "center" }}
+              className="search-bar"
+            >
+              <div className="search-input-group">
+                <FaSearch />
+                <input
+                  type="text"
+                  placeholder="Buscar pedido, cliente..."
+                  name="busqueda"
+                  onChange={handleFilterChange}
+                />
+              </div>
+            </div>
 
-        <Form.Control
-          as="select"
-          name="cliente"
-          onChange={handleFilterChange}
-          className="filter-select"
-          style={{ width: 200 }}
-        >
-          <option value="">Cliente</option>
-        </Form.Control>
+            <Button variant="outline-success" className="btn-filter-icon me-2">
+              <FaFilter /> Filtros
+            </Button>
 
-        <Form.Select
-          name="transporte"
-          onChange={handleFilterChange}
-          className="filter-select"
-          style={{ width: 160 }}
-        >
-          <option value="">Transporte</option>
-          <option value="marítimo">Marítimo</option>
-          <option value="aéreo">Aéreo</option>
-          <option value="terrestre">Terrestre</option>
-        </Form.Select>
+            <Button
+              variant="success"
+              className="btn-new-op"
+              onClick={() => setActiveTab("nuevo")}
+            >
+              <FaPlus className="me-2" /> Nuevo Pedido
+            </Button>
+          </div>
+        </div>
 
-        <Form.Control
-          type="date"
-          name="fecha"
-          onChange={handleFilterChange}
-          className="filter-date"
-          style={{ width: 160 }}
-        />
+        
       </div>
 
+      <div 
+  className="stock-filtros" /* Usamos la clase del nuevo formato */
+  style={{
+    display: "flex",
+    gap: 15, /* Usar un gap más consistente con la estructura de grupo */
+    alignItems: "center",
+    flexWrap: "wrap",
+    marginTop: 15, /* Mantener el margen superior si es necesario */
+  }}
+>
+  {/* FILTRO 1: ESTADO */}
+  <div className="stock-filtro-grupo">
+    <label>Estado:</label>
+    <Form.Select
+      name="estado"
+      onChange={handleFilterChange}
+      className="filter-select"
+      style={{ width: 160 }}
+    >
+      <option value="">Estado: Todos</option>
+      <option value="pendiente">Pendiente</option>
+      <option value="en_ruta">En Tránsito</option>
+      <option value="entregado">Exportado</option>
+      <option value="rechazado">Rechazado</option>
+      <option value="cancelado">Cancelado</option>
+    </Form.Select>
+  </div>
+
+  {/* FILTRO 2: CLIENTE */}
+  <div className="stock-filtro-grupo">
+    <label>Cliente:</label>
+    <Form.Control
+      as="select"
+      name="cliente"
+      onChange={handleFilterChange}
+      className="filter-select"
+      style={{ width: 200 }}
+    >
+      <option value="">Cliente</option>
+    </Form.Control>
+  </div>
+
+  {/* FILTRO 3: TRANSPORTE */}
+  <div className="stock-filtro-grupo">
+    <label>Transporte:</label>
+    <Form.Select
+      name="transporte"
+      onChange={handleFilterChange}
+      className="filter-select"
+      style={{ width: 160 }}
+    >
+      <option value="">Transporte</option>
+      <option value="marítimo">Marítimo</option>
+      <option value="aéreo">Aéreo</option>
+      <option value="terrestre">Terrestre</option>
+    </Form.Select>
+  </div>
+
+  {/* FILTRO 4: FECHA (Asumimos que quieres 'Fecha') */}
+  <div className="stock-filtro-grupo">
+    <label>Fecha:</label>
+    <Form.Control
+      type="date"
+      name="fecha"
+      onChange={handleFilterChange}
+      className="filter-date stock-input-date" /* Añadimos la clase stock-input-date */
+      style={{ width: 160 }}
+    />
+  </div>
+</div>
       <div className="tabs-navigation mt-3">
         <button
           className={activeTab === "lista" ? "tab-active" : ""}

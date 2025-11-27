@@ -18,6 +18,7 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import "../../style/kpi.css";
+import "../../style/stock.css"
 import { getAllProductosActivos } from "../Settings/services/settingsServices";
 
 export default function KpiDashboard() {
@@ -87,21 +88,21 @@ export default function KpiDashboard() {
 
   return (
     <div className="kpi-container">
-      <div className="monitoreo-header">
-        <h2>
-          <i className="fas fa-chart-line"></i> KPIs - CitrusTrack
-        </h2>
+      <div className="stock-header">
+        <h1 className="stock-title"><i className="fas fa-chart-line"></i> KPIs - CitrusTrack</h1>
         <div className="monitoreo-user-info">
           <i className="fas fa-user-circle"></i>
           <span>Supervisor de Planta</span>
         </div>
       </div>
-      <div>
-        <div className="kpi-filtros">
-         <label>Producto:</label>
+
+      <div className="stock-filtros">
+        <div className="stock-filtro-grupo">
+          <label>Producto:</label>
           <select
             value={producto || ""}
             onChange={(e) => setProducto(e.target.value || null)}
+            className="stock-select"
           >
           <option value="">Elegir producto</option>
             {productos.map((p) => (
@@ -110,14 +111,20 @@ export default function KpiDashboard() {
               </option>
             ))}
           </select>
+        </div>
+        <div className="stock-filtro-grupo">
           <label>Desde:</label>
           <input
             type="date"
             value={filters.fecha_from}
             onChange={(e) =>
               setFilters((f) => ({ ...f, fecha_from: e.target.value }))
+              
             }
+            className="stock-input-date"
           />
+        </div>
+        <div className="stock-filtro-grupo">
           <label>Hasta:</label>
           <input
             type="date"
@@ -125,8 +132,12 @@ export default function KpiDashboard() {
             onChange={(e) =>
               setFilters((f) => ({ ...f, fecha_to: e.target.value }))
             }
+            className="stock-input-date"
           />
         </div>
+        </div>
+      <div>
+
         {/* Cámaras */}
         {producto === null && camaras && (
           <>
