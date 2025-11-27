@@ -1,54 +1,54 @@
 const express = require('express');
 const router = express.Router();
 const stockController = require('../controllers/stockController');
+const palletController = require('../controllers/palletsController'); 
+const palletCreationController = require('../controllers/creacionPalletController');
+const movementController = require('../controllers/movimientoController');
+
+// =========================================================
+// RUTAS DE ESCRITURA (Transaccionales)
+// **USAR estas rutas para crear y mover pallets y asegurar integridad**
+// =========================================================
+
+// POST /pallets/armar
+// Crea un nuevo pallet y asocia las cajas (Transaccional)
+router.post('/pallets/armar', palletCreationController.armarPallet);
+
+// PUT /pallets/:pallet_id/mover
+// Mueve un pallet a un nuevo estado/cámara y sincroniza las cajas (Transaccional)
+router.put('/pallets/:pallet_id/mover', movementController.moverPallet);
 
 
+// =========================================================
+// RUTAS DE LECTURA DE DETALLE (GET /pallets)
+// =========================================================
+
+// GET /pallets?productoId=X&estado=Y 
+// Obtener pallets detallados con conteo de cajas dinámico
+router.get('/pallets', palletController.getPalletsByFilter); 
 
 
-//     GET /api/stock/resumen
-//     Obtener resumen agregado de stock
-//     producto_id, fecha_desde, fecha_hasta
-//      Private
+// =========================================================
+// RUTAS DE STOCK (Lectura de Resumen/Agregación)
+// =========================================================
 
-router.get('/resumen', stockController.getResumenStock);
+// GET /stock/resumen
+router.get('/stock/resumen', stockController.getResumenStock);
 
+// GET /stock/estado/:estado
+router.get('/stock/estado/:estado', stockController.getStockPorEstado);
 
-//   GET /api/stock/estado/:estado
-//   Obtener stock filtrado por estado específico
-//   estado (armado, en_camara, reservado, en_transporte, despachado, anulado)
-//   producto_id
-//   Private
+// GET /stock/producto/:producto_id
+router.get('/stock/producto/:producto_id', stockController.getStockPorProducto);
 
-router.get('/estado/:estado', stockController.getStockPorEstado);
+// GET /stock/alertas
+router.get('/stock/alertas', stockController.getAlertasStock);
 
+// GET /stock/historico
+router.get('/stock/historico', stockController.getHistoricoStock);
 
-//   GET /api/stock/producto/:producto_id
-//   Obtener stock de un producto específico
-//   producto_id
-//   estado, fecha_desde, fecha_hasta
-//   Private
-
-router.get('/producto/:producto_id', stockController.getStockPorProducto);
-
-//    GET /api/stock/alertas
-//   Obtener alertas de productos con stock bajo
-//   Private
-
-router.get('/alertas', stockController.getAlertasStock);
-
-
-//    GET /api/stock/historico
-//    Obtener histórico de movimientos de stock
-//    producto_id, dias (default: 30)
-//    Private
-
-router.get('/historico', stockController.getHistoricoStock);
-
-//    Obtener todos los pallets con filtros opcionales
-//    producto_id, fecha_desde, fecha_hasta
-//    Private (agregar middleware de auth si es necesario)
- 
-router.get('/', stockController.getStockData);
+// GET /stock (Obtener todos los pallets con filtros opcionales)
+router.get('/stock', stockController.getStockData);
 
 
 module.exports = router;
