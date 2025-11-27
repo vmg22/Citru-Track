@@ -82,6 +82,7 @@ const ModalRegistrarProceso = ({ bin, onClose, onSuccess }) => {
     }
 
     // TIPO MULTISELECT (CHECKBOXES)
+// TIPO MULTISELECT (CHECKBOXES)
     if (campo.tipo_campo === 'multiselect') {
        let opciones = [];
        try {
@@ -98,10 +99,16 @@ const ModalRegistrarProceso = ({ bin, onClose, onSuccess }) => {
        }
 
        return (
-         <div className="checkbox-group">
+         /* CAMBIO AQUÍ: Usamos una clase para grid y labels más limpios */
+         <div className="checkbox-grid">
             {opciones.map(opt => (
-               <label key={opt} style={{display:'block', margin:'5px 0'}}>
-                  <input type="checkbox" checked={seleccionados.includes(opt)} onChange={() => handleCheck(opt)}/> {opt}
+               <label key={opt} className="checkbox-item">
+                  <input 
+                    type="checkbox" 
+                    checked={seleccionados.includes(opt)} 
+                    onChange={() => handleCheck(opt)}
+                  /> 
+                  <span>{opt}</span>
                </label>
             ))}
          </div>
