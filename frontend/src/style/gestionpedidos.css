@@ -623,7 +623,7 @@ h5.text-secondary {
 }
 
 .pallets-disponibles-table thead th {
-  padding: 18px 25px !important;
+  padding: 20px 30px !important;
   font-weight: 600;
   text-transform: uppercase;
   font-size: 0.85rem;
@@ -634,7 +634,7 @@ h5.text-secondary {
 
 /* Celdas del cuerpo */
 .pallets-disponibles-table tbody td {
-  padding: 15px 25px !important;
+  padding: 18px 30px !important;
   font-size: 0.95rem;
   vertical-align: middle;
   border: 1px solid #dee2e6;
@@ -648,42 +648,42 @@ h5.text-secondary {
 
 /* Anchos específicos de columnas */
 .pallets-col-checkbox {
-  width: 100px;
-  text-align: center;
-}
-
-.pallets-col-id {
-  width: 180px;
-  min-width: 150px;
-}
-
-.pallets-col-lote {
-  width: 250px;
-  min-width: 200px;
-}
-
-.pallets-col-cajas {
   width: 120px;
   text-align: center;
 }
 
-.pallets-col-peso {
+.pallets-col-id {
+  width: 200px;
+  min-width: 180px;
+}
+
+.pallets-col-lote {
+  width: 280px;
+  min-width: 250px;
+}
+
+.pallets-col-cajas {
   width: 140px;
   text-align: center;
 }
 
+.pallets-col-peso {
+  width: 160px;
+  text-align: center;
+}
+
 .pallets-col-tipo {
-  width: 180px;
-  min-width: 150px;
+  width: 200px;
+  min-width: 180px;
 }
 
 .pallets-col-fecha {
-  width: 150px;
+  width: 170px;
   text-align: center;
 }
 
 .pallets-col-estado {
-  width: 130px;
+  width: 150px;
   text-align: center;
 }
 
@@ -1000,3 +1000,136 @@ h5.text-secondary {
   width: 100%;
   margin-bottom: 0;
 }
+
+/* =========================================
+   7. MODAL DE VISTA (SOLO LECTURA) - FIX Z-INDEX
+   ========================================= */
+
+/* CRÍTICO: Asegurar que el modal de Bootstrap se muestre por encima de TODO */
+.modal {
+  z-index: 9999 !important;
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+}
+
+.modal-backdrop {
+  z-index: 9998 !important;
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  background-color: rgba(0, 0, 0, 0.5) !important;
+}
+
+.modal-dialog {
+  z-index: 10000 !important;
+  position: relative !important;
+  margin: 2rem auto !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  min-height: calc(100vh - 4rem) !important;
+}
+
+/* Estilos para el modal de vista */
+.modal-xl {
+  max-width: 1600px !important;
+  width: 92% !important;
+}
+
+.modal-content {
+  position: relative !important;
+  background-color: #fff !important;
+  border-radius: 12px !important;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5) !important;
+}
+
+.modal-header.bg-primary {
+  background-color: var(--citrus-green) !important;
+  border-top-left-radius: 12px !important;
+  border-top-right-radius: 12px !important;
+  padding: 20px 30px !important;
+}
+
+.modal-header.bg-primary .modal-title {
+  color: rgba(255, 255, 255, 0.95) !important;
+  font-weight: 600 !important;
+  font-size: 1.4rem !important;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
+}
+
+.modal-header.bg-primary .btn-close {
+  display: none !important;
+}
+
+.modal-body {
+  background-color: #fff !important;
+  max-height: 70vh !important;
+  overflow-y: auto !important;
+}
+
+.modal-body p {
+  margin-bottom: 0.5rem;
+  line-height: 1.6;
+}
+
+.modal-body p strong {
+  color: #333;
+  font-weight: 600;
+  min-width: 180px;
+  display: inline-block;
+}
+
+.modal-body h5 {
+  color: var(--citrus-green);
+  font-weight: 600;
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+}
+
+/* Fix para que el contenedor principal no interfiera */
+.divContenerGestionPedidos {
+  position: relative !important;
+  z-index: 1 !important;
+}
+
+/* =========================================
+   8. MODAL DRAGGABLE (ARRASTRABLE)
+   ========================================= */
+
+.draggable-modal .modal-content {
+  position: relative !important;
+}
+
+.draggable-modal-header {
+  cursor: move !important;
+  user-select: none !important;
+  -webkit-user-select: none !important;
+  -moz-user-select: none !important;
+  -ms-user-select: none !important;
+}
+
+/* Mejorar visibilidad del texto en el header */
+.draggable-modal-header .modal-title {
+  color: rgba(255, 255, 255, 0.95) !important;
+  font-weight: 600 !important;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
+  font-size: 1.35rem !important;
+}
+
+/* Ocultar botón de cerrar circular negro */
+.draggable-modal-header .btn-close {
+  display: none !important;
+}
+
+/* Sombra más fuerte para el modal */
+.draggable-modal .modal-content {
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6) !important;
+}
+

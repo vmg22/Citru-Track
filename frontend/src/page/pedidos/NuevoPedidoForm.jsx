@@ -564,13 +564,13 @@ const NuevoPedidoForm = ({ onOrderSaved, onCancel }) => {
   {formData.productoId && !ordenCreada && (
     <>
       <h5 className="subsection-title-custom">
-        Pallets Disponibles en Cámara
+        Pallets Disponibles (Armados y En Cámara)
       </h5>
       {loadingPallets ? (
         <Alert variant="info">Cargando pallets...</Alert>
       ) : palletsDisponibles.length === 0 ? (
         <Alert variant="warning">
-          No hay pallets disponibles en cámara para este producto.
+          No hay pallets disponibles para este producto.
         </Alert>
       ) : (
         <>

@@ -195,11 +195,20 @@ export async function getChoferes() {
   }
 }
 
-/** GET /api/pallets?productoId=X&estado=en_camara */
+/** GET /api/pallets?productoId=X - Pallets disponibles (armado o en_camara) */
 export async function getPalletsByProducto(productoId) { 
   try {
-    const res = await fetch(`${API_BASE}/api/pallets?productoId=${productoId}&estado=en_camara`);
-    return await handleResponse(res);
+    // 🔥 MODIFICADO: Ya no filtramos por estado aquí
+    // El backend manejará la lógica de estados múltiples
+    const res = await fetch(`${API_BASE}/api/pallets?productoId=${productoId}`);
+    const allPallets = await handleResponse(res);
+    
+    // Filtrar solo pallets en estado 'armado' o 'en_camara' y no asociados a pedidos
+    const palletsDisponibles = allPallets.filter(p => 
+      (p.estado === 'armado' || p.estado === 'en_camara')
+    );
+    
+    return palletsDisponibles;
   } catch (error) {
     console.error('[getPalletsByProducto] Error:', error);
     throw error;
