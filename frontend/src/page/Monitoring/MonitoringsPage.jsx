@@ -6,12 +6,14 @@ import {
   PointElement,
   LineElement,
   BarElement,
+  ArcElement,
+  RadialLinearScale,
   Title,
   Tooltip,
   Legend,
   Filler,
 } from "chart.js";
-import { Line, Bar } from "react-chartjs-2";
+import { Line, Bar, PolarArea } from "react-chartjs-2";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip as RechartsTooltip, Legend as RechartsLegend } from "recharts";
 import axios from "axios";
 import { io } from "socket.io-client";
@@ -27,6 +29,8 @@ ChartJS.register(
   PointElement,
   LineElement,
   BarElement,
+  ArcElement,
+  RadialLinearScale,
   Title,
   Tooltip,
   Legend,
@@ -378,8 +382,13 @@ const MonitoreoTiempoReal = () => {
   // Estado para cajas escaneadas dinámicamente
   const [cajasActivas, setCajasActivas] = useState([]);
 
-  // Estado para KPI de pallets por estado
-  const [palletsEstado, setPalletsEstado] = useState(null);
+  // Estado para estadísticas de bins
+  const [binStats, setBinStats] = useState({
+    porProducto: [],
+    porProductor: [],
+    totalBins: 0
+  });
+  const [loadingBins, setLoadingBins] = useState(true);
 
   const [metrics, setMetrics] = useState({
     cajasPorMin: 42,
@@ -453,18 +462,39 @@ const MonitoreoTiempoReal = () => {
     fetchCamaras();
   }, []);
 
-  // Cargar datos de pallets por estado
+  // Cargar estadísticas de bins
   useEffect(() => {
-    const fetchPalletsEstado = async () => {
+    const fetchBinStats = async () => {
       try {
+        setLoadingBins(true);
         const API_URL = import.meta.env.VITE_API_URL?.replace("/api", "") || "http://localhost:4000";
-        const response = await axios.get(`${API_URL}/api/kpi/camaras`);
-        setPalletsEstado(response.data);
+        const response = await axios.get(`${API_URL}/api/binlote/estadisticas`);
+        
+        if (response.data.success) {
+          const dataProcesada = {
+            porProducto: response.data.data.porProducto.map((p) => ({
+              ...p,
+              total_bins: parseInt(p.total_bins) || 0,
+              porcentaje: parseFloat(p.porcentaje) || 0,
+              peso_total: parseFloat(p.peso_total) || 0,
+            })),
+            porProductor: response.data.data.porProductor.map((p) => ({
+              ...p,
+              total_bins: parseInt(p.total_bins) || 0,
+              porcentaje: parseFloat(p.porcentaje) || 0,
+              peso_total: parseFloat(p.peso_total) || 0,
+            })),
+            totalBins: parseInt(response.data.data.totalBins) || 0,
+          };
+          setBinStats(dataProcesada);
+        }
       } catch (error) {
-        console.error("Error al cargar pallets por estado:", error);
+        console.error("Error al cargar estadísticas de bins:", error);
+      } finally {
+        setLoadingBins(false);
       }
     };
-    fetchPalletsEstado();
+    fetchBinStats();
   }, []);
 
   useEffect(() => {
@@ -640,112 +670,176 @@ const MonitoreoTiempoReal = () => {
           <div className="monitoreo-panels-container">
             <div className="monitoreo-panel">
               <div className="monitoreo-section-title">
-                <i className="fas fa-chart-pie"></i>
-                Pallets por Estado
+                <i className="fas fa-chart-area"></i>
+                Bins por Producto (Gráfica Polar)
               </div>
-              {palletsEstado && palletsEstado.porEstado ? (
-                <ResponsiveContainer width="100%" height={350}>
-                  <PieChart>
-                    <Pie
-                      data={palletsEstado.porEstado.map((r) => ({
-                        name: r.estado,
-                        value: r.cantidad,
-                      }))}
-                      dataKey="value"
-                      nameKey="name"
-                      cx="50%"
-                      cy="50%"
-                      outerRadius={100}
-                      label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
-                    >
-                      {palletsEstado.porEstado.map((entry, index) => (
-                        <Cell
-                          key={index}
-                          fill={(() => {
-                            switch (entry.estado) {
-                              case "armado":
-                                return "#007bff";
-                              case "despachado":
-                                return "#28a745";
-                              case "en_camara":
-                                return "#0d5661ff";
-                              case "reservado":
-                                return "#ffc107";
-                              case "en_transporte":
-                                return "#fd7e14";
-                              case "anulado":
-                                return "#dc3545";
-                              default:
-                                return "#6c757d";
-                            }
-                          })()}
-                        />
-                      ))}
-                    </Pie>
-                    <RechartsTooltip />
-                    <RechartsLegend />
-                  </PieChart>
-                </ResponsiveContainer>
+              {loadingBins ? (
+                <div style={{ padding: "40px", textAlign: "center", color: "#666" }}>
+                  Cargando estadísticas de bins...
+                </div>
+              ) : binStats.porProducto.length > 0 ? (
+                <div style={{ height: "350px", padding: "10px" }}>
+                  <PolarArea
+                    data={{
+                      labels: binStats.porProducto.map((p) => p.producto_nombre),
+                      datasets: [{
+                        label: "Cantidad de Bins",
+                        data: binStats.porProducto.map((p) => p.total_bins),
+                        backgroundColor: [
+                          "rgba(255, 99, 132, 0.8)",
+                          "rgba(54, 162, 235, 0.8)",
+                          "rgba(255, 206, 86, 0.8)",
+                          "rgba(75, 192, 192, 0.8)",
+                          "rgba(153, 102, 255, 0.8)",
+                          "rgba(255, 159, 64, 0.8)",
+                          "rgba(199, 199, 199, 0.8)",
+                          "rgba(83, 102, 255, 0.8)",
+                        ],
+                        borderWidth: 2,
+                        borderColor: "#fff",
+                      }]
+                    }}
+                    options={{
+                      responsive: true,
+                      maintainAspectRatio: false,
+                      plugins: {
+                        legend: {
+                          position: "right",
+                          labels: {
+                            color: "#1f2937",
+                            font: { size: 12, weight: "500" },
+                            padding: 15,
+                            generateLabels: (chart) => {
+                              const data = chart.data;
+                              return data.labels.map((label, i) => ({
+                                text: `${label} (${binStats.porProducto[i].porcentaje}%)`,
+                                fillStyle: data.datasets[0].backgroundColor[i],
+                                hidden: false,
+                                index: i,
+                              }));
+                            },
+                          },
+                        },
+                        tooltip: {
+                          callbacks: {
+                            label: (context) => {
+                              const idx = context.dataIndex;
+                              const producto = binStats.porProducto[idx];
+                              return [
+                                `Bins: ${producto.total_bins}`,
+                                `Porcentaje: ${producto.porcentaje}%`,
+                                `Peso Total: ${producto.peso_total.toFixed(2)} kg`,
+                              ];
+                            },
+                          },
+                        },
+                      },
+                      scales: {
+                        r: {
+                          ticks: {
+                            backdropColor: "transparent",
+                            color: "#6b7280",
+                            font: { size: 11 },
+                          },
+                          grid: { color: "rgba(0, 0, 0, 0.1)" },
+                        },
+                      },
+                    }}
+                  />
+                </div>
               ) : (
                 <div style={{ padding: "40px", textAlign: "center", color: "#666" }}>
-                  Cargando datos de pallets...
+                  No hay datos de bins por producto
                 </div>
               )}
             </div>
 
             <div className="monitoreo-panel">
               <div className="monitoreo-section-title">
-                <i className="fas fa-chart-pie"></i>
-                Pallets por producto en cámara
+                <i className="fas fa-chart-bar"></i>
+                Bins por Productor (Gráfica de Barras 3D)
               </div>
-              {palletsEstado && palletsEstado.palletsPorProducto && palletsEstado.palletsPorProducto.length > 0 ? (
-                <ResponsiveContainer width="100%" height={350}>
-                  <PieChart>
-                    <Pie
-                      data={palletsEstado.palletsPorProducto.map((r) => ({
-                        name: r.producto_nombre,
-                        value: Number(r.pallets_en_camara),
-                      }))}
-                      dataKey="value"
-                      nameKey="name"
-                      cx="50%"
-                      cy="50%"
-                      outerRadius={100}
-                      innerRadius={50}
-                      label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
-                      labelLine={true}
-                    >
-                      {palletsEstado.palletsPorProducto.map((entry, index) => {
-                        const productName = entry.producto_nombre.toLowerCase();
-                        let fillColor;
-
-                        if (productName.includes("palta")) {
-                          fillColor = "#28a745";
-                        } else if (productName.includes("arándano")) {
-                          fillColor = "#6f42c1";
-                        } else if (productName.includes("limón")) {
-                          fillColor = "#ffc107";
-                        } else if (productName.includes("frutilla")) {
-                          fillColor = "#e83e8c";
-                        } else if (productName.includes("naranja")) {
-                          fillColor = "#fd7e14";
-                        } else if (productName.includes("toronjas")) {
-                          fillColor = "#dc3545";
-                        } else {
-                          const defaultColors = ["#17a2b8", "#007bff", "#6610f2", "#6f42c1", "#e83e8c"];
-                          fillColor = defaultColors[index % defaultColors.length];
-                        }
-
-                        return <Cell key={`cell-${index}`} fill={fillColor} />;
-                      })}
-                    </Pie>
-                    <RechartsTooltip />
-                    <RechartsLegend />
-                  </PieChart>
-                </ResponsiveContainer>
+              {loadingBins ? (
+                <div style={{ padding: "40px", textAlign: "center", color: "#666" }}>
+                  Cargando estadísticas de bins...
+                </div>
+              ) : binStats.porProductor.length > 0 ? (
+                <div style={{ height: "350px", padding: "10px" }}>
+                  <Bar
+                    data={{
+                      labels: binStats.porProductor.map((p) => p.productor_nombre),
+                      datasets: [{
+                        label: "Cantidad de Bins",
+                        data: binStats.porProductor.map((p) => p.total_bins),
+                        backgroundColor: [
+                          "rgba(34, 202, 236, 0.8)",
+                          "rgba(72, 149, 239, 0.8)",
+                          "rgba(106, 90, 205, 0.8)",
+                          "rgba(255, 107, 107, 0.8)",
+                          "rgba(255, 195, 0, 0.8)",
+                          "rgba(46, 213, 115, 0.8)",
+                          "rgba(255, 121, 63, 0.8)",
+                          "rgba(224, 86, 253, 0.8)",
+                        ],
+                        borderColor: [
+                          "rgb(34, 202, 236)",
+                          "rgb(72, 149, 239)",
+                          "rgb(106, 90, 205)",
+                          "rgb(255, 107, 107)",
+                          "rgb(255, 195, 0)",
+                          "rgb(46, 213, 115)",
+                          "rgb(255, 121, 63)",
+                          "rgb(224, 86, 253)",
+                        ],
+                        borderWidth: 2,
+                        borderRadius: 8,
+                        borderSkipped: false,
+                      }]
+                    }}
+                    options={{
+                      responsive: true,
+                      maintainAspectRatio: false,
+                      plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                          callbacks: {
+                            label: (context) => {
+                              const idx = context.dataIndex;
+                              const productor = binStats.porProductor[idx];
+                              return [
+                                `Bins: ${productor.total_bins}`,
+                                `Porcentaje: ${productor.porcentaje}%`,
+                                `Peso Total: ${productor.peso_total.toFixed(2)} kg`,
+                              ];
+                            },
+                          },
+                        },
+                      },
+                      scales: {
+                        y: {
+                          beginAtZero: true,
+                          ticks: {
+                            color: "#6b7280",
+                            font: { size: 12 },
+                          },
+                          grid: { color: "rgba(0, 0, 0, 0.05)" },
+                        },
+                        x: {
+                          ticks: {
+                            color: "#374151",
+                            font: { size: 11, weight: "500" },
+                            maxRotation: 45,
+                            minRotation: 45,
+                          },
+                          grid: { display: false },
+                        },
+                      },
+                    }}
+                  />
+                </div>
               ) : (
                 <div style={{ padding: "40px", textAlign: "center", color: "#666" }}>
-                  No hay pallets en cámara en este momento
+                  No hay datos de bins por productor
                 </div>
               )}
             </div>
