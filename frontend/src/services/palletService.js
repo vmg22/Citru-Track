@@ -118,7 +118,7 @@ export const crearPalletConCajas = async (dataPallet) => {
     if (!dataPallet.producto_id) throw new Error('Falta el ID del producto');
     if (!dataPallet.cajas_ids?.length) throw new Error('Seleccione al menos una caja');
 
-    const response = await axiosInstance.post('/pallets/crear-con-cajas', dataPallet);
+    const response = await axiosInstance.post('/pallets/armar', { ...dataPallet, cajas_a_incluir: dataPallet.cajas_ids });
     return response.data;
   } catch (error) {
     // Relanzamos el error para que el componente (UI) pueda mostrar el mensaje
