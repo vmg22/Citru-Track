@@ -1,9 +1,7 @@
 /* Contenedor principal */
 .stock-container {
-  max-width: 1400px;
   margin: 0 auto;
   padding: 20px;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
   background-color: #f5f7fa;
   min-height: 100vh;
 }
@@ -22,8 +20,8 @@
 
 .stock-title {
   font-size: 28px;
-  font-weight: 700;
-  color: #2c3e50;
+  font-weight: 600;
+  color: #2e7d32;
   margin: 0;
 }
 
@@ -152,12 +150,12 @@
 
 .stock-select:hover,
 .stock-input-date:hover {
-  border-color: #3498db;
+  border-color: #4a7c2f;
 }
 
 .stock-select:focus,
 .stock-input-date:focus {
-  border-color: #3498db;
+  border-color: #4a7c2f;
   box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
 }
 
@@ -181,26 +179,6 @@
   box-shadow: 0 4px 12px rgba(231, 76, 60, 0.3);
 }
 
-.stock-btn-actualizar {
-  padding: 10px 25px;
-  background-color: #3498db;
-  color: white;
-  border: none;
-  border-radius: 8px;
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  height: 42px;
-  align-self: flex-end;
-}
-
-.stock-btn-actualizar:hover {
-  background-color: #2980b9;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(52, 152, 219, 0.3);
-}
-
 /* Cards principales */
 .stock-cards-principales {
   display: grid;
@@ -210,24 +188,21 @@
 }
 
 .stock-card {
-  background: white;
+  background: white; /* Fondo blanco */
   border-radius: 12px;
   padding: 25px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15); /* Sombra más pronunciada */
   transition: all 0.3s ease;
   display: flex;
   align-items: center;
   gap: 20px;
+  border: 2px solid #64cf69; 
 }
 
 .stock-card:hover {
   transform: translateY(-5px);
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
-}
-
-.stock-card-icon {
-  font-size: 48px;
-  opacity: 0.9;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2); 
+  border-color: #529656; 
 }
 
 .stock-card-content {
@@ -247,43 +222,26 @@
   font-size: 36px;
   font-weight: 700;
   margin: 0;
-  color: #2c3e50;
+  color: #2c3e50; /* Color de texto oscuro para mejor contraste */
 }
 
-.stock-card-total {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+/* Elimina los gradientes de colores anteriores y reemplaza con estilo blanco */
+.stock-card-total,
+.stock-card-pallets,
+.stock-card-peso,
+.stock-card-promedio {
+  background: white; /* Fondo blanco para todas las cards */
 }
 
 .stock-card-total .stock-card-titulo,
-.stock-card-total .stock-card-numero {
-  color: white;
-}
-
-.stock-card-pallets {
-  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-}
-
+.stock-card-total .stock-card-numero,
 .stock-card-pallets .stock-card-titulo,
-.stock-card-pallets .stock-card-numero {
-  color: white;
-}
-
-.stock-card-promedio {
-  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-}
-
+.stock-card-pallets .stock-card-numero,
+.stock-card-peso .stock-card-titulo,
+.stock-card-peso .stock-card-numero,
 .stock-card-promedio .stock-card-titulo,
 .stock-card-promedio .stock-card-numero {
-  color: white;
-}
-
-.stock-card-peso {
-  background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
-}
-
-.stock-card-peso .stock-card-titulo,
-.stock-card-peso .stock-card-numero {
-  color: white;
+  color: #2c3e50; /* Texto oscuro para todas las cards */
 }
 
 /* Secciones */
@@ -301,7 +259,7 @@
   color: #2c3e50;
   margin: 0 0 25px 0;
   padding-bottom: 15px;
-  border-bottom: 3px solid #3498db;
+  border-bottom: 3px solid #529657c2;
 }
 
 /* Gráficos circulares */
@@ -323,7 +281,7 @@
 
 .stock-card-grafico:hover {
   transform: scale(1.05);
-  border-color: #3498db;
+  border-color: #529656;
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
 }
 
@@ -387,7 +345,7 @@
 /* Productos */
 .stock-productos-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  grid-template-columns: repeat(3, 1fr);
   gap: 20px;
 }
 
@@ -403,7 +361,7 @@
 .stock-card-producto:hover {
   transform: translateY(-5px);
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
-  border-color: #3498db;
+  border-color: #6bc972;
 }
 
 .stock-producto-header {
@@ -412,11 +370,11 @@
   align-items: center;
   margin-bottom: 20px;
   padding-bottom: 15px;
-  border-bottom: 2px solid #3498db;
+  border-bottom: 2px solid #6bc972;
 }
 
 .stock-producto-categoria {
-  background-color: #3498db;
+  background-color: #6bc972;
   color: white;
   padding: 4px 12px;
   border-radius: 12px;
@@ -458,7 +416,7 @@
 }
 
 .stock-stat-porcentaje {
-  color: #3498db;
+  color: #6bc972;
   font-size: 20px;
 }
 
@@ -544,7 +502,7 @@
 /* Ubicaciones */
 .stock-ubicaciones-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  grid-template-columns: repeat(3, 1fr);
   gap: 15px;
 }
 
@@ -557,7 +515,7 @@
 }
 
 .stock-card-ubicacion:hover {
-  border-color: #3498db;
+  border-color: #6bc972;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   transform: translateY(-3px);
 }
@@ -568,7 +526,7 @@
   color: #2c3e50;
   margin-bottom: 15px;
   padding-bottom: 10px;
-  border-bottom: 2px solid #e0e6ed;
+  border-bottom: 2px solid #6bc972;
 }
 
 .stock-ubicacion-datos {
@@ -594,4 +552,25 @@
   font-size: 20px;
   color: #2c3e50;
   font-weight: 700;
+}
+
+.stock-card-icon {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  border: 2px solid #2e7d32;
+  background: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  color: #2e7d32;
+  flex-shrink: 0;
+  transition: all 0.3s ease;
+}
+
+.stock-card:hover .stock-card-icon {
+  background: #2e7d32;
+  color: white;
+  transform: scale(1.1);
 }
