@@ -2,8 +2,9 @@ const db = require("../config/db");
 
 const stockController = {
   /**
-   * Obtener datos completos de stock con filtros
+   * Obtener datos completos de stock con filtros (Detalle por Pallet)
    * GET /api/stock
+   * NOTA: Usa subconsultas para calcular cajas y peso para mantener 1 fila por pallet.
    */
   getStockData: async (req, res) => {
     try {
@@ -17,8 +18,16 @@ const stockController = {
           prod.categoria,
           p.lote_id,
           p.sublote_id,
-          p.cantidad_cajas,
-          p.peso_total,
+          -- ----------------------------------------------------
+          -- CAMPOS RECALCULADOS DINÁMICAMENTE DESDE LA TABLA CAJAS
+          -- ----------------------------------------------------
+          (
+            SELECT COALESCE(COUNT(caja_id), 0) FROM cajas c WHERE c.pallet_id = p.pallet_id
+          ) as cantidad_cajas,
+          (
+            SELECT COALESCE(SUM(c.peso_neto), 0) FROM cajas c WHERE c.pallet_id = p.pallet_id
+          ) as peso_total,
+          -- ----------------------------------------------------
           p.tipo_pallet,
           p.fecha_armado,
           p.camara_id, 					
@@ -29,7 +38,7 @@ const stockController = {
         FROM pallets p
         LEFT JOIN productos prod ON p.producto_id = prod.producto_id
         LEFT JOIN camaras c ON p.camara_id = c.camara_id
-        WHERE 1=1 AND prod.activo = 1 -- <--- MODIFICADO: Solo productos activos
+        WHERE 1=1 AND prod.activo = 1 
       `;
 
       const params = [];
@@ -65,14 +74,14 @@ const stockController = {
   },
 
   /**
-   * Obtener resumen de stock agregado
+   * Obtener resumen de stock agregado (Agregación dinámica sobre pallets y cajas)
    * GET /api/stock/resumen
    */
   getResumenStock: async (req, res) => {
     try {
       const { producto_id, fecha_desde, fecha_hasta } = req.query;
 
-      // Base condition para las consultas que NO usan JOIN a productos o camaras (totales, porEstado)
+      // Base condition (solo para filtros de tiempo y producto, NO estado/activo)
       let baseCondition = "WHERE 1=1";
       const params = [];
 
@@ -91,69 +100,72 @@ const stockController = {
         params.push(fecha_hasta);
       }
 
-      // Condición de producto activo para consultas que hacen JOIN a 'productos'
-      // Esto es crucial para queryPorProducto. Se aplicará la condición `prod.activo = 1` en el WHERE de esas consultas.
-
-      // Total de cajas y pallets (Se beneficia del producto_id, NO requiere JOIN a productos)
+      // 1. Total de cajas y pallets (Incluye JOIN a Cajas, excluye despachados y anulados)
       const queryTotales = `
         SELECT 
           COUNT(DISTINCT p.pallet_id) as total_pallets,
-          COALESCE(SUM(p.cantidad_cajas), 0) as total_cajas,
-          COALESCE(SUM(p.peso_total), 0) as peso_total
+          COALESCE(SUM(c.peso_neto), 0) as peso_total, 
+          COUNT(c.caja_id) as total_cajas
         FROM pallets p
-        ${baseCondition}
+        LEFT JOIN cajas c ON c.pallet_id = p.pallet_id
+        ${baseCondition} 
+        AND p.estado NOT IN ('despachado', 'anulado')
       `;
 
-      // Los parámetros para totales y porEstado son los mismos que para baseCondition
       const [totales] = await db.query(queryTotales, params);
 
-      // Stock por estado (NO requiere JOIN a productos)
+      // 2. Stock por estado (Incluye JOIN a Cajas)
       const queryPorEstado = `
         SELECT 
           p.estado,
           COUNT(DISTINCT p.pallet_id) as cantidad_pallets,
-          COALESCE(SUM(p.cantidad_cajas), 0) as cantidad_cajas,
-          COALESCE(SUM(p.peso_total), 0) as peso_total
+          COALESCE(SUM(c.peso_neto), 0) as peso_total, 
+          COUNT(c.caja_id) as cantidad_cajas
         FROM pallets p
+        LEFT JOIN cajas c ON c.pallet_id = p.pallet_id
         ${baseCondition}
         GROUP BY p.estado
       `;
 
       const [porEstado] = await db.query(queryPorEstado, params);
 
-      // Stock por producto (REQUIERE JOIN a productos y filtro de ACTIVO)
+      // 3. Stock por producto (Incluye JOIN a Cajas y filtro de ACTIVO)
       const queryPorProducto = `
         SELECT 
           p.producto_id,
           prod.nombre as producto_nombre,
           prod.categoria,
           COUNT(DISTINCT p.pallet_id) as cantidad_pallets,
-          COALESCE(SUM(p.cantidad_cajas), 0) as cantidad_cajas,
-          COALESCE(SUM(p.peso_total), 0) as peso_total
+          COALESCE(SUM(c.peso_neto), 0) as peso_total, 
+          COUNT(c.caja_id) as cantidad_cajas
         FROM pallets p
         LEFT JOIN productos prod ON p.producto_id = prod.producto_id
-        ${baseCondition} AND prod.activo = 1 -- <--- MODIFICADO: Solo productos activos
+        LEFT JOIN cajas c ON c.pallet_id = p.pallet_id
+        ${baseCondition} 
+        AND prod.activo = 1 
+        AND p.estado NOT IN ('despachado', 'anulado')
         GROUP BY p.producto_id, prod.nombre, prod.categoria
         ORDER BY cantidad_cajas DESC
       `;
 
       const [porProducto] = await db.query(queryPorProducto, params);
 
-      // Stock por ubicación (REQUIERE JOIN a camaras, NO requiere JOIN a productos)
+      // 4. Stock por ubicación (Cámaras) (Requiere JOIN a Camaras y Cajas)
       const queryPorUbicacion = `
-SELECT 
-c.camara_id, 
-c.nombre as ubicacion_nombre,
-COUNT(DISTINCT p.pallet_id) as cantidad_pallets,
-COALESCE(SUM(p.cantidad_cajas), 0) as cantidad_cajas
-FROM pallets p
-LEFT JOIN camaras c ON p.camara_id = c.camara_id
-${baseCondition}
-AND p.camara_id IS NOT NULL 
-AND p.estado = 'en_camara' -- <--- AÑADIDO: Filtra solo pallets que están físicamente en la cámara
-GROUP BY c.camara_id, c.nombre
-ORDER BY cantidad_cajas DESC
-`;
+        SELECT 
+          c.camara_id, 
+          c.nombre as ubicacion_nombre,
+          COUNT(DISTINCT p.pallet_id) as cantidad_pallets,
+          COUNT(ca.caja_id) as cantidad_cajas
+        FROM pallets p
+        LEFT JOIN camaras c ON p.camara_id = c.camara_id
+        LEFT JOIN cajas ca ON ca.pallet_id = p.pallet_id
+        ${baseCondition}
+        AND p.camara_id IS NOT NULL 
+        AND p.estado = 'en_camara'
+        GROUP BY c.camara_id, c.nombre
+        ORDER BY cantidad_cajas DESC
+      `;
 
       const [porUbicacion] = await db.query(queryPorUbicacion, params);
 
@@ -173,8 +185,9 @@ ORDER BY cantidad_cajas DESC
   },
 
   /**
-   * Obtener stock por estado específico
+   * Obtener stock por estado específico (Detalle por Pallet)
    * GET /api/stock/estado/:estado
+   * NOTA: Usa subconsultas para calcular cajas y peso para mantener 1 fila por pallet.
    */
   getStockPorEstado: async (req, res) => {
     try {
@@ -186,15 +199,23 @@ ORDER BY cantidad_cajas DESC
           p.pallet_id,
           p.producto_id,
           prod.nombre as producto_nombre,
-          p.cantidad_cajas,
-          p.peso_total,
+          -- ----------------------------------------------------
+          -- CAMPOS RECALCULADOS DINÁMICAMENTE DESDE LA TABLA CAJAS
+          -- ----------------------------------------------------
+          (
+            SELECT COALESCE(COUNT(caja_id), 0) FROM cajas c WHERE c.pallet_id = p.pallet_id
+          ) as cantidad_cajas,
+          (
+            SELECT COALESCE(SUM(c.peso_neto), 0) FROM cajas c WHERE c.pallet_id = p.pallet_id
+          ) as peso_total,
+          -- ----------------------------------------------------
           p.fecha_armado,
           p.camara_id,
           c.nombre as camara_nombre
         FROM pallets p
         LEFT JOIN productos prod ON p.producto_id = prod.producto_id
         LEFT JOIN camaras c ON p.camara_id = c.camara_id
-        WHERE p.estado = ? AND prod.activo = 1 -- <--- MODIFICADO: Solo productos activos
+        WHERE p.estado = ? AND prod.activo = 1 
       `;
 
       const params = [estado];
@@ -219,22 +240,31 @@ ORDER BY cantidad_cajas DESC
   },
 
   /**
-   * Obtener stock por producto específico
+   * Obtener stock por producto específico (Detalle por Pallet y Resumen)
    * GET /api/stock/producto/:producto_id
+   * NOTA: Usa subconsultas para calcular cajas y peso en la consulta principal.
    */
   getStockPorProducto: async (req, res) => {
     try {
       const { producto_id } = req.params;
       const { estado, fecha_desde, fecha_hasta } = req.query;
 
-      // 1. Obtener pallets de ese producto
+      // 1. Obtener pallets de ese producto (Consulta principal)
       let query = `
         SELECT 
           p.pallet_id,
           p.lote_id,
           p.sublote_id,
-          p.cantidad_cajas,
-          p.peso_total,
+          -- ----------------------------------------------------
+          -- CAMPOS RECALCULADOS DINÁMICAMENTE DESDE LA TABLA CAJAS
+          -- ----------------------------------------------------
+          (
+            SELECT COALESCE(COUNT(caja_id), 0) FROM cajas c WHERE c.pallet_id = p.pallet_id
+          ) as cantidad_cajas,
+          (
+            SELECT COALESCE(SUM(c.peso_neto), 0) FROM cajas c WHERE c.pallet_id = p.pallet_id
+          ) as peso_total,
+          -- ----------------------------------------------------
           p.tipo_pallet,
           p.fecha_armado,
           p.camara_id,
@@ -243,8 +273,8 @@ ORDER BY cantidad_cajas DESC
           p.etiqueta_qr
         FROM pallets p
         LEFT JOIN camaras c ON p.camara_id = c.camara_id
-        LEFT JOIN productos prod ON p.producto_id = prod.producto_id -- <--- AGREGADO: JOIN a productos para el filtro
-        WHERE p.producto_id = ? AND prod.activo = 1 -- <--- MODIFICADO: Verificar que el producto esté activo
+        LEFT JOIN productos prod ON p.producto_id = prod.producto_id
+        WHERE p.producto_id = ? AND prod.activo = 1 
       `;
 
       const params = [producto_id];
@@ -268,31 +298,32 @@ ORDER BY cantidad_cajas DESC
 
       const [rows] = await db.query(query, params);
 
-      // Si no se encuentran pallets (ej. producto_id no existe o no está activo),
-      // se puede devolver una respuesta vacía o un error 404/400.
-      // Aquí, simplemente continuamos con el resumen.
-
-      // 2. Obtener resumen (Asegura que solo cuenta si el producto está activo, aunque el producto_id ya está en el WHERE)
-      // Usaremos un conjunto de parámetros que solo incluye el producto_id y los filtros opcionales.
-      // Reconstruimos los params para el resumen, ya que la lógica del query condicional es un poco diferente.
+      // 2. Obtener resumen (Agregación sobre pallets y cajas)
       const resumenParams = [producto_id];
       if (estado) resumenParams.push(estado);
       if (fecha_desde) resumenParams.push(fecha_desde);
       if (fecha_hasta) resumenParams.push(fecha_hasta);
 
+      // Base query para el resumen
+      let whereClause = "WHERE p.producto_id = ? AND prod.activo = 1";
+      if (estado) {
+        whereClause += " AND p.estado = ?";
+      } else {
+        whereClause += " AND p.estado NOT IN ('despachado', 'anulado')";
+      }
+      if (fecha_desde) whereClause += " AND DATE(p.fecha_armado) >= ?";
+      if (fecha_hasta) whereClause += " AND DATE(p.fecha_armado) <= ?";
+
       const queryResumen = `
         SELECT 
           COUNT(DISTINCT p.pallet_id) as total_pallets,
-          COALESCE(SUM(p.cantidad_cajas), 0) as total_cajas,
-          COALESCE(SUM(p.peso_total), 0) as peso_total
+          COALESCE(SUM(c.peso_neto), 0) as peso_total, 
+          COUNT(c.caja_id) as total_cajas
         FROM pallets p
-        LEFT JOIN productos prod ON p.producto_id = prod.producto_id -- <--- AGREGADO: JOIN a productos para el filtro
-        WHERE p.producto_id = ? AND prod.activo = 1 -- <--- MODIFICADO: Verificar que el producto esté activo
-        ${estado ? "AND p.estado = ?" : ""}
-        ${fecha_desde ? "AND DATE(p.fecha_armado) >= ?" : ""}
-        ${fecha_hasta ? "AND DATE(p.fecha_armado) <= ?" : ""}
+        LEFT JOIN productos prod ON p.producto_id = prod.producto_id
+        LEFT JOIN cajas c ON c.pallet_id = p.pallet_id
+        ${whereClause}
       `;
-      // Nota: Si el producto_id no está activo, ambas consultas devolverán conjuntos vacíos o totales en cero, lo cual es correcto.
 
       const [resumen] = await db.query(queryResumen, resumenParams);
 
@@ -310,7 +341,7 @@ ORDER BY cantidad_cajas DESC
   },
 
   /**
-   * Obtener alertas de stock bajo (Solo productos disponibles y activos)
+   * Obtener alertas de stock bajo (Agregación sobre pallets y cajas)
    * GET /api/stock/alertas
    */
   getAlertasStock: async (req, res) => {
@@ -321,10 +352,12 @@ ORDER BY cantidad_cajas DESC
           prod.nombre as producto_nombre,
           prod.categoria,
           COUNT(DISTINCT p.pallet_id) as pallets_disponibles,
-          COALESCE(SUM(p.cantidad_cajas), 0) as cajas_disponibles
+          COALESCE(SUM(c.peso_neto), 0) as peso_total, 
+          COUNT(c.caja_id) as cajas_disponibles
         FROM pallets p
         LEFT JOIN productos prod ON p.producto_id = prod.producto_id
-        WHERE p.estado IN ('armado', 'en_camara') AND prod.activo = 1 -- <--- MODIFICADO: Solo productos activos
+        LEFT JOIN cajas c ON c.pallet_id = p.pallet_id
+        WHERE p.estado IN ('armado', 'en_camara') AND prod.activo = 1 
         GROUP BY p.producto_id, prod.nombre, prod.categoria
         ORDER BY cajas_disponibles ASC
         LIMIT 10
@@ -343,7 +376,7 @@ ORDER BY cantidad_cajas DESC
   },
 
   /**
-   * Obtener histórico de movimientos de stock (Solo para productos activos)
+   * Obtener histórico de movimientos de stock (Agregación sobre pallets y cajas)
    * GET /api/stock/historico
    */
   getHistoricoStock: async (req, res) => {
@@ -357,10 +390,11 @@ ORDER BY cantidad_cajas DESC
           prod.nombre as producto_nombre,
           p.estado,
           COUNT(DISTINCT p.pallet_id) as cantidad_pallets,
-          COALESCE(SUM(p.cantidad_cajas), 0) as cantidad_cajas
+          COUNT(c.caja_id) as cantidad_cajas
         FROM pallets p
         LEFT JOIN productos prod ON p.producto_id = prod.producto_id
-        WHERE p.fecha_armado >= DATE_SUB(CURDATE(), INTERVAL ? DAY) AND prod.activo = 1 -- <--- MODIFICADO: Solo productos activos
+        LEFT JOIN cajas c ON c.pallet_id = p.pallet_id
+        WHERE p.fecha_armado >= DATE_SUB(CURDATE(), INTERVAL ? DAY) AND prod.activo = 1 
       `;
 
       const params = [dias];

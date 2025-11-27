@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from "react";
 import {
   Button,
@@ -8,6 +7,7 @@ import {
   Alert,
   Spinner,
   Badge,
+  Modal,
 } from "react-bootstrap";
 import {
   FaSearch,
@@ -32,9 +32,9 @@ import {
   getCamiones,
   getChoferes,
   getProductos,
-  getPalletsParaEditar, // 🔥 IMPORTAR (nueva función)
+  getPalletsParaEditar,
 } from "../../services/pedidosService";
-import "../../style/stock.css"
+import "../../style/stock.css";
 const GestionPedidos = () => {
   const [pedidos, setPedidos] = useState([]);
   const [activeTab, setActiveTab] = useState("lista");
@@ -76,20 +76,17 @@ const GestionPedidos = () => {
     exportados: pedidos.filter((p) => p.estado === "entregado").length,
     rechazados: pedidos.filter((p) => p.estado === "rechazado").length,
   };
-    
 
   useEffect(() => {
-  setCurrentPage(1); // Resetear a la primera página cuando cambien los filtros
-  loadPedidos();
-  loadTransportistas();
-  loadClientes();
-  loadCamiones();
-  loadChoferes();
-  loadProductos();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-}, [filtros]);
-
-
+    setCurrentPage(1); // Resetear a la primera página cuando cambien los filtros
+    loadPedidos();
+    loadTransportistas();
+    loadClientes();
+    loadCamiones();
+    loadChoferes();
+    loadProductos();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filtros]);
 
   // 🔥 PASO 6: Cargar pallets cuando se edita un pedido existente
   useEffect(() => {
@@ -104,7 +101,12 @@ const GestionPedidos = () => {
       setPalletsDisponibles([]);
       setPalletsSeleccionados([]);
     }
-  }, [selectedPedido?.producto_id, selectedPedido?.od_id, selectedPedido?.estado, activeTab]);
+  }, [
+    selectedPedido?.producto_id,
+    selectedPedido?.od_id,
+    selectedPedido?.estado,
+    activeTab,
+  ]);
 
   async function loadPedidos() {
     setError(null);
@@ -208,59 +210,59 @@ const GestionPedidos = () => {
 
   // Función para paginación
   const getPaginatedPedidos = () => {
-  // Ordenar pedidos por fecha de creación (más recientes primero)
-  const sortedPedidos = [...pedidos].sort((a, b) => {
-    const dateA = new Date(a.created_at || a.fecha_programada || 0);
-    const dateB = new Date(b.created_at || b.fecha_programada || 0);
-    return dateB - dateA; // Orden descendente (más recientes primero)
-  });
+    // Ordenar pedidos por fecha de creación (más recientes primero)
+    const sortedPedidos = [...pedidos].sort((a, b) => {
+      const dateA = new Date(a.created_at || a.fecha_programada || 0);
+      const dateB = new Date(b.created_at || b.fecha_programada || 0);
+      return dateB - dateA; // Orden descendente (más recientes primero)
+    });
 
-  const indexOfLastItem = currentPage * itemsPerPage;
-  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentItems = sortedPedidos.slice(indexOfFirstItem, indexOfLastItem);
-  const totalPages = Math.ceil(sortedPedidos.length / itemsPerPage);
+    const indexOfLastItem = currentPage * itemsPerPage;
+    const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+    const currentItems = sortedPedidos.slice(indexOfFirstItem, indexOfLastItem);
+    const totalPages = Math.ceil(sortedPedidos.length / itemsPerPage);
 
-  return {
-    currentItems,
-    totalPages,
-    totalItems: sortedPedidos.length
+    return {
+      currentItems,
+      totalPages,
+      totalItems: sortedPedidos.length,
+    };
   };
-};
 
-// Función para cambiar de página
-const handlePageChange = (pageNumber) => {
-  setCurrentPage(pageNumber);
-  window.scrollTo({ top: 0, behavior: 'smooth' });
-};
-
+  // Función para cambiar de página
+  const handlePageChange = (pageNumber) => {
+    setCurrentPage(pageNumber);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
 
   // 🔥 PASO 6: Nueva función para cargar pallets al editar
   const loadPalletsParaEditar = async (pedidoId, productoId) => {
     setLoadingPallets(true);
     try {
-      console.log(`🔍 [loadPalletsParaEditar] pedidoId: ${pedidoId}, productoId: ${productoId}`);
+      console.log(
+        `🔍 [loadPalletsParaEditar] pedidoId: ${pedidoId}, productoId: ${productoId}`
+      );
       const pallets = await getPalletsParaEditar(pedidoId, productoId);
-      
+
       console.log("📦 Pallets recibidos:", pallets);
-      
+
       // Separar pallets por origen
-      const asociados = pallets.filter(p => p.origen === 'asociado');
-      const disponibles = pallets.filter(p => p.origen === 'disponible');
-      
+      const asociados = pallets.filter((p) => p.origen === "asociado");
+      const disponibles = pallets.filter((p) => p.origen === "disponible");
+
       console.log("✅ Pallets asociados:", asociados.length);
       console.log("✅ Pallets disponibles:", disponibles.length);
-      
+
       // Pre-seleccionar los pallets ya asociados
-      const palletsIdsAsociados = asociados.map(p => p.pallet_id);
-      
-      setSelectedPedido(prev => ({
+      const palletsIdsAsociados = asociados.map((p) => p.pallet_id);
+
+      setSelectedPedido((prev) => ({
         ...prev,
-        palletsIds: palletsIdsAsociados
+        palletsIds: palletsIdsAsociados,
       }));
-      
+
       // Mostrar todos los pallets (asociados + disponibles)
       setPalletsDisponibles(pallets);
-      
     } catch (err) {
       console.error("❌ Error cargando pallets:", err);
       setPalletsDisponibles([]);
@@ -297,7 +299,7 @@ const handlePageChange = (pageNumber) => {
     setActiveTab("lista");
     loadPedidos();
   };
-  
+
   const handleCancel = () => {
     setActiveTab("lista");
   };
@@ -590,23 +592,23 @@ const handlePageChange = (pageNumber) => {
 
       if (selectedPedido.tipo_destino) {
         let tipoDestino = selectedPedido.tipo_destino.toLowerCase().trim();
-        
+
         // Mapear valores antiguos/incorrectos a valores correctos del ENUM
         const mapeoTipos = {
-          'marítimo': 'puerto',
-          'maritimo': 'puerto',
-          'aéreo': 'aeropuerto',
-          'aereo': 'aeropuerto',
-          'terrestre': 'otra_ciudad',
-          'regreso a planta': 'regreso_planta',
-          'regreso_a_planta': 'regreso_planta',
+          marítimo: "puerto",
+          maritimo: "puerto",
+          aéreo: "aeropuerto",
+          aereo: "aeropuerto",
+          terrestre: "otra_ciudad",
+          "regreso a planta": "regreso_planta",
+          regreso_a_planta: "regreso_planta",
           // Mantener valores correctos
-          'puerto': 'puerto',
-          'aeropuerto': 'aeropuerto',
-          'otra_ciudad': 'otra_ciudad',
-          'regreso_planta': 'regreso_planta'
+          puerto: "puerto",
+          aeropuerto: "aeropuerto",
+          otra_ciudad: "otra_ciudad",
+          regreso_planta: "regreso_planta",
         };
-        
+
         payload.tipo_destino = mapeoTipos[tipoDestino] || tipoDestino;
       }
 
@@ -695,18 +697,25 @@ const handlePageChange = (pageNumber) => {
           fechaProgramada: selectedPedido.fecha_programada,
           destino: selectedPedido.destino,
           tipoDestino: payload.tipo_destino || selectedPedido.tipo_destino,
-          clienteNombre: selectedPedido.cliente_nombre || selectedPedido.clienteNombre,
-          clienteDireccion: selectedPedido.cliente_direccion || selectedPedido.clienteDireccion,
-          clienteCuit: selectedPedido.cliente_cuit || selectedPedido.clienteCuit,
-          choferNombre: selectedPedido.chofer_nombre || selectedPedido.choferNombre,
+          clienteNombre:
+            selectedPedido.cliente_nombre || selectedPedido.clienteNombre,
+          clienteDireccion:
+            selectedPedido.cliente_direccion || selectedPedido.clienteDireccion,
+          clienteCuit:
+            selectedPedido.cliente_cuit || selectedPedido.clienteCuit,
+          choferNombre:
+            selectedPedido.chofer_nombre || selectedPedido.choferNombre,
           choferDni: selectedPedido.chofer_dni || selectedPedido.choferDni,
           camionTipo: selectedPedido.camion_tipo || selectedPedido.camionTipo,
-          camionPatente: selectedPedido.camion_patente || selectedPedido.camionPatente,
-          transportistaNombre: selectedPedido.transportista_nombre || selectedPedido.transportistaNombre,
+          camionPatente:
+            selectedPedido.camion_patente || selectedPedido.camionPatente,
+          transportistaNombre:
+            selectedPedido.transportista_nombre ||
+            selectedPedido.transportistaNombre,
           observaciones: selectedPedido.observaciones,
           pallets: selectedPedido.pallets || [],
         };
-        
+
         await generarRemitoModificado(datosPDF);
       } catch (pdfError) {
         console.error("Error generando PDF:", pdfError);
@@ -725,10 +734,9 @@ const handlePageChange = (pageNumber) => {
       await loadPedidos();
 
       setTimeout(() => {
-      setActiveTab("lista");
-      setSelectedPedido(null);
-    }, 1500);
-      
+        setActiveTab("lista");
+        setSelectedPedido(null);
+      }, 1500);
     } catch (err) {
       console.error("Error guardando detalle:", err);
       const status = err?.status;
@@ -774,227 +782,229 @@ const handlePageChange = (pageNumber) => {
     return esActivo && perteneceAlTransportista;
   });
 
+  //función componente lista pedidos con paginación
+  // Componente de paginación (agregar antes de ListaPedidosTab)
+  const Pagination = ({ currentPage, totalPages, onPageChange }) => {
+    const getPageNumbers = () => {
+      const pages = [];
+      const maxVisiblePages = 5;
 
-//función componente lista pedidos con paginación
-// Componente de paginación (agregar antes de ListaPedidosTab)
-const Pagination = ({ currentPage, totalPages, onPageChange }) => {
-  const getPageNumbers = () => {
-    const pages = [];
-    const maxVisiblePages = 5;
-    
-    if (totalPages <= maxVisiblePages) {
-      for (let i = 1; i <= totalPages; i++) {
-        pages.push(i);
-      }
-    } else {
-      if (currentPage <= 3) {
-        for (let i = 1; i <= 4; i++) pages.push(i);
-        pages.push('...');
-        pages.push(totalPages);
-      } else if (currentPage >= totalPages - 2) {
-        pages.push(1);
-        pages.push('...');
-        for (let i = totalPages - 3; i <= totalPages; i++) pages.push(i);
+      if (totalPages <= maxVisiblePages) {
+        for (let i = 1; i <= totalPages; i++) {
+          pages.push(i);
+        }
       } else {
-        pages.push(1);
-        pages.push('...');
-        for (let i = currentPage - 1; i <= currentPage + 1; i++) pages.push(i);
-        pages.push('...');
-        pages.push(totalPages);
+        if (currentPage <= 3) {
+          for (let i = 1; i <= 4; i++) pages.push(i);
+          pages.push("...");
+          pages.push(totalPages);
+        } else if (currentPage >= totalPages - 2) {
+          pages.push(1);
+          pages.push("...");
+          for (let i = totalPages - 3; i <= totalPages; i++) pages.push(i);
+        } else {
+          pages.push(1);
+          pages.push("...");
+          for (let i = currentPage - 1; i <= currentPage + 1; i++)
+            pages.push(i);
+          pages.push("...");
+          pages.push(totalPages);
+        }
       }
-    }
-    
-    return pages;
+
+      return pages;
+    };
+
+    if (totalPages <= 1) return null;
+
+    return (
+      <div className="d-flex justify-content-center align-items-center mt- mb-3" style={{marginTop:"40px"}}>
+        <nav>
+          <ul className="pagination mb-0">
+            <li className={`page-item ${currentPage === 1 ? "disabled" : ""}`}>
+              <button
+                className="page-link"
+                onClick={() => onPageChange(currentPage - 1)}
+                disabled={currentPage === 1}
+              >
+                Anterior
+              </button>
+            </li>
+
+            {getPageNumbers().map((page, index) => (
+              <li
+                key={index}
+                className={`page-item ${page === currentPage ? "active" : ""} ${
+                  page === "..." ? "disabled" : ""
+                }`}
+              >
+                {page === "..." ? (
+                  <span className="page-link">...</span>
+                ) : (
+                  <button
+                    className="page-link"
+                    onClick={() => onPageChange(page)}
+                  >
+                    {page}
+                  </button>
+                )}
+              </li>
+            ))}
+
+            <li
+              className={`page-item ${
+                currentPage === totalPages ? "disabled" : ""
+              }`}
+            >
+              <button
+                className="page-link"
+                onClick={() => onPageChange(currentPage + 1)}
+                disabled={currentPage === totalPages}
+              >
+                Siguiente
+              </button>
+            </li>
+          </ul>
+        </nav>
+      </div>
+    );
   };
 
-  if (totalPages <= 1) return null;
+  const ListaPedidosTab = () => {
+    const { currentItems, totalPages, totalItems } = getPaginatedPedidos();
 
-  return (
-    <div className="d-flex justify-content-center align-items-center mt-4 mb-3">
-      <nav>
-        <ul className="pagination mb-0">
-          <li className={`page-item ${currentPage === 1 ? 'disabled' : ''}`}>
-            <button
-              className="page-link"
-              onClick={() => onPageChange(currentPage - 1)}
-              disabled={currentPage === 1}
-            >
-              Anterior
-            </button>
-          </li>
-          
-          {getPageNumbers().map((page, index) => (
-            <li
-              key={index}
-              className={`page-item ${page === currentPage ? 'active' : ''} ${page === '...' ? 'disabled' : ''}`}
-            >
-              {page === '...' ? (
-                <span className="page-link">...</span>
-              ) : (
-                <button
-                  className="page-link"
-                  onClick={() => onPageChange(page)}
-                >
-                  {page}
-                </button>
-              )}
-            </li>
-          ))}
-          
-          <li className={`page-item ${currentPage === totalPages ? 'disabled' : ''}`}>
-            <button
-              className="page-link"
-              onClick={() => onPageChange(currentPage + 1)}
-              disabled={currentPage === totalPages}
-            >
-              Siguiente
-            </button>
-          </li>
-        </ul>
-      </nav>
-    </div>
-  );
-};
-
-const ListaPedidosTab = () => {
-  const { currentItems, totalPages, totalItems } = getPaginatedPedidos();
-
-  return (
-    <>
-      <div className="tab-content-header mb-3 d-flex justify-content-between align-items-center">
-        <h5 className="mb-0 text-secondary" style={{ fontSize: "1.1rem" }}>
-          Listado Maestro de Exportaciones
-        </h5>
-        <div className="acciones">
-          <Button
-            variant="light"
-            className="btn-icon me-2 shadow-sm border"
-            onClick={loadPedidos}
-            title="Refrescar"
-          >
-            <FaSync color="#666" />
-          </Button>
+    return (
+      <>
+        <div className="tab-content-header mb-3 d-flex justify-content-between align-items-center">
+          <h5 className="mb-0 text-secondary" style={{ fontSize: "1.1rem" }}>
+            Listado Maestro de Exportaciones
+          </h5>
         </div>
-      </div>
 
-      {error && <Alert variant="danger">{error}</Alert>}
+        {error && <Alert variant="danger">{error}</Alert>}
 
-      <div className="table-container">
-        <Table responsive hover className="custom-table">
-          <thead>
-            <tr>
-              <th>N° Pedido</th>
-              <th>Cliente</th>
-              <th>Destino</th>
-              <th>Transporte</th>
-              <th>Fecha Est.</th>
-              <th className="text-center">Pallets</th>
-              <th className="text-center">Estado</th>
-              <th className="text-end">Acciones</th>
-            </tr>
-          </thead>
-          <tbody>
-            {loading ? (
+        <div className="table-container">
+          <Table responsive hover className="custom-table w-100">
+            <thead>
               <tr>
-                <td colSpan="8" className="text-center py-4">
-                  <Spinner animation="border" size="sm" className="me-2" />{" "}
-                  Cargando...
-                </td>
+                <th className="col-pedido">N° Pedido</th>
+                <th className="col-cliente">Cliente</th>
+                <th className="col-destino">Destino</th>
+                <th className="col-transporte">Transporte</th>
+                <th className="col-fecha">Fecha Est.</th>
+                <th className="col-pallets text-center">Pallets</th>
+                <th className="col-estado text-center">Estado</th>
+                <th className="col-acciones text-end">Acciones</th>
               </tr>
-            ) : currentItems.length === 0 ? (
-              <tr>
-                <td colSpan="8" className="text-center py-4 text-muted">
-                  No hay pedidos para mostrar.
-                </td>
-              </tr>
-            ) : (
-              currentItems.map((p) => {
-                let cantidadPallets = 0;
-                if (Array.isArray(p.od_pallets)) {
-                  cantidadPallets = p.od_pallets.length;
-                } else if (p.cantidad_pallets_prevista) {
-                  cantidadPallets = p.cantidad_pallets_prevista;
-                } else if (p.cantidad_pallets) {
-                  cantidadPallets = p.cantidad_pallets;
-                }
+            </thead>
+            <tbody>
+              {loading ? (
+                <tr>
+                  <td colSpan="8" className="text-center py-4">
+                    <Spinner animation="border" size="sm" className="me-2" />{" "}
+                    Cargando...
+                  </td>
+                </tr>
+              ) : currentItems.length === 0 ? (
+                <tr>
+                  <td colSpan="8" className="text-center py-4 text-muted">
+                    No hay pedidos para mostrar.
+                  </td>
+                </tr>
+              ) : (
+                currentItems.map((p) => {
+                  let cantidadPallets = 0;
+                  if (Array.isArray(p.od_pallets)) {
+                    cantidadPallets = p.od_pallets.length;
+                  } else if (p.cantidad_pallets_prevista) {
+                    cantidadPallets = p.cantidad_pallets_prevista;
+                  } else if (p.cantidad_pallets) {
+                    cantidadPallets = p.cantidad_pallets;
+                  }
 
-                return (
-                  <tr key={p.od_id || p.id || p.odId}>
-                    <td className="text-highlight">
-                      {p.od_code || p.odCode || `OD-${p.od_id || p.id}`}
-                    </td>
-                    <td style={{ fontWeight: "500" }}>
-                      {p.cliente_nombre || p.cliente}
-                    </td>
-                    <td>{p.destino}</td>
-                    <td style={{ textTransform: "capitalize" }}>
-                      {p.tipo_destino || p.tipoDestino}
-                    </td>
-                    <td>
-                      {(
-                        p.fecha_programada ||
-                        p.fechaProgramada ||
-                        ""
-                      ).substring(0, 10)}
-                    </td>
-                    <td className="text-center">
-                      <Badge bg="info" className="px-3 py-2">
-                        {cantidadPallets}
-                      </Badge>
-                    </td>
-                    <td className="text-center">{badgeEstado(p.estado)}</td>
-                    <td className="text-end">
-                      <Button
-                        variant="link"
-                        className="btn-action-table me-2"
-                        title="Seguimiento GPS"
+                  return (
+                    <tr key={p.od_id || p.id || p.odId}>
+                      <td className="text-highlight col-pedido">
+                        {p.od_code || p.odCode || `OD-${p.od_id || p.id}`}
+                      </td>
+                      <td className="col-cliente" style={{ fontWeight: "500" }}>
+                        {p.cliente_nombre || p.cliente}
+                      </td>
+                      <td className="col-destino">{p.destino}</td>
+                      <td
+                        className="col-transporte"
+                        style={{ textTransform: "capitalize" }}
                       >
-                        <FaTruck size={16} />
-                      </Button>
-                      <Button
-                        variant="link"
-                        className="btn-action-table me-2"
-                        title="Ver / Editar Detalles"
-                        onClick={() => openDetalle(p)}
-                      >
-                        <FaEye size={16} />
-                      </Button>
-                      <Button
-                        variant="link"
-                        className="btn-action-table text-danger"
-                        title="Eliminar Pedido"
-                        onClick={() => handleDeletePedido(p)}
-                      >
-                        <FaTrash size={16} />
-                      </Button>
-                    </td>
-                  </tr>
-                );
-              })
-            )}
-          </tbody>
-        </Table>
-      </div>
+                        {p.tipo_destino || p.tipoDestino}
+                      </td>
+                      <td className="col-fecha">
+                        {(
+                          p.fecha_programada ||
+                          p.fechaProgramada ||
+                          ""
+                        ).substring(0, 10)}
+                      </td>
+                      <td className="col-pallets text-center">
+                        <Badge bg="info" className="px-3 py-2">
+                          {cantidadPallets}
+                        </Badge>
+                      </td>
+                      <td className="col-estado text-center">
+                        {badgeEstado(p.estado)}
+                      </td>
+                      <td className="col-acciones">
+                        <div className="btn-group-actions">
+                          <Button
+                            variant="link"
+                            className="btn-action-table"
+                            title="Seguimiento GPS"
+                          >
+                            <FaTruck size={16} />
+                          </Button>
+                          <Button
+                            variant="link"
+                            className="btn-action-table"
+                            title="Ver / Editar Detalles"
+                            onClick={() => openDetalle(p)}
+                          >
+                            <FaEye size={16} />
+                          </Button>
+                          <Button
+                            variant="link"
+                            className="btn-action-table text-danger"
+                            title="Eliminar Pedido"
+                            onClick={() => handleDeletePedido(p)}
+                          >
+                            <FaTrash size={16} />
+                          </Button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })
+              )}
+            </tbody>
+          </Table>
+        </div>
 
-      {/* Componente de paginación */}
-      <Pagination 
-        currentPage={currentPage}
-        totalPages={totalPages}
-        onPageChange={handlePageChange}
-      />
+        {/* Componente de paginación */}
+        <Pagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={handlePageChange}
+        />
 
-      <div className="mt-3 text-muted small px-2 d-flex justify-content-between align-items-center">
-        <span>
-          Mostrando {currentItems.length > 0 ? ((currentPage - 1) * itemsPerPage) + 1 : 0} - {Math.min(currentPage * itemsPerPage, totalItems)} de {totalItems} registros
-        </span>
-        <span>
-          Página {currentPage} de {totalPages || 1}
-        </span>
-      </div>
-    </>
-  );
-};
-  
+        <div className="mt-3 text-muted small px-2 d-flex justify-content-between align-items-center">
+          <span>
+            Mostrando{" "}
+            {currentItems.length > 0 ? (currentPage - 1) * itemsPerPage + 1 : 0}{" "}
+            - {Math.min(currentPage * itemsPerPage, totalItems)} de {totalItems}{" "}
+            registros
+          </span>
+        </div>
+      </>
+    );
+  };
 
   const NuevoPedidoTab = () => (
     <NuevoPedidoForm onOrderSaved={handleFormAction} onCancel={handleCancel} />
@@ -1019,7 +1029,7 @@ const ListaPedidosTab = () => {
           </div>
         </Card>
       );
-      }
+    }
 
     return (
       <Card className="p-4 mt-3 shadow-sm">
@@ -1180,20 +1190,26 @@ const ListaPedidosTab = () => {
                         <tbody>
                           {palletsDisponibles.map((pallet) => {
                             // 🔥 PASO 6: Identificar si es un pallet ya asociado
-                            const estaAsociado = pallet.origen === 'asociado';
-                            const estaSeleccionado = selectedPedido.palletsIds?.includes(pallet.pallet_id);
-                            
+                            const estaAsociado = pallet.origen === "asociado";
+                            const estaSeleccionado =
+                              selectedPedido.palletsIds?.includes(
+                                pallet.pallet_id
+                              );
+
                             return (
-                              <tr 
+                              <tr
                                 key={pallet.pallet_id}
-                                className={estaAsociado ? 'table-success' : ''}
+                                className={estaAsociado ? "table-success" : ""}
                               >
                                 <td className="text-center align-middle">
                                   <Form.Check
                                     type="checkbox"
                                     checked={estaSeleccionado}
                                     onChange={(e) =>
-                                      handlePalletCheck(pallet, e.target.checked)
+                                      handlePalletCheck(
+                                        pallet,
+                                        e.target.checked
+                                      )
                                     }
                                   />
                                   {estaAsociado && (
@@ -1237,8 +1253,8 @@ const ListaPedidosTab = () => {
                                     : "-"}
                                 </td>
                                 <td className="text-center align-middle">
-                                  <Badge 
-                                    bg={estaAsociado ? "warning" : "success"} 
+                                  <Badge
+                                    bg={estaAsociado ? "warning" : "success"}
                                     className="px-3 py-2"
                                   >
                                     {pallet.estado}
@@ -1253,9 +1269,18 @@ const ListaPedidosTab = () => {
                     <div className="pallets-disponibles-footer d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
                       <div className="text-muted">
                         <strong>Total disponibles:</strong>{" "}
-                        {palletsDisponibles.filter(p => p.origen === 'disponible').length} pallet(s) |{" "}
-                        <strong>Ya asociados:</strong>{" "}
-                        {palletsDisponibles.filter(p => p.origen === 'asociado').length} pallet(s)
+                        {
+                          palletsDisponibles.filter(
+                            (p) => p.origen === "disponible"
+                          ).length
+                        }{" "}
+                        pallet(s) | <strong>Ya asociados:</strong>{" "}
+                        {
+                          palletsDisponibles.filter(
+                            (p) => p.origen === "asociado"
+                          ).length
+                        }{" "}
+                        pallet(s)
                       </div>
                       <Button
                         variant="primary"
@@ -1475,87 +1500,214 @@ const ListaPedidosTab = () => {
   return (
     <div className="gestion-pedidos-page">
       <div className="stock-header">
-        <h1 className="stock-title"><i className="fas fa-clipboard-list"></i> Gestión de Pedidos / Exportaciones</h1>
+        <h1 className="stock-title">
+          <i className="fas fa-clipboard-list"></i> Gestión de Pedidos /
+          Exportaciones
+        </h1>
         <div className="monitoreo-user-info">
           <i className="fas fa-user-circle"></i>
           <span>Supervisor de Planta</span>
         </div>
       </div>
       <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
+        <Card className="metric-card text-center p-2" style={{ minWidth: 140 }}>
+          <h3 className="text-success-dark">{metrics.activos}</h3>
+          <p className="text-secondary">Pedidos Activos</p>
+        </Card>
+        <Card className="metric-card text-center p-2" style={{ minWidth: 140 }}>
+          <h3 className="text-warning-dark">{metrics.pendientes}</h3>
+          <p className="text-secondary">Pendientes</p>
+        </Card>
+        <Card className="metric-card text-center p-2" style={{ minWidth: 140 }}>
+          <h3 className="text-info-dark">{metrics.enTransito}</h3>
+          <p className="text-secondary">En Tránsito</p>
+        </Card>
+        <Card className="metric-card text-center p-2" style={{ minWidth: 140 }}>
+          <h3 className="text-secondary-dark">{metrics.exportados}</h3>
+          <p className="text-secondary">Exportados</p>
+        </Card>
+        {metrics.rechazados > 0 && (
           <Card
             className="metric-card text-center p-2"
-            style={{ minWidth: 140 }}
+            style={{ minWidth: 140, borderLeft: "4px solid #d30303ff" }}
           >
-            <h3 className="text-success-dark">{metrics.activos}</h3>
-            <p className="text-secondary">Pedidos Activos</p>
+            <h3 style={{ color: "#d70000ff" }}>{metrics.rechazados}</h3>
+            <p className="text-secondary">Rechazados</p>
           </Card>
-          <Card
-            className="metric-card text-center p-2"
-            style={{ minWidth: 140 }}
-          >
-            <h3 className="text-warning-dark">{metrics.pendientes}</h3>
-            <p className="text-secondary">Pendientes</p>
-          </Card>
-          <Card
-            className="metric-card text-center p-2"
-            style={{ minWidth: 140 }}
-          >
-            <h3 className="text-info-dark">{metrics.enTransito}</h3>
-            <p className="text-secondary">En Tránsito</p>
-          </Card>
-          <Card
-            className="metric-card text-center p-2"
-            style={{ minWidth: 140 }}
-          >
-            <h3 className="text-secondary-dark">{metrics.exportados}</h3>
-            <p className="text-secondary">Exportados</p>
-          </Card>
-          {metrics.rechazados > 0 && (
-            <Card
-              className="metric-card text-center p-2"
-              style={{ minWidth: 140, borderLeft: "4px solid #c2185b" }}
-            >
-              <h3 style={{ color: "#c2185b" }}>{metrics.rechazados}</h3>
-              <p className="text-secondary">Rechazados</p>
-            </Card>
-          )}
-        </div>
+        )}
+      </div>
+
       <div
+        className="gestion-filtros"
         style={{
           display: "flex",
-          justifyContent: "space-between",
-          alignItems: "flex-start",
-          gap: 20,
+          gap: "20px",
+          alignItems: "center",
+          flexWrap: "wrap",
+          marginTop: "15px",
+          padding: "15px",
+          backgroundColor: "white",
+          borderRadius: "12px",
+          boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
         }}
       >
-        <div style={{ flex: 1 }}>
-          <div
+        {/* FILTRO 1: ESTADO - MÁS ANCHO */}
+        <div className="gestion-filtro">
+          <label
             style={{
-              marginTop: 10,
-              display: "flex",
-              alignItems: "center",
-              gap: 12,
+              display: "block",
+              marginBottom: "5px",
+              fontWeight: "600",
+              fontSize: "0.9rem",
+              color: "#2c3e50",
             }}
           >
-            <div
-              style={{ display: "flex", alignItems: "center" }}
-              className="search-bar"
-            >
-              <div className="search-input-group">
-                <FaSearch />
-                <input
-                  type="text"
-                  placeholder="Buscar pedido, cliente..."
-                  name="busqueda"
-                  onChange={handleFilterChange}
-                />
-              </div>
+            Estado:
+          </label>
+          <Form.Select
+            name="estado"
+            onChange={handleFilterChange}
+            className="filter-select"
+            style={{
+              width: "200px",
+              padding: "10px 12px",
+              borderRadius: "8px",
+              border: "1px solid #e0e0e0",
+              fontSize: "0.95rem",
+            }}
+          >
+            <option value="">Estado: Todos</option>
+            <option value="pendiente">Pendiente</option>
+            <option value="en_ruta">En Tránsito</option>
+            <option value="entregado">Exportado</option>
+            <option value="rechazado">Rechazado</option>
+            <option value="cancelado">Cancelado</option>
+          </Form.Select>
+        </div>
+
+        {/* FILTRO 2: CLIENTE - MÁS ANCHO */}
+        <div className="gestion-filtro">
+          <label
+            style={{
+              display: "block",
+              marginBottom: "5px",
+              fontWeight: "600",
+              fontSize: "0.9rem",
+              color: "#2c3e50",
+            }}
+          >
+            Cliente:
+          </label>
+          <Form.Control
+            as="select"
+            name="cliente"
+            onChange={handleFilterChange}
+            className="filter-select"
+            style={{
+              width: "250px",
+              padding: "10px 12px",
+              borderRadius: "8px",
+              border: "1px solid #e0e0e0",
+              fontSize: "0.95rem",
+            }}
+            value={filtros.cliente}
+          >
+            <option value="">Cliente: Todos</option>
+            {clientes.map((c) => (
+              <option
+                key={c.cliente_id || c.id}
+                value={c.nombre || c.cliente_nombre || c.razon_social}
+              >
+                {c.nombre || c.cliente_nombre || c.razon_social}
+              </option>
+            ))}
+          </Form.Control>
+        </div>
+
+        {/* FILTRO 3: TRANSPORTE - MÁS ANCHO */}
+        <div className="gestion-filtro">
+          <label
+            style={{
+              display: "block",
+              marginBottom: "5px",
+              fontWeight: "600",
+              fontSize: "0.9rem",
+              color: "#2c3e50",
+            }}
+          >
+            Transporte:
+          </label>
+          <Form.Select
+            name="transporte"
+            onChange={handleFilterChange}
+            className="filter-select"
+            style={{
+              width: "200px",
+              padding: "10px 12px",
+              borderRadius: "8px",
+              border: "1px solid #e0e0e0",
+              fontSize: "0.95rem",
+            }}
+          >
+            <option value="">Transporte: Todos</option>
+            <option value="marítimo">Marítimo</option>
+            <option value="aéreo">Aéreo</option>
+            <option value="terrestre">Terrestre</option>
+          </Form.Select>
+        </div>
+
+        {/* FILTRO 4: FECHA - MÁS ANCHO */}
+        <div className="gestion-filtro">
+          <label
+            style={{
+              display: "block",
+              marginBottom: "5px",
+              fontWeight: "600",
+              fontSize: "0.9rem",
+              color: "#2c3e50",
+            }}
+          >
+            Fecha:
+          </label>
+          <Form.Control
+            type="date"
+            name="fecha"
+            onChange={handleFilterChange}
+            className="filter-date gestion-input-date"
+            style={{
+              width: "200px",
+              padding: "10px 12px",
+              borderRadius: "8px",
+              border: "1px solid #e0e0e0",
+              fontSize: "0.95rem",
+            }}
+          />
+        </div>
+      </div>
+
+      <div>
+        <div
+          style={{
+            margin: "15px 0 15px 0",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            gap: 12,
+          }}
+        >
+          <div></div>
+          <div className="search-bar">
+            <div className="search-input-group">
+              <FaSearch />
+              <input
+                type="text"
+                placeholder="Buscar por N° pedido, cliente, destino..."
+                name="busqueda"
+                onChange={handleFilterChange}
+              />
             </div>
-
-            <Button variant="outline-success" className="btn-filter-icon me-2">
-              <FaFilter /> Filtros
-            </Button>
-
+          </div>
+          <div>
             <Button
               variant="success"
               className="btn-new-op"
@@ -1565,80 +1717,7 @@ const ListaPedidosTab = () => {
             </Button>
           </div>
         </div>
-
-        
       </div>
-
-      <div 
-  className="stock-filtros" /* Usamos la clase del nuevo formato */
-  style={{
-    display: "flex",
-    gap: 15, /* Usar un gap más consistente con la estructura de grupo */
-    alignItems: "center",
-    flexWrap: "wrap",
-    marginTop: 15, /* Mantener el margen superior si es necesario */
-  }}
->
-  {/* FILTRO 1: ESTADO */}
-  <div className="stock-filtro-grupo">
-    <label>Estado:</label>
-    <Form.Select
-      name="estado"
-      onChange={handleFilterChange}
-      className="filter-select"
-      style={{ width: 160 }}
-    >
-      <option value="">Estado: Todos</option>
-      <option value="pendiente">Pendiente</option>
-      <option value="en_ruta">En Tránsito</option>
-      <option value="entregado">Exportado</option>
-      <option value="rechazado">Rechazado</option>
-      <option value="cancelado">Cancelado</option>
-    </Form.Select>
-  </div>
-
-  {/* FILTRO 2: CLIENTE */}
-  <div className="stock-filtro-grupo">
-    <label>Cliente:</label>
-    <Form.Control
-      as="select"
-      name="cliente"
-      onChange={handleFilterChange}
-      className="filter-select"
-      style={{ width: 200 }}
-    >
-      <option value="">Cliente</option>
-    </Form.Control>
-  </div>
-
-  {/* FILTRO 3: TRANSPORTE */}
-  <div className="stock-filtro-grupo">
-    <label>Transporte:</label>
-    <Form.Select
-      name="transporte"
-      onChange={handleFilterChange}
-      className="filter-select"
-      style={{ width: 160 }}
-    >
-      <option value="">Transporte</option>
-      <option value="marítimo">Marítimo</option>
-      <option value="aéreo">Aéreo</option>
-      <option value="terrestre">Terrestre</option>
-    </Form.Select>
-  </div>
-
-  {/* FILTRO 4: FECHA (Asumimos que quieres 'Fecha') */}
-  <div className="stock-filtro-grupo">
-    <label>Fecha:</label>
-    <Form.Control
-      type="date"
-      name="fecha"
-      onChange={handleFilterChange}
-      className="filter-date stock-input-date" /* Añadimos la clase stock-input-date */
-      style={{ width: 160 }}
-    />
-  </div>
-</div>
       <div className="tabs-navigation mt-3">
         <button
           className={activeTab === "lista" ? "tab-active" : ""}
