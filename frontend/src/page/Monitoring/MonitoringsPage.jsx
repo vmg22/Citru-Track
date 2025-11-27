@@ -12,8 +12,11 @@ import {
   Filler,
 } from "chart.js";
 import { Line, Bar } from "react-chartjs-2";
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip as RechartsTooltip, Legend as RechartsLegend } from "recharts";
+import axios from "axios";
 import { io } from "socket.io-client";
 import "../../style/monitoreo.css";
+import "../../style/monitoreo-3d-effects.css"
 import { getAllCamaras } from "../CamaraFrio/service/camaraService";
 import QRCameraScanner from "./components/QRCameraScanner";
 
@@ -371,11 +374,12 @@ const MonitoreoTiempoReal = () => {
 
   // Estado para cámaras
   const [camaras, setCamaras] = useState([]);
-  const [camarasLoading, setCamarasLoading] = useState(true);
 
   // Estado para cajas escaneadas dinámicamente
   const [cajasActivas, setCajasActivas] = useState([]);
-  const [socketConnected, setSocketConnected] = useState(false);
+
+  // Estado para KPI de pallets por estado
+  const [palletsEstado, setPalletsEstado] = useState(null);
 
   const [metrics, setMetrics] = useState({
     cajasPorMin: 42,
@@ -383,15 +387,6 @@ const MonitoreoTiempoReal = () => {
     temperaturaMedia: "13.5°C",
     alertasActivas: 3,
   });
-
-  const [temperatureData, setTemperatureData] = useState([
-    12.5, 12.7, 12.9, 13.1, 12.8, 12.6, 13.0, 13.2, 13.5, 13.3,
-  ]);
-  const [humidityData, setHumidityData] = useState([
-    65, 66, 67, 68, 67, 66, 68, 69, 68, 67,
-  ]);
-  const [productData, setProductData] = useState([145, 128, 98, 112, 89]);
-  const [timeLabels, setTimeLabels] = useState([]);
 
   // Manejar cambio de producto
   const handleProductoChange = (e) => {
@@ -407,15 +402,6 @@ const MonitoreoTiempoReal = () => {
       ...prev,
       temperaturaMedia: tempPromedio.toFixed(1) + "°C",
     }));
-
-    // Generar datos de temperatura basados en el rango del producto
-    const newTempData = [];
-    for (let i = 0; i < 10; i++) {
-      const temp =
-        config.tempMin + Math.random() * (config.tempMax - config.tempMin);
-      newTempData.push(parseFloat(temp.toFixed(1)));
-    }
-    setTemperatureData(newTempData);
   };
 
   // Configurar Socket.io para cajas en tiempo real
@@ -425,12 +411,10 @@ const MonitoreoTiempoReal = () => {
 
     socket.on('connect', () => {
       console.log('Socket.io conectado para monitoreo de cajas');
-      setSocketConnected(true);
     });
 
     socket.on('disconnect', () => {
       console.log('Socket.io desconectado');
-      setSocketConnected(false);
     });
 
     // Escuchar evento de caja ingresada
@@ -464,23 +448,23 @@ const MonitoreoTiempoReal = () => {
       } catch (error) {
         console.error("Error al cargar datos de cámaras:", error);
         setCamaras([]);
-      } finally {
-        setCamarasLoading(false);
       }
     };
     fetchCamaras();
   }, []);
 
+  // Cargar datos de pallets por estado
   useEffect(() => {
-    const now = new Date();
-    const labels = [];
-    for (let i = 9; i >= 0; i--) {
-      const time = new Date(now - i * 60000);
-      labels.push(
-        time.toLocaleTimeString("es-AR", { hour: "2-digit", minute: "2-digit" })
-      );
-    }
-    setTimeLabels(labels);
+    const fetchPalletsEstado = async () => {
+      try {
+        const API_URL = import.meta.env.VITE_API_URL?.replace("/api", "") || "http://localhost:4000";
+        const response = await axios.get(`${API_URL}/api/kpi/camaras`);
+        setPalletsEstado(response.data);
+      } catch (error) {
+        console.error("Error al cargar pallets por estado:", error);
+      }
+    };
+    fetchPalletsEstado();
   }, []);
 
   useEffect(() => {
@@ -490,7 +474,6 @@ const MonitoreoTiempoReal = () => {
         config.tempMin +
         Math.random() * (config.tempMax - config.tempMin)
       ).toFixed(1);
-      const newHum = Math.floor(Math.random() * 5 + 65);
 
       setMetrics({
         cajasPorMin: Math.floor(Math.random() * 10) + 38,
@@ -498,35 +481,6 @@ const MonitoreoTiempoReal = () => {
         temperaturaMedia: newTemp + "°C",
         alertasActivas: Math.floor(Math.random() * 4),
       });
-
-      setTemperatureData((prev) => {
-        const newData = [...prev.slice(1), parseFloat(newTemp)];
-        return newData;
-      });
-
-      setHumidityData((prev) => {
-        const newData = [...prev.slice(1), newHum];
-        return newData;
-      });
-
-      setTimeLabels((prev) => {
-        const now = new Date();
-        const newLabel = now.toLocaleTimeString("es-AR", {
-          hour: "2-digit",
-          minute: "2-digit",
-        });
-        return [...prev.slice(1), newLabel];
-      });
-
-      if (Math.random() > 0.7) {
-        setProductData([
-          Math.floor(Math.random() * 50 + 120),
-          Math.floor(Math.random() * 50 + 100),
-          Math.floor(Math.random() * 40 + 80),
-          Math.floor(Math.random() * 40 + 90),
-          Math.floor(Math.random() * 30 + 70),
-        ]);
-      }
     }, 10000);
 
     return () => clearInterval(interval);
@@ -686,25 +640,114 @@ const MonitoreoTiempoReal = () => {
           <div className="monitoreo-panels-container">
             <div className="monitoreo-panel">
               <div className="monitoreo-section-title">
-                <i className="fas fa-chart-line"></i>
-                Temperatura y Humedad - Últimos 10 Minutos
+                <i className="fas fa-chart-pie"></i>
+                Pallets por Estado
               </div>
-              <TemperatureHumidityChart
-                temperatureData={temperatureData}
-                humidityData={humidityData}
-                labels={timeLabels}
-              />
+              {palletsEstado && palletsEstado.porEstado ? (
+                <ResponsiveContainer width="100%" height={350}>
+                  <PieChart>
+                    <Pie
+                      data={palletsEstado.porEstado.map((r) => ({
+                        name: r.estado,
+                        value: r.cantidad,
+                      }))}
+                      dataKey="value"
+                      nameKey="name"
+                      cx="50%"
+                      cy="50%"
+                      outerRadius={100}
+                      label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                    >
+                      {palletsEstado.porEstado.map((entry, index) => (
+                        <Cell
+                          key={index}
+                          fill={(() => {
+                            switch (entry.estado) {
+                              case "armado":
+                                return "#007bff";
+                              case "despachado":
+                                return "#28a745";
+                              case "en_camara":
+                                return "#0d5661ff";
+                              case "reservado":
+                                return "#ffc107";
+                              case "en_transporte":
+                                return "#fd7e14";
+                              case "anulado":
+                                return "#dc3545";
+                              default:
+                                return "#6c757d";
+                            }
+                          })()}
+                        />
+                      ))}
+                    </Pie>
+                    <RechartsTooltip />
+                    <RechartsLegend />
+                  </PieChart>
+                </ResponsiveContainer>
+              ) : (
+                <div style={{ padding: "40px", textAlign: "center", color: "#666" }}>
+                  Cargando datos de pallets...
+                </div>
+              )}
             </div>
 
             <div className="monitoreo-panel">
               <div className="monitoreo-section-title">
-                <i className="fas fa-chart-bar"></i>
-                Productos Procesados Hoy
+                <i className="fas fa-chart-pie"></i>
+                Pallets por producto en cámara
               </div>
-              <ProductProcessingChart
-                data={productData}
-                productos={["limon", "palta", "arandano", "frutilla", "cana"]}
-              />
+              {palletsEstado && palletsEstado.palletsPorProducto && palletsEstado.palletsPorProducto.length > 0 ? (
+                <ResponsiveContainer width="100%" height={350}>
+                  <PieChart>
+                    <Pie
+                      data={palletsEstado.palletsPorProducto.map((r) => ({
+                        name: r.producto_nombre,
+                        value: Number(r.pallets_en_camara),
+                      }))}
+                      dataKey="value"
+                      nameKey="name"
+                      cx="50%"
+                      cy="50%"
+                      outerRadius={100}
+                      innerRadius={50}
+                      label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                      labelLine={true}
+                    >
+                      {palletsEstado.palletsPorProducto.map((entry, index) => {
+                        const productName = entry.producto_nombre.toLowerCase();
+                        let fillColor;
+
+                        if (productName.includes("palta")) {
+                          fillColor = "#28a745";
+                        } else if (productName.includes("arándano")) {
+                          fillColor = "#6f42c1";
+                        } else if (productName.includes("limón")) {
+                          fillColor = "#ffc107";
+                        } else if (productName.includes("frutilla")) {
+                          fillColor = "#e83e8c";
+                        } else if (productName.includes("naranja")) {
+                          fillColor = "#fd7e14";
+                        } else if (productName.includes("toronjas")) {
+                          fillColor = "#dc3545";
+                        } else {
+                          const defaultColors = ["#17a2b8", "#007bff", "#6610f2", "#6f42c1", "#e83e8c"];
+                          fillColor = defaultColors[index % defaultColors.length];
+                        }
+
+                        return <Cell key={`cell-${index}`} fill={fillColor} />;
+                      })}
+                    </Pie>
+                    <RechartsTooltip />
+                    <RechartsLegend />
+                  </PieChart>
+                </ResponsiveContainer>
+              ) : (
+                <div style={{ padding: "40px", textAlign: "center", color: "#666" }}>
+                  No hay pallets en cámara en este momento
+                </div>
+              )}
             </div>
           </div>
 
