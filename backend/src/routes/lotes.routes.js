@@ -7,12 +7,15 @@ const {
   updateLote,
   deleteLote,
   getLotesPorProducto,
-  getSublotesPorLote
+  getSublotesPorLote,
+  getAllSublotes
 } = require('../controllers/lotesController');
 
 // IMPORTANTE: Las rutas más específicas PRIMERO
 // Nuevas rutas para filtros - DEBEN IR ANTES DE /:id
 router.get('/por-producto/:productoId', getLotesPorProducto);
+// Endpoint para obtener TODOS los sublotes (necesario para Generador QR)
+router.get('/sublotes/all', getAllSublotes);
 
 // Rutas existentes
 router.post('/', createLote);

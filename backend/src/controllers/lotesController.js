@@ -244,6 +244,48 @@ const getSublotesPorLote = async (req, res) => {
   }
 };
 
+/**
+ * @desc    Obtener todos los sublotes
+ * @route   GET /api/lotes/sublotes/all
+ * @access  Public
+ */
+const getAllSublotes = async (req, res) => {
+  try {
+    console.log('📦 Obteniendo todos los sublotes');
+    
+    const sql = `
+      SELECT 
+        s.sublote_id,
+        s.lote_id,
+        s.calibre,
+        s.cantidad_cajas,
+        l.descripcion as lote_descripcion,
+        COUNT(DISTINCT c.caja_id) as total_cajas,
+        SUM(c.peso_neto) as peso_total_cajas
+      FROM sublotes s
+      LEFT JOIN lotes l ON s.lote_id = l.lote_id
+      LEFT JOIN cajas c ON s.sublote_id = c.sublote_id
+      GROUP BY s.sublote_id
+      ORDER BY s.lote_id DESC, s.calibre ASC
+    `;
+    
+    const [sublotes] = await db.query(sql);
+    
+   console.log(`✅ Total sublotes encontrados: ${sublotes.length}`);
+    
+    res.status(200).json(sublotes);
+
+  } catch (error) {
+    console.error('❌ Error al obtener todos los sublotes:', error.message);
+    console.error('Stack:', error.stack);
+    res.status(500).json({ 
+      success: false,
+      message: "Error al obtener sublotes", 
+      error: error.message 
+    });
+  }
+};
+
 module.exports = {
   createLote,
   getAllLotes,
@@ -251,5 +293,6 @@ module.exports = {
   updateLote,
   deleteLote,
   getLotesPorProducto,
-  getSublotesPorLote
+  getSublotesPorLote,
+  getAllSublotes
 };
