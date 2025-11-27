@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import '../../style/pallet.css';
-import * as palletService from '../../services/palletService';
+import palletService from '../../services/palletService';
 import { getAllProductosActivos } from '../Settings/services/settingsServices';
 
 const Pallet = () => {
@@ -374,7 +374,7 @@ const Pallet = () => {
               )}
             </div>
 
-            <div className="filter-item">
+            {/* <div className="filter-item">
               <label>Sublote (Opcional)</label>
               <select 
                 value={filtros.sublote_id} 
@@ -388,7 +388,7 @@ const Pallet = () => {
                   </option>
                 ))}
               </select>
-            </div>
+            </div> */}
           </div>
         </div>
 
