@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import binloteServices from './services/binloteServices';
+import Swal from 'sweetalert2';
 import '../../style/bins.css';
 
 const BinsPage = () => {

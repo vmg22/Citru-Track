@@ -18,7 +18,7 @@ const getBinsConFiltros = async (req, res) => {
         l.lote_id, l.descripcion AS lote_descripcion,
         pa.proceso_id AS proceso_actual_id, pa.nombre AS proceso_actual_nombre,
         (SELECT COUNT(*) FROM bin_procesos bp WHERE bp.bin_id = b.bin_id AND bp.estado = 'completado') AS procesos_completados,
-        (SELECT COUNT(*) FROM producto_procesos pp WHERE pp.producto_id = b.producto_id AND pp.es_opcional = FALSE) AS procesos_totales_obligatorios
+        (SELECT COUNT(*) FROM productos_procesos pp WHERE pp.producto_id = b.producto_id AND pp.es_opcional = FALSE) AS procesos_totales_obligatorios
       FROM bins b
       INNER JOIN productos p ON b.producto_id = p.producto_id
       LEFT JOIN variedades v ON b.variedad_id = v.variedad_id
@@ -56,7 +56,7 @@ const getProcesosPorProducto = async (req, res) => {
     const [procesos] = await db.query(`
       SELECT pp.id, pp.orden, pp.es_opcional, pp.tiempo_estimado, pp.notas,
              pd.proceso_id, pd.nombre, pd.descripcion, pd.icono
-      FROM producto_procesos pp
+      FROM productos_procesos pp
       INNER JOIN procesos_disponibles pd ON pp.proceso_id = pd.proceso_id
       WHERE pp.producto_id = ?
       ORDER BY pp.orden ASC
