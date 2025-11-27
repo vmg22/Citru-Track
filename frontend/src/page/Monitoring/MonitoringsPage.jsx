@@ -441,6 +441,22 @@ const MonitoreoTiempoReal = () => {
       });
     });
 
+    // Escuchar eventos de bins para actualizar estadísticas
+    socket.on('bin:created', () => {
+      console.log('Bin creado - actualizando estadísticas');
+      fetchBinStats();
+    });
+
+    socket.on('bin:updated', () => {
+      console.log('Bin actualizado - actualizando estadísticas');
+      fetchBinStats();
+    });
+
+    socket.on('bin:deleted', () => {
+      console.log('Bin eliminado - actualizando estadísticas');
+      fetchBinStats();
+    });
+
     return () => {
       socket.disconnect();
     };
@@ -462,38 +478,40 @@ const MonitoreoTiempoReal = () => {
     fetchCamaras();
   }, []);
 
-  // Cargar estadísticas de bins
-  useEffect(() => {
-    const fetchBinStats = async () => {
-      try {
-        setLoadingBins(true);
-        const API_URL = import.meta.env.VITE_API_URL?.replace("/api", "") || "http://localhost:4000";
-        const response = await axios.get(`${API_URL}/api/binlote/estadisticas`);
-        
-        if (response.data.success) {
-          const dataProcesada = {
-            porProducto: response.data.data.porProducto.map((p) => ({
-              ...p,
-              total_bins: parseInt(p.total_bins) || 0,
-              porcentaje: parseFloat(p.porcentaje) || 0,
-              peso_total: parseFloat(p.peso_total) || 0,
-            })),
-            porProductor: response.data.data.porProductor.map((p) => ({
-              ...p,
-              total_bins: parseInt(p.total_bins) || 0,
-              porcentaje: parseFloat(p.porcentaje) || 0,
-              peso_total: parseFloat(p.peso_total) || 0,
-            })),
-            totalBins: parseInt(response.data.data.totalBins) || 0,
-          };
-          setBinStats(dataProcesada);
-        }
-      } catch (error) {
-        console.error("Error al cargar estadísticas de bins:", error);
-      } finally {
-        setLoadingBins(false);
+  // Función para cargar estadísticas de bins (extraída para reutilizar)
+  const fetchBinStats = async () => {
+    try {
+      setLoadingBins(true);
+      const API_URL = import.meta.env.VITE_API_URL?.replace("/api", "") || "http://localhost:4000";
+      const response = await axios.get(`${API_URL}/api/binlote/estadisticas`);
+      
+      if (response.data.success) {
+        const dataProcesada = {
+          porProducto: response.data.data.porProducto.map((p) => ({
+            ...p,
+            total_bins: parseInt(p.total_bins) || 0,
+            porcentaje: parseFloat(p.porcentaje) || 0,
+            peso_total: parseFloat(p.peso_total) || 0,
+          })),
+          porProductor: response.data.data.porProductor.map((p) => ({
+            ...p,
+            total_bins: parseInt(p.total_bins) || 0,
+            porcentaje: parseFloat(p.porcentaje) || 0,
+            peso_total: parseFloat(p.peso_total) || 0,
+          })),
+          totalBins: parseInt(response.data.data.totalBins) || 0,
+        };
+        setBinStats(dataProcesada);
       }
-    };
+    } catch (error) {
+      console.error("Error al cargar estadísticas de bins:", error);
+    } finally {
+      setLoadingBins(false);
+    }
+  };
+
+  // Cargar estadísticas de bins al montar
+  useEffect(() => {
     fetchBinStats();
   }, []);
 
