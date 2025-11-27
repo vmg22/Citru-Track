@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import * as procesoService from './services/procesoService';
+import Swal from 'sweetalert2';
 import '../../style/gestionlotes.css'; // Asegúrate de crear este archivo nuevo
 
 const GestionLotes = ({ productos }) => {
