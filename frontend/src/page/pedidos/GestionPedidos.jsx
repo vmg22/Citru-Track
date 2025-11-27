@@ -818,7 +818,10 @@ const GestionPedidos = () => {
     if (totalPages <= 1) return null;
 
     return (
-      <div className="d-flex justify-content-center align-items-center mt- mb-3" style={{marginTop:"40px"}}>
+      <div
+        className="d-flex justify-content-center align-items-center mt- mb-3"
+        style={{ marginTop: "40px" }}
+      >
         <nav>
           <ul className="pagination mb-0">
             <li className={`page-item ${currentPage === 1 ? "disabled" : ""}`}>
@@ -891,7 +894,7 @@ const GestionPedidos = () => {
                 <th className="col-cliente">Cliente</th>
                 <th className="col-destino">Destino</th>
                 <th className="col-transporte">Transporte</th>
-                <th className="col-fecha">Fecha Est.</th>
+                <th className="col-fecha">Fecha Salida</th>
                 <th className="col-pallets text-center">Pallets</th>
                 <th className="col-estado text-center">Estado</th>
                 <th className="col-acciones text-end">Acciones</th>
@@ -1032,468 +1035,429 @@ const GestionPedidos = () => {
     }
 
     return (
-      <Card className="p-4 mt-3 shadow-sm">
-        <div className="d-flex justify-content-between align-items-center mb-3">
-          <h4 className="text-citrus-dark mb-0">
-            Detalle del Pedido{" "}
-            {selectedPedido.od_code ||
-              selectedPedido.odCode ||
-              `OD-${selectedPedido.od_id || selectedPedido.id}`}
-          </h4>
-          <Badge
-            bg={selectedPedido.estado === "pendiente" ? "warning" : "secondary"}
-            className="px-3 py-2"
-            style={{ fontSize: "1rem" }}
+      <div className="detail-card-custom">
+  <div className="card-header-custom">
+    <h4 className="card-title-custom">
+      Detalle del Pedido{" "}
+      {selectedPedido.od_code ||
+        selectedPedido.odCode ||
+        `OD-${selectedPedido.od_id || selectedPedido.id}`}
+    </h4>
+    <span 
+      className={`card-badge-custom ${
+        selectedPedido.estado === "pendiente" 
+          ? "bg-warning text-dark" 
+          : "bg-secondary text-white"
+      }`}
+    >
+      {selectedPedido.estado?.toUpperCase()}
+    </span>
+  </div>
+
+  {selectedPedido.estado !== "pendiente" && (
+    <div className="alert alert-warning mb-3">
+      <strong>⚠️ Solo lectura:</strong> Este pedido no está en estado
+      "Pendiente" y no puede ser modificado.
+    </div>
+  )}
+
+  {saveMessage && (
+    <div className={`alert ${saveMessage.startsWith("Error") ? "alert-danger" : "alert-success"}`}>
+      {saveMessage}
+    </div>
+  )}
+
+  <form>
+    <h5 className="detail-section-title-custom">
+      Datos del Cliente y Destino
+    </h5>
+
+    <div className="detail-grid-custom">
+      <div className="detail-group-custom">
+        <label className="detail-label-custom">Cliente (*)</label>
+        <select
+          className="detail-select-custom"
+          name="cliente_id"
+          value={selectedPedido.cliente_id ?? ""}
+          onChange={handleDetalleChange}
+          disabled={selectedPedido.estado !== "pendiente"}
+        >
+          <option value="">(Seleccionar cliente)</option>
+          {clientes.map((c) => (
+            <option key={c.cliente_id || c.id} value={c.cliente_id || c.id}>
+              {c.nombre || c.cliente_nombre || c.razon_social}
+            </option>
+          ))}
+        </select>
+        {selectedPedido.cliente_nombre && !selectedPedido.cliente_id && (
+          <small className="text-warning mt-1">
+            Cliente actual: {selectedPedido.cliente_nombre} (seleccione del listado para actualizar)
+          </small>
+        )}
+      </div>
+
+      <div className="detail-group-custom">
+        <label className="detail-label-custom">Producto (*)</label>
+        <select
+          className="detail-select-custom"
+          name="producto_id"
+          value={selectedPedido.producto_id ?? ""}
+          onChange={handleDetalleChange}
+          disabled={selectedPedido.estado !== "pendiente"}
+        >
+          <option value="">(Seleccionar producto)</option>
+          {productos.map((p) => (
+            <option
+              key={p.producto_id || p.id}
+              value={p.producto_id || p.id}
+            >
+              {p.nombre}
+            </option>
+          ))}
+        </select>
+      </div>
+    </div>
+
+    <div className="detail-grid-custom">
+      <div className="detail-group-custom">
+        <label className="detail-label-custom">Destino Final (*)</label>
+        <input
+          type="text"
+          className="detail-input-custom"
+          name="destino"
+          value={selectedPedido.destino || ""}
+          onChange={handleDetalleChange}
+          disabled={selectedPedido.estado !== "pendiente"}
+        />
+      </div>
+
+      <div className="detail-group-custom">
+        <label className="detail-label-custom">Tipo de Destino (*)</label>
+        <select
+          className="detail-select-custom"
+          name="tipo_destino"
+          value={
+            selectedPedido.tipo_destino || selectedPedido.tipoDestino || ""
+          }
+          onChange={handleDetalleChange}
+          disabled={selectedPedido.estado !== "pendiente"}
+        >
+          <option value="">(Seleccionar)</option>
+          <option value="puerto">Marítimo (Puerto)</option>
+          <option value="aeropuerto">Aéreo (Aeropuerto)</option>
+          <option value="otra_ciudad">Terrestre (Ciudad)</option>
+          <option value="regreso_planta">Regreso a Planta</option>
+        </select>
+      </div>
+    </div>
+
+    <div className="detail-grid-full-custom">
+      <div className="detail-group-custom">
+        <label className="detail-label-custom">Fecha Programada (*)</label>
+        <input
+          type="date"
+          className="detail-input-custom"
+          name="fecha_programada"
+          value={(selectedPedido.fecha_programada || "").substring(0, 10)}
+          onChange={handleDetalleChange}
+          disabled={selectedPedido.estado !== "pendiente"}
+        />
+      </div>
+    </div>
+
+    {/* TABLA DE PALLETS DISPONIBLES */}
+    {selectedPedido.producto_id && selectedPedido.estado === "pendiente" && (
+      <>
+        <h5 className="detail-subsection-title-custom">
+          Pallets Disponibles en Cámara
+        </h5>
+        {loadingPallets ? (
+          <div className="alert alert-info">Cargando pallets...</div>
+        ) : palletsDisponibles.length === 0 ? (
+          <div className="alert alert-warning">
+            No hay pallets disponibles en cámara para este producto.
+          </div>
+        ) : (
+          <>
+            <div className="pallets-disponibles-table-wrapper">
+              <table className="table table-striped table-bordered table-hover pallets-disponibles-table mb-3">
+                <thead>
+                  <tr>
+                    <th className="pallets-col-checkbox">Seleccionar</th>
+                    <th className="pallets-col-id">ID Pallet</th>
+                    <th className="pallets-col-lote">Lote</th>
+                    <th className="pallets-col-cajas">Cajas</th>
+                    <th className="pallets-col-peso">Peso (kg)</th>
+                    <th className="pallets-col-tipo">Tipo Pallet</th>
+                    <th className="pallets-col-fecha">Fecha Armado</th>
+                    <th className="pallets-col-estado">Estado</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {palletsDisponibles.map((pallet) => {
+                    const estaAsociado = pallet.origen === "asociado";
+                    const estaSeleccionado = selectedPedido.palletsIds?.includes(pallet.pallet_id);
+
+                    return (
+                      <tr key={pallet.pallet_id} className={estaAsociado ? "table-success" : ""}>
+                        <td className="text-center align-middle">
+                          <input
+                            type="checkbox"
+                            checked={estaSeleccionado}
+                            onChange={(e) => handlePalletCheck(pallet, e.target.checked)}
+                            disabled={selectedPedido.estado !== "pendiente"}
+                          />
+                          {estaAsociado && (
+                            <span className="badge bg-success ms-2 mt-1">Asociado</span>
+                          )}
+                        </td>
+                        <td className="align-middle">
+                          <strong>{pallet.pallet_id}</strong>
+                        </td>
+                        <td className="align-middle">
+                          {pallet.lote_descripcion || `Lote #${pallet.lote_id}` || "-"}
+                        </td>
+                        <td className="text-center align-middle">
+                          <span className="badge bg-info px-3 py-2">
+                            {pallet.cantidad_cajas || 0}
+                          </span>
+                        </td>
+                        <td className="text-center align-middle">
+                          <strong>
+                            {parseFloat(pallet.peso_total || 0).toFixed(2)}
+                          </strong>
+                        </td>
+                        <td className="align-middle">
+                          {pallet.tipo_pallet || "-"}
+                        </td>
+                        <td className="text-center align-middle">
+                          {pallet.fecha_armado
+                            ? new Date(pallet.fecha_armado).toLocaleDateString("es-AR", {
+                                day: "2-digit",
+                                month: "2-digit",
+                                year: "numeric",
+                              })
+                            : "-"}
+                        </td>
+                        <td className="text-center align-middle">
+                          <span className={`badge ${estaAsociado ? "bg-warning" : "bg-success"} px-3 py-2`}>
+                            {pallet.estado}
+                          </span>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+            <div className="pallets-disponibles-footer d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+              <div className="text-muted">
+                <strong>Total disponibles:</strong>{" "}
+                {palletsDisponibles.filter((p) => p.origen === "disponible").length} pallet(s) |{" "}
+                <strong>Ya asociados:</strong>{" "}
+                {palletsDisponibles.filter((p) => p.origen === "asociado").length} pallet(s)
+              </div>
+              <button
+                type="button"
+                className="btn btn-primary btn-lg"
+                onClick={handleAgregarPallets}
+                disabled={palletsSeleccionados.length === 0 || selectedPedido.estado !== "pendiente"}
+              >
+                Agregar Pallets Seleccionados ({palletsSeleccionados.length})
+              </button>
+            </div>
+          </>
+        )}
+      </>
+    )}
+
+    <h5 className="detail-section-title-custom">
+      Asignación Logística (Opcional)
+    </h5>
+
+    <div className="detail-grid-full-custom">
+      <div className="detail-group-custom">
+        <label className="detail-label-custom">Transportista</label>
+        <select
+          className="detail-select-custom"
+          name="transportista_id"
+          value={selectedPedido.transportista_id ?? ""}
+          onChange={handleDetalleChange}
+          disabled={selectedPedido.estado !== "pendiente"}
+        >
+          <option value="">(Sin asignar)</option>
+          {transportistas.map((t) => (
+            <option key={t.transportista_id || t.id} value={t.transportista_id || t.id}>
+              {t.nombre}
+            </option>
+          ))}
+        </select>
+      </div>
+    </div>
+
+    {selectedPedido.transportista_id && (
+      <div className="detail-grid-custom">
+        <div className="detail-group-custom">
+          <label className="detail-label-custom">Camión</label>
+          <select
+            className="detail-select-custom"
+            name="camion_id"
+            value={selectedPedido.camion_id ?? ""}
+            onChange={handleDetalleChange}
+            disabled={selectedPedido.estado !== "pendiente"}
           >
-            {selectedPedido.estado?.toUpperCase()}
-          </Badge>
+            <option value="">(Sin asignar)</option>
+            {camionesDisponibles.length > 0 ? (
+              camionesDisponibles.map((c) => (
+                <option key={c.camion_id || c.id} value={c.camion_id || c.id}>
+                  {c.patente} - {c.tipo_camion || c.tipo || "Tipo no especificado"}
+                </option>
+              ))
+            ) : (
+              <option value="" disabled>
+                No hay camiones activos para este transportista
+              </option>
+            )}
+          </select>
         </div>
 
-        {selectedPedido.estado !== "pendiente" && (
-          <Alert variant="warning" className="mb-3">
-            <strong>⚠️ Solo lectura:</strong> Este pedido no está en estado
-            "Pendiente" y no puede ser modificado.
-          </Alert>
-        )}
-
-        {saveMessage && (
-          <Alert
-            variant={saveMessage.startsWith("Error") ? "danger" : "success"}
+        <div className="detail-group-custom">
+          <label className="detail-label-custom">Chofer</label>
+          <select
+            className="detail-select-custom"
+            name="chofer_id"
+            value={selectedPedido.chofer_id ?? ""}
+            onChange={handleDetalleChange}
+            disabled={selectedPedido.estado !== "pendiente"}
           >
-            {saveMessage}
-          </Alert>
-        )}
-
-        <Form>
-          <h5 className="mb-3 mt-3 text-secondary">
-            Datos del Cliente y Destino
-          </h5>
-
-          <Form.Group className="mb-2">
-            <Form.Label>Cliente (*)</Form.Label>
-            <Form.Select
-              name="cliente_id"
-              value={selectedPedido.cliente_id ?? ""}
-              onChange={handleDetalleChange}
-              disabled={selectedPedido.estado !== "pendiente"}
-            >
-              <option value="">(Seleccionar cliente)</option>
-              {clientes.map((c) => (
-                <option key={c.cliente_id || c.id} value={c.cliente_id || c.id}>
-                  {c.nombre || c.cliente_nombre || c.razon_social}
+            <option value="">(Sin asignar)</option>
+            {choferesDisponibles.length > 0 ? (
+              choferesDisponibles.map((ch) => (
+                <option key={ch.chofer_id || ch.id} value={ch.chofer_id || ch.id}>
+                  {ch.nombre}
                 </option>
-              ))}
-            </Form.Select>
-            {selectedPedido.cliente_nombre && !selectedPedido.cliente_id && (
-              <Form.Text className="text-warning">
-                Cliente actual: {selectedPedido.cliente_nombre} (seleccione del
-                listado para actualizar)
-              </Form.Text>
+              ))
+            ) : (
+              <option value="" disabled>
+                No hay choferes activos para este transportista
+              </option>
             )}
-          </Form.Group>
+          </select>
+        </div>
+      </div>
+    )}
 
-          <Form.Group className="mb-2">
-            <Form.Label>Producto (*)</Form.Label>
-            <Form.Select
-              name="producto_id"
-              value={selectedPedido.producto_id ?? ""}
-              onChange={handleDetalleChange}
-              disabled={selectedPedido.estado !== "pendiente"}
-            >
-              <option value="">(Seleccionar producto)</option>
-              {productos.map((p) => (
-                <option
-                  key={p.producto_id || p.id}
-                  value={p.producto_id || p.id}
-                >
-                  {p.nombre}
-                </option>
-              ))}
-            </Form.Select>
-          </Form.Group>
+    <div className="detail-grid-full-custom">
+      <div className="detail-group-custom">
+        <label className="detail-label-custom">Temperatura Consigne (°C)</label>
+        <input
+          type="number"
+          step="0.1"
+          className="detail-input-custom"
+          name="temperatura_consigne"
+          value={selectedPedido.temperatura_consigne ?? ""}
+          onChange={handleDetalleChange}
+          disabled={selectedPedido.estado !== "pendiente"}
+        />
+      </div>
+    </div>
 
-          <Form.Group className="mb-2">
-            <Form.Label>Destino Final (*)</Form.Label>
-            <Form.Control
-              name="destino"
-              value={selectedPedido.destino || ""}
-              onChange={handleDetalleChange}
-              disabled={selectedPedido.estado !== "pendiente"}
-            />
-          </Form.Group>
+    <h5 className="detail-section-title-custom">
+      Pallets Asociados al Pedido (*) - {selectedPedido.palletsIds?.length || 0}
+    </h5>
 
-          <Form.Group className="mb-2">
-            <Form.Label>Tipo de Destino (*)</Form.Label>
-            <Form.Select
-              name="tipo_destino"
-              value={
-                selectedPedido.tipo_destino || selectedPedido.tipoDestino || ""
-              }
-              onChange={handleDetalleChange}
-              disabled={selectedPedido.estado !== "pendiente"}
-            >
-              <option value="">(Seleccionar)</option>
-              <option value="puerto">Marítimo (Puerto)</option>
-              <option value="aeropuerto">Aéreo (Aeropuerto)</option>
-              <option value="otra_ciudad">Terrestre (Ciudad)</option>
-              <option value="regreso_planta">Regreso a Planta</option>
-            </Form.Select>
-          </Form.Group>
-
-          <Form.Group className="mb-2">
-            <Form.Label>Fecha Programada (*)</Form.Label>
-            <Form.Control
-              type="date"
-              name="fecha_programada"
-              value={(selectedPedido.fecha_programada || "").substring(0, 10)}
-              onChange={handleDetalleChange}
-              disabled={selectedPedido.estado !== "pendiente"}
-            />
-          </Form.Group>
-
-          {/* 🔥 PASO 6: TABLA DE PALLETS - Muestra asociados + disponibles */}
-          {selectedPedido.producto_id &&
-            selectedPedido.estado === "pendiente" && (
-              <>
-                <h5 className="mb-3 mt-4 text-secondary">
-                  Pallets Disponibles en Cámara
-                </h5>
-                {loadingPallets ? (
-                  <Alert variant="info">Cargando pallets...</Alert>
-                ) : palletsDisponibles.length === 0 ? (
-                  <Alert variant="warning">
-                    No hay pallets disponibles en cámara para este producto.
-                  </Alert>
-                ) : (
-                  <>
-                    <div className="pallets-disponibles-table-wrapper">
-                      <Table
-                        striped
-                        bordered
-                        hover
-                        className="pallets-disponibles-table mb-3"
-                      >
-                        <thead>
-                          <tr>
-                            <th className="pallets-col-checkbox">
-                              Seleccionar
-                            </th>
-                            <th className="pallets-col-id">ID Pallet</th>
-                            <th className="pallets-col-lote">Lote</th>
-                            <th className="pallets-col-cajas">Cajas</th>
-                            <th className="pallets-col-peso">Peso (kg)</th>
-                            <th className="pallets-col-tipo">Tipo Pallet</th>
-                            <th className="pallets-col-fecha">Fecha Armado</th>
-                            <th className="pallets-col-estado">Estado</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {palletsDisponibles.map((pallet) => {
-                            // 🔥 PASO 6: Identificar si es un pallet ya asociado
-                            const estaAsociado = pallet.origen === "asociado";
-                            const estaSeleccionado =
-                              selectedPedido.palletsIds?.includes(
-                                pallet.pallet_id
-                              );
-
-                            return (
-                              <tr
-                                key={pallet.pallet_id}
-                                className={estaAsociado ? "table-success" : ""}
-                              >
-                                <td className="text-center align-middle">
-                                  <Form.Check
-                                    type="checkbox"
-                                    checked={estaSeleccionado}
-                                    onChange={(e) =>
-                                      handlePalletCheck(
-                                        pallet,
-                                        e.target.checked
-                                      )
-                                    }
-                                  />
-                                  {estaAsociado && (
-                                    <Badge bg="success" className="ms-2 mt-1">
-                                      Asociado
-                                    </Badge>
-                                  )}
-                                </td>
-                                <td className="align-middle">
-                                  <strong>{pallet.pallet_id}</strong>
-                                </td>
-                                <td className="align-middle">
-                                  {pallet.lote_descripcion ||
-                                    `Lote #${pallet.lote_id}` ||
-                                    "-"}
-                                </td>
-                                <td className="text-center align-middle">
-                                  <Badge bg="info" className="px-3 py-2">
-                                    {pallet.cantidad_cajas || 0}
-                                  </Badge>
-                                </td>
-                                <td className="text-center align-middle">
-                                  <strong>
-                                    {parseFloat(pallet.peso_total || 0).toFixed(
-                                      2
-                                    )}
-                                  </strong>
-                                </td>
-                                <td className="align-middle">
-                                  {pallet.tipo_pallet || "-"}
-                                </td>
-                                <td className="text-center align-middle">
-                                  {pallet.fecha_armado
-                                    ? new Date(
-                                        pallet.fecha_armado
-                                      ).toLocaleDateString("es-AR", {
-                                        day: "2-digit",
-                                        month: "2-digit",
-                                        year: "numeric",
-                                      })
-                                    : "-"}
-                                </td>
-                                <td className="text-center align-middle">
-                                  <Badge
-                                    bg={estaAsociado ? "warning" : "success"}
-                                    className="px-3 py-2"
-                                  >
-                                    {pallet.estado}
-                                  </Badge>
-                                </td>
-                              </tr>
-                            );
-                          })}
-                        </tbody>
-                      </Table>
-                    </div>
-                    <div className="pallets-disponibles-footer d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
-                      <div className="text-muted">
-                        <strong>Total disponibles:</strong>{" "}
-                        {
-                          palletsDisponibles.filter(
-                            (p) => p.origen === "disponible"
-                          ).length
-                        }{" "}
-                        pallet(s) | <strong>Ya asociados:</strong>{" "}
-                        {
-                          palletsDisponibles.filter(
-                            (p) => p.origen === "asociado"
-                          ).length
-                        }{" "}
-                        pallet(s)
-                      </div>
-                      <Button
-                        variant="primary"
-                        size="lg"
-                        onClick={handleAgregarPallets}
-                        disabled={palletsSeleccionados.length === 0}
-                      >
-                        Agregar Pallets Seleccionados (
-                        {palletsSeleccionados.length})
-                      </Button>
-                    </div>
-                  </>
-                )}
-              </>
-            )}
-
-          <h5 className="mb-3 mt-3 text-secondary">
-            Asignación Logística (Opcional)
-          </h5>
-
-          <Form.Group className="mb-2">
-            <Form.Label>Transportista</Form.Label>
-            <Form.Select
-              name="transportista_id"
-              value={selectedPedido.transportista_id ?? ""}
-              onChange={handleDetalleChange}
-              disabled={selectedPedido.estado !== "pendiente"}
-            >
-              <option value="">(Sin asignar)</option>
-              {transportistas.map((t) => (
-                <option
-                  key={t.transportista_id || t.id}
-                  value={t.transportista_id || t.id}
-                >
-                  {t.nombre}
-                </option>
-              ))}
-            </Form.Select>
-          </Form.Group>
-
-          {selectedPedido.transportista_id && (
-            <>
-              <Form.Group className="mb-2">
-                <Form.Label>Camión</Form.Label>
-                <Form.Select
-                  name="camion_id"
-                  value={selectedPedido.camion_id ?? ""}
-                  onChange={handleDetalleChange}
-                  disabled={selectedPedido.estado !== "pendiente"}
-                >
-                  <option value="">(Sin asignar)</option>
-                  {camionesDisponibles.length > 0 ? (
-                    camionesDisponibles.map((c) => (
-                      <option
-                        key={c.camion_id || c.id}
-                        value={c.camion_id || c.id}
-                      >
-                        {c.patente} -{" "}
-                        {c.tipo_camion || c.tipo || "Tipo no especificado"}
-                      </option>
-                    ))
-                  ) : (
-                    <option value="" disabled>
-                      No hay camiones activos para este transportista
-                    </option>
+    <div className="detail-group-custom">
+      <div className="pallet-list-box p-3 border rounded bg-light" style={{ minHeight: "100px" }}>
+        {selectedPedido.palletsIds && selectedPedido.palletsIds.length ? (
+          <div>
+            <div className="d-flex flex-wrap gap-2">
+              {selectedPedido.palletsIds.map((id, idx) => (
+                <span key={idx} className="pallet-badge-custom bg-success text-white">
+                  <span>{id}</span>
+                  {selectedPedido.estado === "pendiente" && (
+                    <i 
+                      className="fas fa-trash"
+                      style={{ cursor: "pointer", fontSize: "0.85rem" }}
+                      onClick={() => handleRemovePallet(id)}
+                    />
                   )}
-                </Form.Select>
-              </Form.Group>
-
-              <Form.Group className="mb-2">
-                <Form.Label>Chofer</Form.Label>
-                <Form.Select
-                  name="chofer_id"
-                  value={selectedPedido.chofer_id ?? ""}
-                  onChange={handleDetalleChange}
-                  disabled={selectedPedido.estado !== "pendiente"}
-                >
-                  <option value="">(Sin asignar)</option>
-                  {choferesDisponibles.length > 0 ? (
-                    choferesDisponibles.map((ch) => (
-                      <option
-                        key={ch.chofer_id || ch.id}
-                        value={ch.chofer_id || ch.id}
-                      >
-                        {ch.nombre}
-                      </option>
-                    ))
-                  ) : (
-                    <option value="" disabled>
-                      No hay choferes activos para este transportista
-                    </option>
-                  )}
-                </Form.Select>
-              </Form.Group>
-            </>
-          )}
-
-          <Form.Group className="mb-2">
-            <Form.Label>Temperatura Consigne (°C)</Form.Label>
-            <Form.Control
-              type="number"
-              step="0.1"
-              name="temperatura_consigne"
-              value={selectedPedido.temperatura_consigne ?? ""}
-              onChange={handleDetalleChange}
-              disabled={selectedPedido.estado !== "pendiente"}
-            />
-          </Form.Group>
-
-          <h5 className="mb-3 mt-3 text-secondary">
-            Pallets Asociados al Pedido (*) -{" "}
-            {selectedPedido.palletsIds?.length || 0}
-          </h5>
-
-          <Form.Group className="mb-3">
-            <div
-              className="pallet-list-box p-3 border rounded bg-light"
-              style={{ minHeight: "100px" }}
-            >
-              {selectedPedido.palletsIds && selectedPedido.palletsIds.length ? (
-                <div>
-                  <div className="d-flex flex-wrap gap-2">
-                    {selectedPedido.palletsIds.map((id, idx) => (
-                      <Badge
-                        key={idx}
-                        bg="success"
-                        className="d-flex align-items-center gap-2"
-                        style={{
-                          padding: "8px 12px",
-                          fontSize: "0.9rem",
-                        }}
-                      >
-                        <span>{id}</span>
-                        {selectedPedido.estado === "pendiente" && (
-                          <FaTrash
-                            style={{
-                              cursor: "pointer",
-                              color: "white",
-                              fontSize: "0.85rem",
-                            }}
-                            onClick={() => handleRemovePallet(id)}
-                          />
-                        )}
-                      </Badge>
-                    ))}
-                  </div>
-                  <p className="m-0 mt-3 text-primary fw-bold">
-                    Total de Pallets: {selectedPedido.palletsIds.length}
-                  </p>
-                </div>
-              ) : (
-                <div className="text-muted">
-                  Aún no se han asociado pallets. Debe agregar al menos uno.
-                </div>
-              )}
+                </span>
+              ))}
             </div>
-            {selectedPedido.estado === "pendiente" && (
-              <div style={{ marginTop: 8 }}>
-                <Button
-                  variant="outline-primary"
-                  size="sm"
-                  onClick={handleAddPallet}
-                  disabled={selectedPedido.estado !== "pendiente"}
-                >
-                  <FaPlusCircle className="me-1" /> Añadir Pallet Manual
-                </Button>
-              </div>
-            )}
-          </Form.Group>
-
-          <Form.Group className="mb-3">
-            <Form.Label>Observaciones</Form.Label>
-            <Form.Control
-              as="textarea"
-              rows={3}
-              name="observaciones"
-              value={selectedPedido.observaciones || ""}
-              onChange={handleDetalleChange}
-              disabled={selectedPedido.estado !== "pendiente"}
-            />
-          </Form.Group>
-
-          <div className="d-flex justify-content-center gap-2">
-            <Button variant="secondary" onClick={() => setActiveTab("lista")}>
-              Volver
-            </Button>
-
-            {selectedPedido.estado === "pendiente" && (
-              <>
-                <Button
-                  variant="warning"
-                  onClick={handleClearDetalle}
-                  style={{
-                    background: "#fff7d6",
-                    color: "#7a5b00",
-                    border: "1px solid #f0c36d",
-                  }}
-                >
-                  Limpiar
-                </Button>
-
-                <Button
-                  variant="success"
-                  onClick={handleSaveDetalle}
-                  disabled={saving}
-                >
-                  {saving ? "Guardando..." : "Guardar cambios"}
-                </Button>
-              </>
-            )}
+            <p className="m-0 mt-3 text-primary fw-bold">
+              Total de Pallets: {selectedPedido.palletsIds.length}
+            </p>
           </div>
-        </Form>
-      </Card>
+        ) : (
+          <div className="text-muted">
+            Aún no se han asociado pallets. Debe agregar al menos uno.
+          </div>
+        )}
+      </div>
+      {selectedPedido.estado === "pendiente" && (
+        <div style={{ marginTop: 8 }}>
+          <button
+            type="button"
+            className="btn btn-outline-primary btn-sm"
+            onClick={handleAddPallet}
+          >
+            <i className="fas fa-plus-circle me-1" /> Añadir Pallet Manual
+          </button>
+        </div>
+      )}
+    </div>
+
+    <div className="detail-grid-full-custom">
+      <div className="detail-group-custom">
+        <label className="detail-label-custom">Observaciones</label>
+        <textarea
+          className="detail-textarea-custom"
+          rows={3}
+          name="observaciones"
+          value={selectedPedido.observaciones || ""}
+          onChange={handleDetalleChange}
+          disabled={selectedPedido.estado !== "pendiente"}
+        />
+      </div>
+    </div>
+
+    <div className="detail-buttons-custom">
+      <button 
+        type="button" 
+        className="btn btn-secondary detail-button-custom"
+        onClick={() => setActiveTab("lista")}
+      >
+        Volver
+      </button>
+
+      {selectedPedido.estado === "pendiente" && (
+        <>
+          <button
+            type="button"
+            className="btn btn-warning detail-button-custom"
+            onClick={handleClearDetalle}
+            style={{
+              background: "#fff7d6",
+              color: "#7a5b00",
+              border: "1px solid #f0c36d",
+            }}
+          >
+            Limpiar
+          </button>
+
+          <button
+            type="button"
+            className="btn btn-success detail-button-custom"
+            onClick={handleSaveDetalle}
+            disabled={saving}
+          >
+            {saving ? "Guardando..." : "Guardar cambios"}
+          </button>
+        </>
+      )}
+    </div>
+  </form>
+</div>
     );
   };
 
@@ -1740,8 +1704,8 @@ const GestionPedidos = () => {
       </div>
 
       <div
-        className="tab-content-container"
         style={{ background: "transparent", boxShadow: "none", padding: 0 }}
+        className="divContenerGestionPedidos"
       >
         {activeTab === "lista" && <ListaPedidosTab />}
         {activeTab === "nuevo" && <NuevoPedidoTab />}

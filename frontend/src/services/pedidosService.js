@@ -196,7 +196,7 @@ export async function getChoferes() {
 }
 
 /** GET /api/pallets?productoId=X&estado=en_camara */
-export async function getPalletsByProducto(productoId) {
+export async function getPalletsByProducto(productoId) { 
   try {
     const res = await fetch(`${API_BASE}/api/pallets?productoId=${productoId}&estado=en_camara`);
     return await handleResponse(res);
