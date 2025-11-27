@@ -1,18 +1,13 @@
-// --- IMPORTANTE ---
-// Importamos el pool de conexión de la BD (como en tu ejemplo)
-const db = require('../config/db'); 
+const db = require('../config/db');
 
 /**
  * @desc    Crear un nuevo lote
  * @route   POST /api/lotes
- * @access  Private (dependerá de tu lógica de autenticación)
+ * @access  Private
  */
 const createLote = async (req, res) => {
   try {
-    // Leemos los datos del body
     const { producto_id, descripcion, bin_id, estado = 'ingresado', responsable } = req.body;
-    
-    // Asignamos el created_by (si usas autenticación, vendría de req.user.user_id)
     const created_by = req.user ? req.user.user_id : null; 
 
     const sql = `
@@ -21,10 +16,8 @@ const createLote = async (req, res) => {
       VALUES (?, ?, ?, ?, ?, ?, NOW(), NOW(), NOW())
     `;
     
-    // Ejecutamos la consulta
     const [result] = await db.query(sql, [producto_id, descripcion, bin_id, estado, responsable, created_by]);
     
-    // Respondemos con el ID del nuevo lote
     res.status(201).json({
       message: "Lote creado exitosamente",
       id: result.insertId,
@@ -67,7 +60,7 @@ const getAllLotes = async (req, res) => {
     const [lotes] = await db.query(sql);
     console.log(`✅ Lotes obtenidos: ${lotes.length} registros`);
     
-    res.status(200).json({ message: "Lotes obtenidos", data: lotes });
+    res.status(200).json(lotes);
 
   } catch (error) {
     console.error('❌ Error al obtener lotes:', error.message);
@@ -113,13 +106,10 @@ const getLoteById = async (req, res) => {
 const updateLote = async (req, res) => {
   try {
     const { id } = req.params;
-    const updates = req.body; // Los campos a actualizar
-
-    // Agregamos 'updated_at' automáticamente
+    const updates = req.body;
     updates.updated_at = new Date();
 
     const sql = 'UPDATE lotes SET ? WHERE lote_id = ?';
-
     const [result] = await db.query(sql, [updates, id]);
 
     if (result.affectedRows === 0) {
@@ -141,9 +131,7 @@ const updateLote = async (req, res) => {
 const deleteLote = async (req, res) => {
   try {
     const { id } = req.params;
-
     const sql = 'DELETE FROM lotes WHERE lote_id = ?';
-    
     const [result] = await db.query(sql, [id]);
 
     if (result.affectedRows === 0) {
@@ -157,12 +145,111 @@ const deleteLote = async (req, res) => {
   }
 };
 
+/**
+ * @desc    Obtener lotes por producto_id
+ * @route   GET /api/lotes/por-producto/:productoId
+ * @access  Public
+ */
+const getLotesPorProducto = async (req, res) => {
+  try {
+    const { productoId } = req.params;
+    
+    console.log('📦 Obteniendo lotes para producto:', productoId);
+    
+    const sql = `
+      SELECT 
+        l.lote_id,
+        l.producto_id,
+        l.descripcion,
+        l.fecha_ingreso,
+        l.estado,
+        l.cerrado,
+        l.cantidad_bins,
+        p.nombre as producto_nombre,
+        COUNT(DISTINCT c.caja_id) as total_cajas,
+        SUM(c.peso_neto) as peso_total_cajas
+      FROM lotes l
+      LEFT JOIN productos p ON l.producto_id = p.producto_id
+      LEFT JOIN cajas c ON l.lote_id = c.lote_id
+      WHERE l.producto_id = ? AND (l.cerrado = 0 OR l.cerrado IS NULL)
+      GROUP BY l.lote_id
+      ORDER BY l.fecha_ingreso DESC
+    `;
+    
+    const [lotes] = await db.query(sql, [productoId]);
+    
+    console.log(`✅ Lotes encontrados: ${lotes.length}`);
+    
+    res.status(200).json({
+      success: true,
+      lotes: lotes
+    });
 
-// Exportamos todas las funciones
+  } catch (error) {
+    console.error('❌ Error al obtener lotes por producto:', error.message);
+    console.error('Stack:', error.stack);
+    res.status(500).json({ 
+      success: false,
+      message: "Error al obtener lotes", 
+      error: error.message 
+    });
+  }
+};
+
+/**
+ * @desc    Obtener sublotes por lote_id
+ * @route   GET /api/lotes/:loteId/sublotes
+ * @access  Public
+ */
+const getSublotesPorLote = async (req, res) => {
+  try {
+    const { loteId } = req.params;
+    
+    console.log('📦 Obteniendo sublotes para lote:', loteId);
+    
+    const sql = `
+      SELECT 
+        s.sublote_id,
+        s.lote_id,
+        s.calibre,
+        s.variedad_id,
+        v.nombre as variedad_nombre,
+        COUNT(DISTINCT c.caja_id) as total_cajas,
+        SUM(c.peso_neto) as peso_total_cajas
+      FROM sublotes s
+      LEFT JOIN variedades v ON s.variedad_id = v.variedad_id
+      LEFT JOIN cajas c ON s.sublote_id = c.sublote_id
+      WHERE s.lote_id = ?
+      GROUP BY s.sublote_id
+      ORDER BY s.calibre ASC
+    `;
+    
+    const [sublotes] = await db.query(sql, [loteId]);
+    
+    console.log(`✅ Sublotes encontrados: ${sublotes.length}`);
+    
+    res.status(200).json({
+      success: true,
+      sublotes: sublotes
+    });
+
+  } catch (error) {
+    console.error('❌ Error al obtener sublotes:', error.message);
+    console.error('Stack:', error.stack);
+    res.status(500).json({ 
+      success: false,
+      message: "Error al obtener sublotes", 
+      error: error.message 
+    });
+  }
+};
+
 module.exports = {
   createLote,
   getAllLotes,
   getLoteById,
   updateLote,
-  deleteLote
+  deleteLote,
+  getLotesPorProducto,
+  getSublotesPorLote
 };

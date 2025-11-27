@@ -97,7 +97,6 @@ const Stock = () => {
   // Efecto: actualizar stock cuando cambian los filtros
   useEffect(() => {
     fetchStockData();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filtros]);
 
   // Calcular porcentaje para gráfico circular

@@ -29,6 +29,7 @@
 /* Clases de Utilidad de Texto */
 .text-citrus-dark {
   color: var(--citrus-green-dark) !important;
+  text-align: center;
 }
 .text-secondary {
   color: var(--text-muted) !important;
@@ -193,17 +194,22 @@
    5. ESTILOS DEL FORMULARIO (NuevoPedidoForm)
    ========================================= */
 
-/* Tarjeta contenedora del formulario */
-.card.shadow-sm {
+
+/* Centrar el contenedor en la página */
+.divContenedor {
   border: none !important;
   border-radius: 12px;
   box-shadow: var(--citrus-shadow) !important;
   background-color: white;
-  padding: 30px !important; /* Aumentar el padding interno de la tarjeta */
+  padding: 30px !important; 
+  margin: 0 auto;
+  top: 50%;
+  left: 50%;
+  width: 70%;
 }
 
 /* Título principal del formulario */
-.card h4.text-citrus-dark {
+.text-citrus-dark {
   /* Más específico para el h4 del formulario */
   color: var(--citrus-green-dark) !important;
   font-size: 1.5rem; /* Ajustar tamaño */
@@ -368,10 +374,6 @@ h5.text-secondary {
   color: var(--citrus-green-dark);
   border-color: #a5d6a7;
 }
-
-/* =========================================
-   ESTILOS DE LA TABLA (LIMPIA Y MODERNA)
-   ========================================= */
 
 /* =========================================
    ESTILOS DE LA TABLA (LIMPIA Y MODERNA)
@@ -861,7 +863,7 @@ h5.text-secondary {
 /* Estilos para los selects de filtros */
 .gestion-filtros .filter-select,
 .gestion-filtros .gestion-input-date {
-  width: 350px !important;
+  width: 290px !important;
   padding: 10px 12px !important;
   border-radius: 8px !important;
   border: 1px solid #e0e0e0 !important;
