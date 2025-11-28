@@ -216,69 +216,78 @@ const Pallet = () => {
   };
 
   const handleCrearPallet = async () => {
-    // Validaciones
+    // Validaciones iniciales
     if (!filtros.producto_id) {
-      showMessage('Debes seleccionar un producto', 'error');
-      return;
+        showMessage('Debes seleccionar un producto', 'error');
+        return;
     }
     
     if (!filtros.lote_id) {
-      showMessage('Debes seleccionar un lote', 'error');
-      return;
+        showMessage('Debes seleccionar un lote', 'error');
+        return;
     }
     
     if (cajasSeleccionadas.length === 0) {
-      showMessage('Debes seleccionar al menos una caja', 'error');
-      return;
+        showMessage('Debes seleccionar al menos una caja', 'error');
+        return;
     }
 
-    const pallet_id = `PLT-${Date.now().toString().slice(-8)}`;
+    // 1. Calcular el peso total de las cajas seleccionadas
+    const pesoTotalCalculado = cajasSeleccionadas.reduce((sum, c) => sum + parseFloat(c.peso_neto || 0), 0);
+    
+    // 2. Generar un ID temporal para usarlo en caso de que el backend no devuelva uno.
+    const tempPalletId = `PLT-${Date.now().toString().slice(-8)}`;
     
     console.log('🚀 Creando pallet:', {
-      pallet_id,
-      producto_id: filtros.producto_id,
-      lote_id: filtros.lote_id,
-      sublote_id: filtros.sublote_id,
-      cajas_count: cajasSeleccionadas.length
+        pallet_id_propuesto: tempPalletId,
+        producto_id: filtros.producto_id,
+        lote_id: filtros.lote_id,
+        cajas_count: cajasSeleccionadas.length,
+        peso_neto: pesoTotalCalculado.toFixed(2)
     });
 
     setLoading(true);
     try {
-      const response = await palletService.crearPalletConCajas({
-        pallet_id,
-        producto_id: parseInt(filtros.producto_id),
-        lote_id: parseInt(filtros.lote_id),
-        sublote_id: filtros.sublote_id ? parseInt(filtros.sublote_id) : null,
-        cajas_ids: cajasSeleccionadas.map(c => c.caja_id),
-        tipo_pallet: tipoPallet
-      });
-      
-      console.log('✅ Respuesta crear pallet:', response);
-      
-      if (response.success) {
-        showMessage(`✅ Pallet ${pallet_id} creado exitosamente con ${cajasSeleccionadas.length} cajas`, 'success');
-        setUltimoPalletId(pallet_id);
-        setCajasSeleccionadas([]);
+        const response = await palletService.crearPalletConCajas({
+            pallet_id: tempPalletId, 
+            producto_id: parseInt(filtros.producto_id),
+            lote_id: parseInt(filtros.lote_id),
+            sublote_id: filtros.sublote_id ? parseInt(filtros.sublote_id) : null,
+            // 🚨 CAMBIAR: Usar el nombre de campo que el backend está esperando
+            cajas_a_incluir: cajasSeleccionadas.map(c => c.caja_id), 
+            tipo_pallet: tipoPallet,
+            peso_total: pesoTotalCalculado,
+        });
         
-        // Recargar cajas disponibles
-        await cargarCajasDisponibles();
+        console.log('✅ Respuesta crear pallet:', response);
         
-        // Preguntar por QR
-        setTimeout(() => {
-          if (window.confirm('¿Deseas generar el código QR del pallet?')) {
-            handleGenerarQR(pallet_id);
-          }
-        }, 500);
-      } else {
-        showMessage(response.message || 'Error al crear pallet', 'error');
-      }
+        // 🚨 Obtener el ID final del pallet (usando el devuelto por el backend o el temporal)
+        const newPalletId = response.pallet_id || tempPalletId; 
+
+        if (response.success) {
+            showMessage(`✅ Pallet ${newPalletId} creado exitosamente con ${cajasSeleccionadas.length} cajas`, 'success');
+            setUltimoPalletId(newPalletId); 
+            setCajasSeleccionadas([]);
+            
+            // Recargar la lista de cajas disponibles (deben desaparecer las usadas)
+            await cargarCajasDisponibles();
+            
+            // Preguntar por QR
+            setTimeout(() => {
+                if (window.confirm('¿Deseas generar el código QR del pallet?')) {
+                    handleGenerarQR(newPalletId);
+                }
+            }, 500);
+        } else {
+            showMessage(response.message || 'Error al crear pallet', 'error');
+        }
     } catch (error) {
-      console.error('❌ Error al crear pallet:', error);
-      showMessage('Error al crear el pallet: ' + (error.response?.data?.message || error.message), 'error');
+        console.error('❌ Error al crear pallet:', error);
+        showMessage('Error al crear el pallet: ' + (error.response?.data?.message || error.message), 'error');
     } finally {
-      setLoading(false);
+        setLoading(false);
     }
-  };
+};
 
   const handleGenerarQR = async (palletId = ultimoPalletId) => {
     if (!palletId) {

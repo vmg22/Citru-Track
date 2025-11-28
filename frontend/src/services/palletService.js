@@ -1,14 +1,14 @@
-import axios from 'axios';
+import axios from "axios";
 
 // ---------------- CORRECCIÓN AQUÍ ----------------
 // Usamos import.meta.env.VITE_API_URL
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:4000/api';
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:4000/api";
 // -------------------------------------------------
 
 const axiosInstance = axios.create({
   baseURL: API_URL,
   headers: {
-    'Content-Type': 'application/json',
+    "Content-Type": "application/json",
   },
   timeout: 10000,
 });
@@ -21,12 +21,15 @@ axiosInstance.interceptors.request.use(
     // Opcional: Si tienes token, inyectalo aquí
     // const token = localStorage.getItem('token');
     // if (token) config.headers.Authorization = `Bearer ${token}`;
-    
-    console.log(`📤 [REQUEST] ${config.method.toUpperCase()} ${config.url}`, config.params || '');
+
+    console.log(
+      `📤 [REQUEST] ${config.method.toUpperCase()} ${config.url}`,
+      config.params || ""
+    );
     return config;
   },
   (error) => {
-    console.error('❌ Request Error:', error);
+    console.error("❌ Request Error:", error);
     return Promise.reject(error);
   }
 );
@@ -38,15 +41,19 @@ axiosInstance.interceptors.response.use(
   },
   (error) => {
     const originalRequest = error.config;
-    
-    if (error.code === 'ECONNREFUSED' || error.code === 'ERR_NETWORK') {
+
+    if (error.code === "ECONNREFUSED" || error.code === "ERR_NETWORK") {
       console.error(`❌ ERROR DE CONEXIÓN: No se puede alcanzar ${API_URL}`);
       // Aquí podrías disparar una alerta global o toast
     } else if (error.response) {
       // El servidor respondió con un código de error (4xx, 5xx)
-      console.error('❌ Error Servidor:', error.response.status, error.response.data);
+      console.error(
+        "❌ Error Servidor:",
+        error.response.status,
+        error.response.data
+      );
     } else {
-      console.error('❌ Error Desconocido:', error.message);
+      console.error("❌ Error Desconocido:", error.message);
     }
     return Promise.reject(error);
   }
@@ -62,10 +69,12 @@ axiosInstance.interceptors.response.use(
  */
 export const obtenerLotesPorProducto = async (productoId) => {
   try {
-    const response = await axiosInstance.get(`/lotes/por-producto/${productoId}`);
-    return response.data.success ? (response.data.lotes || []) : [];
+    const response = await axiosInstance.get(
+      `/lotes/por-producto/${productoId}`
+    );
+    return response.data.success ? response.data.lotes || [] : [];
   } catch (error) {
-    console.error('Error en obtenerLotesPorProducto:', error);
+    console.error("Error en obtenerLotesPorProducto:", error);
     return [];
   }
 };
@@ -77,9 +86,9 @@ export const obtenerLotesPorProducto = async (productoId) => {
 export const obtenerSublotesPorLote = async (loteId) => {
   try {
     const response = await axiosInstance.get(`/lotes/${loteId}/sublotes`);
-    return response.data.success ? (response.data.sublotes || []) : [];
+    return response.data.success ? response.data.sublotes || [] : [];
   } catch (error) {
-    console.error('Error en obtenerSublotesPorLote:', error);
+    console.error("Error en obtenerSublotesPorLote:", error);
     return [];
   }
 };
@@ -98,12 +107,14 @@ export const getCajasDisponibles = async (filtros) => {
     if (filtros.lote_id) params.lote_id = filtros.lote_id;
     if (filtros.sublote_id) params.sublote_id = filtros.sublote_id;
 
-    const response = await axiosInstance.get('/pallets/cajas-disponibles', { params });
-    
+    const response = await axiosInstance.get("/pallets/cajas-disponibles", {
+      params,
+    });
+
     // Asumimos que response.data devuelve { success: true, cajas: [...] }
-    return response.data; 
+    return response.data;
   } catch (error) {
-    console.error('Error obteniendo cajas:', error);
+    console.error("Error obteniendo cajas:", error);
     return { success: false, cajas: [], error: error.message };
   }
 };
@@ -112,17 +123,18 @@ export const getCajasDisponibles = async (filtros) => {
  * Crear pallet con cajas seleccionadas
  * POST /pallets/crear-con-cajas
  */
+// palletService.js
+
 export const crearPalletConCajas = async (dataPallet) => {
   try {
-    // Validaciones básicas antes de llamar a la API
-    if (!dataPallet.producto_id) throw new Error('Falta el ID del producto');
-    if (!dataPallet.cajas_ids?.length) throw new Error('Seleccione al menos una caja');
-
-    const response = await axiosInstance.post('/pallets/armar', { ...dataPallet, cajas_a_incluir: dataPallet.cajas_ids });
+    // dataPallet ya contiene pallet_id, producto_id, y cajas_a_incluir
+    const response = await axiosInstance.post("/pallets/armar", dataPallet);
     return response.data;
   } catch (error) {
     // Relanzamos el error para que el componente (UI) pueda mostrar el mensaje
-    throw error.response?.data?.message || error.message || 'Error al crear pallet';
+    throw (
+      error.response?.data?.message || error.message || "Error al crear pallet"
+    );
   }
 };
 
@@ -132,7 +144,8 @@ export const crearPalletConCajas = async (dataPallet) => {
  */
 export const generarQRPallet = async (palletId, format = 'dataURL') => {
   try {
-    const response = await axiosInstance.get(`/pallets/${palletId}/qr`, {
+    // 🚨 CAMBIO CLAVE: Usar la ruta registrada en el backend (/api/qr/pallets/:id)
+    const response = await axiosInstance.get(`/qr/pallets/${palletId}`, { 
       params: { format }
     });
     return response.data;
@@ -141,7 +154,6 @@ export const generarQRPallet = async (palletId, format = 'dataURL') => {
     throw error;
   }
 };
-
 /**
  * Obtener Detalle de Pallet
  * GET /pallets/:palletId
@@ -151,14 +163,14 @@ export const obtenerPalletDetalle = async (palletId) => {
     const response = await axiosInstance.get(`/pallets/${palletId}`);
     return response.data;
   } catch (error) {
-    if (error.response?.status === 404) throw new Error('Pallet no encontrado');
+    if (error.response?.status === 404) throw new Error("Pallet no encontrado");
     throw error;
   }
 };
 
 export const verificarConexion = async () => {
   try {
-    await axiosInstance.get('/test'); // Asume que tienes un endpoint /test o /health
+    await axiosInstance.get("/test"); // Asume que tienes un endpoint /test o /health
     return true;
   } catch (e) {
     return false;
@@ -172,7 +184,7 @@ const palletService = {
   crearPalletConCajas,
   generarQRPallet,
   obtenerPalletDetalle,
-  verificarConexion
+  verificarConexion,
 };
 
 export default palletService;
