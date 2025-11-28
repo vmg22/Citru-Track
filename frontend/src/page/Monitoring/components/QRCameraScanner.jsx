@@ -96,6 +96,8 @@ const QRCameraScanner = ({ onCajaDetectada, lineaActual, productoActual }) => {
       };
       setScanHistory(prev => [newScan, ...prev.slice(0, 4)]);
 
+      console.log('📦 QR con datos JSON detectado:', cajaData);
+
       // Enviar al backend con todos los datos
       try {
         const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:4000';
@@ -111,9 +113,16 @@ const QRCameraScanner = ({ onCajaDetectada, lineaActual, productoActual }) => {
           showSuccessFeedback();
         }
       } catch (error) {
-        console.error('Error al registrar la caja:', error);
+        console.error('❌ Error al registrar la caja (JSON):', error);
+        console.error('❌ Detalles del error:', {
+          message: error.message,
+          response: error.response?.data,
+          status: error.response?.status
+        });
         if (error.response?.data?.message) {
           showErrorFeedback(error.response.data.message);
+        } else {
+          showErrorFeedback('Error desconocido al registrar la caja');
         }
       }
     } else {
@@ -124,14 +133,21 @@ const QRCameraScanner = ({ onCajaDetectada, lineaActual, productoActual }) => {
       };
       setScanHistory(prev => [newScan, ...prev.slice(0, 4)]);
 
+      // Preparar datos para enviar
+      const dataToSend = {
+        codigo_qr: decodedText,
+        linea: lineaActual,
+        producto_id: productoActual,
+      };
+
+      console.log('📦 Datos a enviar al backend:', dataToSend);
+      console.log('📝 Tipo de producto_id:', typeof dataToSend.producto_id);
+
       // Enviar al backend
       try {
         const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:4000';
-        const response = await axios.post(`${API_URL}/api/cajas/ingresar`, {
-          codigo_qr: decodedText,
-          linea: lineaActual,
-          producto_id: productoActual,
-        });
+        const response = await axios.post(`${API_URL}/api/cajas/ingresar`, dataToSend);
+
 
         if (response.data.success) {
           // Notificar al componente padre
@@ -143,9 +159,16 @@ const QRCameraScanner = ({ onCajaDetectada, lineaActual, productoActual }) => {
           showSuccessFeedback();
         }
       } catch (error) {
-        console.error('Error al registrar la caja:', error);
+        console.error('❌ Error al registrar la caja:', error);
+        console.error('❌ Detalles del error:', {
+          message: error.message,
+          response: error.response?.data,
+          status: error.response?.status
+        });
         if (error.response?.data?.message) {
           showErrorFeedback(error.response.data.message);
+        } else {
+          showErrorFeedback('Error desconocido al registrar la caja');
         }
       }
     }

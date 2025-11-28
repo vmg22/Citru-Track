@@ -153,11 +153,11 @@ const obtenerCajasRecientes = async (req, res) => {
     const limit = parseInt(req.query.limit) || 10;
 
     const [cajas] = await db.query(
-      `SELECT c.caja_id as codigo_qr, c.fecha_creacion as timestamp, 
+      `SELECT c.caja_id as codigo_qr, c.created_at as timestamp, 
               p.nombre as producto_nombre, c.lote_id, c.sublote_id
        FROM cajas c
        LEFT JOIN productos p ON c.producto_id = p.producto_id
-       ORDER BY c.fecha_creacion DESC
+       ORDER BY c.created_at DESC
        LIMIT ?`,
       [limit]
     );

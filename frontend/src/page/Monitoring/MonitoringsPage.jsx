@@ -34,6 +34,7 @@ ChartJS.register(
 const productosConfig = {
   limon: {
     nombre: "Limón",
+    producto_id: 1,
     planta: "T1",
     linea: "A",
     temperatura: "12–15°C",
@@ -43,6 +44,7 @@ const productosConfig = {
   },
   palta: {
     nombre: "Palta",
+    producto_id: 2,
     planta: "T2",
     linea: "B",
     temperatura: "5–14°C",
@@ -52,6 +54,7 @@ const productosConfig = {
   },
   arandano: {
     nombre: "Arándano",
+    producto_id: 3,
     planta: "T3",
     linea: "C",
     temperatura: "0.5–2°C",
@@ -61,6 +64,7 @@ const productosConfig = {
   },
   frutilla: {
     nombre: "Frutilla",
+    producto_id: 4,
     planta: "T4",
     linea: "D",
     temperatura: "0–1°C",
@@ -70,6 +74,7 @@ const productosConfig = {
   },
   cana: {
     nombre: "Derivados de Caña",
+    producto_id: 5,
     planta: "T5",
     linea: "E",
     temperatura: "20–30°C",
@@ -78,6 +83,7 @@ const productosConfig = {
     tempMax: 30,
   },
 };
+
 
 const StatusBadge = ({ status }) => {
   return (
@@ -933,7 +939,7 @@ const MonitoreoTiempoReal = () => {
         {/* Componente de escaneo QR */}
         <QRCameraScanner
           lineaActual={lineaSeleccionada}
-          productoActual={productoSeleccionado}
+          productoActual={config.producto_id}
           onCajaDetectada={(caja) => {
             console.log('Caja detectada desde scanner:', caja);
           }}
