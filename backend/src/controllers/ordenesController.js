@@ -14,7 +14,7 @@ async function getAllOrdenes(req, res) {
 
     const sql = `
       SELECT od.*, c.nombre AS cliente_nombre, t.nombre AS transportista_nombre, cam.patente AS patente
-      FROM orden_despacho od
+      FROM ordenes_despacho od
       LEFT JOIN clientes c ON od.cliente_id = c.cliente_id
       LEFT JOIN transportistas t ON od.transportista_id = t.transportista_id
       LEFT JOIN camiones cam ON od.camion_id = cam.camion_id
@@ -36,7 +36,7 @@ async function getKPIs(req, res) {
     const [[{ totalCamiones }]] = await pool.query("SELECT COUNT(*) AS totalCamiones FROM camiones");
     const [[{ totalChoferes }]] = await pool.query("SELECT COUNT(*) AS totalChoferes FROM choferes");
     const [[{ viajesEnCurso }]] = await pool.query(
-      "SELECT COUNT(*) AS viajesEnCurso FROM orden_despacho WHERE estado IN ('en_carga','en_ruta')"
+      "SELECT COUNT(*) AS viajesEnCurso FROM ordenes_despacho WHERE estado IN ('en_carga','en_ruta')"
     );
     const [[{ enMantenimiento }]] = await pool.query(
       "SELECT COUNT(*) AS enMantenimiento FROM camiones WHERE ultima_desinfeccion IS NULL OR ultima_desinfeccion = ''"
@@ -149,7 +149,7 @@ async function createPedido(req, res) {
     }
 
     // Obtener el último od_code y calcular siguiente correlativo (OD-0001 ...)
-    const [last] = await connection.query("SELECT od_code FROM orden_despacho ORDER BY od_id DESC LIMIT 1");
+    const [last] = await connection.query("SELECT od_code FROM ordenes_despacho ORDER BY od_id DESC LIMIT 1");
     let nextCode = "OD-0001";
     if (Array.isArray(last) && last.length > 0 && last[0].od_code) {
       const lastCode = String(last[0].od_code);
@@ -162,7 +162,7 @@ async function createPedido(req, res) {
 
     // 🔥 INSERT SIN columna 'estado' - usará DEFAULT 'pendiente'
     const sql = `
-      INSERT INTO orden_despacho
+      INSERT INTO ordenes_despacho
       (od_code, cliente_id, destino, tipo_destino, producto_id,
        transportista_id, camion_id, chofer_id, observaciones, 
        temperatura_consigne, fecha_programada,
@@ -400,7 +400,7 @@ async function updatePedido(req, res) {
     if (sets.length > 0) {
       params.push(id);
       const sql = `
-        UPDATE orden_despacho
+        UPDATE ordenes_despacho
         SET ${sets.join(", ")}
         WHERE od_id = ?
       `;
@@ -409,7 +409,7 @@ async function updatePedido(req, res) {
       console.log("updatePedido - params:", params);
       
       await connection.query(sql, params);
-      console.log("✅ Campos de orden_despacho actualizados");
+      console.log("✅ Campos de ordenes_despacho actualizados");
     }
 
     // 3. Actualizar pallets SI vinieron en el body
@@ -494,7 +494,7 @@ async function deletePedido(req, res) {
     const { id } = req.params;
 
     await pool.query(
-      "UPDATE orden_despacho SET estado = 'cancelado' WHERE od_id = ?",
+      "UPDATE ordenes_despacho SET estado = 'cancelado' WHERE od_id = ?",
       [id]
     );
 
