@@ -53,17 +53,28 @@ const palletCreationController = {
         throw new Error(`Las cajas [${cajasNoDisponibles.map(c => c.caja_id).join(', ')}] no están disponibles (Estado actual: no es 'en_planta').`);
       }
 
-      // Cálculos (para respuesta o inserción si la tabla pallets tuviera esos campos)
+      // Cálculos
       const total_cajas = cajasData.length;
-      const peso_total = cajasData.reduce((sum, caja) => sum + parseFloat(caja.peso_neto || 0), 0);
+      
+      // CORRECCIÓN: Parsear el peso correctamente (manejar "19,20 kilogramos")
+      const peso_total = cajasData.reduce((sum, caja) => {
+        let peso = 0;
+        if (caja.peso_neto) {
+             // Limpiar string: "19,20 kg" -> "19.20"
+             const limpio = String(caja.peso_neto).replace(/[^0-9.,]/g, '').replace(',', '.');
+             peso = parseFloat(limpio) || 0;
+        }
+        return sum + peso;
+      }, 0);
 
       // 2. Insertar el nuevo pallet
+      // SE AGREGAN peso_total y cantidad_cajas
       const insertPalletQuery = `
         INSERT INTO pallets (
           pallet_id, producto_id, lote_id, sublote_id, 
           tipo_pallet, fecha_armado, estado, camara_id, 
-          created_at, etiqueta_qr
-        ) VALUES (?, ?, ?, ?, ?, NOW(), 'armado', ?, NOW(), ?)
+          created_at, etiqueta_qr, peso_total, cantidad_cajas
+        ) VALUES (?, ?, ?, ?, ?, NOW(), 'armado', ?, NOW(), ?, ?, ?)
       `;
 
       await connection.query(insertPalletQuery, [
@@ -73,7 +84,9 @@ const palletCreationController = {
         sublote_id || null,
         tipo_pallet || 'estándar',
         camara_id || null,
-        `QR-${pallet_id}`
+        `QR-${pallet_id}`,
+        peso_total,
+        total_cajas
       ]);
 
       // 3. Actualizar cajas: asociar pallet y cambiar estado
