@@ -13,6 +13,7 @@ import {
   FaSearch,
   FaSync,
   FaEye,
+  FaPencilAlt,
   FaPlus,
   FaFilter,
   FaTruck,
@@ -33,6 +34,7 @@ import {
   getChoferes,
   getProductos,
   getPalletsParaEditar,
+  getPalletsDelPedido,
 } from "../../services/pedidosService";
 import "../../style/stock.css";
 const GestionPedidos = () => {
@@ -49,6 +51,8 @@ const GestionPedidos = () => {
   const [error, setError] = useState(null);
 
   const [selectedPedido, setSelectedPedido] = useState(null);
+  const [showViewModal, setShowViewModal] = useState(false);
+  const [viewPedido, setViewPedido] = useState(null);
   const [saving, setSaving] = useState(false);
   const [saveMessage, setSaveMessage] = useState(null);
 
@@ -90,14 +94,24 @@ const GestionPedidos = () => {
 
   // 🔥 PASO 6: Cargar pallets cuando se edita un pedido existente
   useEffect(() => {
+    console.log("🔄 [useEffect-pallets] Se disparó el efecto");
+    console.log("🔄 [useEffect-pallets] Valores actuales:", {
+      od_id: selectedPedido?.od_id,
+      producto_id: selectedPedido?.producto_id,
+      estado: selectedPedido?.estado,
+      activeTab: activeTab
+    });
+    
     if (
       selectedPedido?.od_id &&
       selectedPedido?.producto_id &&
       selectedPedido.estado === "pendiente" &&
       activeTab === "detalle"
     ) {
+      console.log("✅ [useEffect-pallets] Condiciones cumplidas, cargando pallets...");
       loadPalletsParaEditar(selectedPedido.od_id, selectedPedido.producto_id);
     } else {
+      console.log("⚠️ [useEffect-pallets] Condiciones NO cumplidas, limpiando pallets");
       setPalletsDisponibles([]);
       setPalletsSeleccionados([]);
     }
@@ -107,6 +121,57 @@ const GestionPedidos = () => {
     selectedPedido?.estado,
     activeTab,
   ]);
+
+  // useEffect para hacer el modal draggable (arrastrable)
+  useEffect(() => {
+    if (!showViewModal) return;
+
+    const modalDialog = document.querySelector('.draggable-modal .modal-dialog');
+    const modalHeader = document.querySelector('.draggable-modal-header');
+    
+    if (!modalDialog || !modalHeader) return;
+
+    let isDragging = false;
+    let currentX;
+    let currentY;
+    let initialX;
+    let initialY;
+
+    const dragStart = (e) => {
+      if (e.target.closest('.btn-close')) return; // No arrastrar si se hace clic en el botón de cerrar
+      
+      initialX = e.clientX - (modalDialog.offsetLeft || 0);
+      initialY = e.clientY - (modalDialog.offsetTop || 0);
+      isDragging = true;
+      modalHeader.style.cursor = 'grabbing';
+    };
+
+    const drag = (e) => {
+      if (!isDragging) return;
+      e.preventDefault();
+      
+      currentX = e.clientX - initialX;
+      currentY = e.clientY - initialY;
+      
+      modalDialog.style.transform = `translate(${currentX}px, ${currentY}px)`;
+      modalDialog.style.margin = '0';
+    };
+
+    const dragEnd = () => {
+      isDragging = false;
+      modalHeader.style.cursor = 'move';
+    };
+
+    modalHeader.addEventListener('mousedown', dragStart);
+    document.addEventListener('mousemove', drag);
+    document.addEventListener('mouseup', dragEnd);
+
+    return () => {
+      modalHeader.removeEventListener('mousedown', dragStart);
+      document.removeEventListener('mousemove', drag);
+      document.removeEventListener('mouseup', dragEnd);
+    };
+  }, [showViewModal]);
 
   async function loadPedidos() {
     setError(null);
@@ -242,8 +307,9 @@ const GestionPedidos = () => {
       console.log(
         `🔍 [loadPalletsParaEditar] pedidoId: ${pedidoId}, productoId: ${productoId}`
       );
+      
+      // Cargar pallets disponibles y asociados
       const pallets = await getPalletsParaEditar(pedidoId, productoId);
-
       console.log("📦 Pallets recibidos:", pallets);
 
       // Separar pallets por origen
@@ -255,7 +321,9 @@ const GestionPedidos = () => {
 
       // Pre-seleccionar los pallets ya asociados
       const palletsIdsAsociados = asociados.map((p) => p.pallet_id);
+      console.log("🔢 IDs de pallets a precargar:", palletsIdsAsociados);
 
+      // Actualizar el estado con los pallets asociados
       setSelectedPedido((prev) => ({
         ...prev,
         palletsIds: palletsIdsAsociados,
@@ -263,6 +331,8 @@ const GestionPedidos = () => {
 
       // Mostrar todos los pallets (asociados + disponibles)
       setPalletsDisponibles(pallets);
+      
+      console.log("✅ Pallets cargados y precargados exitosamente");
     } catch (err) {
       console.error("❌ Error cargando pallets:", err);
       setPalletsDisponibles([]);
@@ -275,6 +345,62 @@ const GestionPedidos = () => {
   const handleFilterChange = (e) => {
     const { name, value } = e.target;
     setFiltros((f) => ({ ...f, [name]: value }));
+  };
+
+  // Función para abrir modal de vista (solo lectura)
+  const openViewModal = async (pedido) => {
+    console.log("[openViewModal] Pedido completo:", JSON.stringify(pedido, null, 2));
+    
+    // Normalizar datos del pedido con TODOS los campos
+    const normalized = {
+      ...pedido,
+      od_id: pedido.od_id ?? pedido.id ?? pedido.odId ?? null,
+      od_code: pedido.od_code ?? pedido.odCode ?? `OD-${pedido.od_id || pedido.id}`,
+      cliente_nombre: pedido.cliente_nombre ?? pedido.clienteNombre ?? "",
+      cliente_direccion: pedido.cliente_direccion ?? pedido.clienteDireccion ?? "",
+      cliente_cuit: pedido.cliente_cuit ?? pedido.clienteCuit ?? "",
+      producto_nombre: pedido.producto_nombre ?? pedido.productoNombre ?? "",
+      producto_id: pedido.producto_id ?? pedido.productoId ?? null,
+      destino: pedido.destino ?? "",
+      tipo_destino: pedido.tipo_destino ?? pedido.tipoDestino ?? "",
+      fecha_programada: pedido.fecha_programada ?? pedido.fechaProgramada ?? "",
+      temperatura_consigne: pedido.temperatura_consigne ?? pedido.tempConsigne ?? pedido.temperaturaConsigne ?? null,
+      observaciones: pedido.observaciones ?? "",
+      transportista_nombre: pedido.transportista_nombre ?? pedido.transportistaNombre ?? "",
+      transportista_id: pedido.transportista_id ?? pedido.transportistaId ?? null,
+      camion_patente: pedido.camion_patente ?? pedido.patente ?? "",
+      camion_tipo: pedido.camion_tipo ?? pedido.tipo_camion ?? "",
+      camion_id: pedido.camion_id ?? pedido.camionId ?? null,
+      chofer_nombre: pedido.chofer_nombre ?? pedido.choferNombre ?? "",
+      chofer_dni: pedido.chofer_dni ?? pedido.choferDni ?? "",
+      chofer_id: pedido.chofer_id ?? pedido.choferId ?? null,
+      cantidad_pallets_prevista: pedido.cantidad_pallets_prevista ?? pedido.cantidadPalletsPrevista ?? 0,
+      peso_total_previsto: pedido.peso_total_previsto ?? pedido.pesoTotalPrevisto ?? 0,
+    };
+    
+    console.log("[openViewModal] Datos normalizados:", {
+      temperatura_consigne: normalized.temperatura_consigne,
+      transportista_nombre: normalized.transportista_nombre,
+      camion_patente: normalized.camion_patente,
+      chofer_nombre: normalized.chofer_nombre
+    });
+    
+    // Cargar pallets asociados si hay producto_id
+    if (normalized.od_id && normalized.producto_id) {
+      try {
+        const pallets = await getPalletsDelPedido(normalized.od_id);
+        normalized.pallets = pallets || [];
+        console.log("[openViewModal] Pallets cargados:", pallets?.length || 0);
+      } catch (err) {
+        console.error("Error cargando pallets:", err);
+        normalized.pallets = [];
+      }
+    } else {
+      normalized.pallets = [];
+    }
+    
+    setViewPedido(normalized);
+    setShowViewModal(true);
   };
 
   const badgeEstado = (estado) => {
@@ -305,7 +431,21 @@ const GestionPedidos = () => {
   };
 
   const openDetalle = (pedido) => {
-    console.log("[openDetalle] Pedido original recibido:", pedido);
+    console.log("🔍 [openDetalle] ========== INICIO ==========");
+    console.log("[openDetalle] Pedido ORIGINAL completo (sin normalizar):");
+    console.table({
+      od_id: pedido.od_id,
+      od_code: pedido.od_code,
+      cliente_id: pedido.cliente_id,
+      producto_id: pedido.producto_id,
+      tipo_destino: pedido.tipo_destino,
+      transportista_id: pedido.transportista_id,
+      camion_id: pedido.camion_id,
+      chofer_id: pedido.chofer_id,
+      temperatura_consigne: pedido.temperatura_consigne,
+      palletsIds: pedido.palletsIds?.length || 0
+    });
+    console.log("[openDetalle] Pedido COMPLETO (JSON):", JSON.stringify(pedido, null, 2));
 
     // VALIDAR ESTADO - Solo permitir edición de pedidos en estado "pendiente"
     if (pedido.estado !== "pendiente") {
@@ -319,8 +459,11 @@ const GestionPedidos = () => {
       return;
     }
 
-    console.log("[openDetalle] Clientes disponibles:", clientes);
-    console.log("[openDetalle] Transportistas disponibles:", transportistas);
+    console.log("[openDetalle] Clientes disponibles:", clientes.length);
+    console.log("[openDetalle] Transportistas disponibles:", transportistas.length);
+    console.log("[openDetalle] Productos disponibles:", productos.length);
+    console.log("[openDetalle] Camiones disponibles:", camiones.length);
+    console.log("[openDetalle] Choferes disponibles:", choferes.length);
 
     // Intentar encontrar el cliente_id si solo tenemos el nombre
     let clienteId = pedido.cliente_id ?? pedido.clienteId ?? null;
@@ -365,12 +508,18 @@ const GestionPedidos = () => {
       cliente_nombre:
         pedido.cliente_nombre ?? pedido.clienteNombre ?? pedido.cliente ?? "",
       producto_id: pedido.producto_id ?? pedido.productoId ?? null,
+      producto_nombre: pedido.producto_nombre ?? pedido.productoNombre ?? "",
       tipo_destino: pedido.tipo_destino ?? pedido.tipoDestino ?? "",
       fecha_programada: pedido.fecha_programada ?? pedido.fechaProgramada ?? "",
       transportista_id:
         pedido.transportista_id ?? pedido.transportistaId ?? null,
+      transportista_nombre: pedido.transportista_nombre ?? pedido.transportistaNombre ?? "",
       camion_id: pedido.camion_id ?? pedido.camionId ?? null,
+      camion_patente: pedido.camion_patente ?? pedido.patente ?? "",
+      camion_tipo: pedido.camion_tipo ?? pedido.tipo_camion ?? "",
       chofer_id: pedido.chofer_id ?? pedido.choferId ?? null,
+      chofer_nombre: pedido.chofer_nombre ?? pedido.choferNombre ?? "",
+      chofer_dni: pedido.chofer_dni ?? pedido.choferDni ?? "",
       temperatura_consigne:
         pedido.temperatura_consigne ??
         pedido.tempConsigne ??
@@ -379,22 +528,54 @@ const GestionPedidos = () => {
       destino: pedido.destino ?? "",
       observaciones: pedido.observaciones ?? "",
       estado: pedido.estado ?? "pendiente",
+      cantidad_pallets_prevista: pedido.cantidad_pallets_prevista ?? 0,
+      peso_total_previsto: pedido.peso_total_previsto ?? 0,
       palletsIds: palletsIds,
     };
 
-    console.log("[openDetalle] Pedido normalizado:", normalized);
-    console.log(
-      "[openDetalle] Pallets finales en normalized:",
-      normalized.palletsIds
-    );
+    console.log("✅ [openDetalle] Pedido NORMALIZADO:");
+    console.table({
+      od_id: normalized.od_id,
+      cliente_id: normalized.cliente_id,
+      producto_id: normalized.producto_id,
+      tipo_destino: normalized.tipo_destino,
+      transportista_id: normalized.transportista_id,
+      camion_id: normalized.camion_id,
+      chofer_id: normalized.chofer_id,
+      temperatura_consigne: normalized.temperatura_consigne,
+      palletsIds: normalized.palletsIds?.length || 0
+    });
+    
+    // VERIFICACIÓN CRÍTICA
+    if (!normalized.producto_id) {
+      console.error("❌ [openDetalle] ERROR: producto_id es NULL o UNDEFINED después de normalizar!");
+      console.error("❌ Valor original:", pedido.producto_id);
+      console.error("❌ Valor normalizado:", normalized.producto_id);
+    } else {
+      console.log("✅ [openDetalle] producto_id está OK:", normalized.producto_id);
+    }
+    
+    console.log("🔍 [openDetalle] ========== FIN ==========");
 
     // Limpiar estados de pallets
     setPalletsDisponibles([]);
     setPalletsSeleccionados([]);
 
+    console.log("🚀 [openDetalle] A PUNTO DE setSelectedPedido con:", {
+      producto_id: normalized.producto_id,
+      transportista_id: normalized.transportista_id,
+      camion_id: normalized.camion_id,
+      chofer_id: normalized.chofer_id
+    });
+
     setSelectedPedido({ ...normalized });
     setSaveMessage(null);
     setActiveTab("detalle");
+    
+    // Verificar inmediatamente después de setear
+    setTimeout(() => {
+      console.log("⏱️ [openDetalle] DESPUÉS de setSelectedPedido (100ms)");
+    }, 100);
   };
 
   const handleDeletePedido = async (pedido) => {
@@ -481,11 +662,25 @@ const GestionPedidos = () => {
 
   const handlePalletCheck = (pallet, isChecked) => {
     if (isChecked) {
+      // Agregar pallet al estado de seleccionados
       setPalletsSeleccionados((prev) => [...prev, pallet]);
+      
+      // Agregar ID al array de palletsIds en selectedPedido
+      setSelectedPedido((prev) => ({
+        ...prev,
+        palletsIds: [...(prev.palletsIds || []), pallet.pallet_id]
+      }));
     } else {
+      // Remover pallet del estado de seleccionados
       setPalletsSeleccionados((prev) =>
         prev.filter((p) => p.pallet_id !== pallet.pallet_id)
       );
+      
+      // Remover ID del array de palletsIds en selectedPedido
+      setSelectedPedido((prev) => ({
+        ...prev,
+        palletsIds: (prev.palletsIds || []).filter(id => id !== pallet.pallet_id)
+      }));
     }
   };
 
@@ -959,18 +1154,19 @@ const GestionPedidos = () => {
                         <div className="btn-group-actions">
                           <Button
                             variant="link"
-                            className="btn-action-table"
-                            title="Seguimiento GPS"
+                            className="btn-action-table text-primary"
+                            title="Ver Detalles"
+                            onClick={() => openViewModal(p)}
                           >
-                            <FaTruck size={16} />
+                            <FaEye size={16} />
                           </Button>
                           <Button
                             variant="link"
-                            className="btn-action-table"
-                            title="Ver / Editar Detalles"
+                            className="btn-action-table text-warning"
+                            title="Editar Pedido"
                             onClick={() => openDetalle(p)}
                           >
-                            <FaEye size={16} />
+                            <FaPencilAlt size={16} />
                           </Button>
                           <Button
                             variant="link"
@@ -1169,13 +1365,13 @@ const GestionPedidos = () => {
     {selectedPedido.producto_id && selectedPedido.estado === "pendiente" && (
       <>
         <h5 className="detail-subsection-title-custom">
-          Pallets Disponibles en Cámara
+          Pallets Disponibles (Armados y En Cámara)
         </h5>
         {loadingPallets ? (
           <div className="alert alert-info">Cargando pallets...</div>
         ) : palletsDisponibles.length === 0 ? (
           <div className="alert alert-warning">
-            No hay pallets disponibles en cámara para este producto.
+            No hay pallets disponibles para este producto.
           </div>
         ) : (
           <>
@@ -1462,6 +1658,7 @@ const GestionPedidos = () => {
   };
 
   return (
+    <>
     <div className="gestion-pedidos-page">
       <div className="stock-header">
         <h1 className="stock-title">
@@ -1712,6 +1909,151 @@ const GestionPedidos = () => {
         {activeTab === "detalle" && <DetallePedidoTab />}
       </div>
     </div>
+
+    {/* Modal de Vista Solo Lectura - FUERA del contenedor principal */}
+    <Modal 
+      show={showViewModal} 
+      onHide={() => setShowViewModal(false)} 
+      size="xl"
+      centered
+      backdrop="static"
+      keyboard={true}
+      dialogClassName="draggable-modal"
+    >
+      <Modal.Header 
+        closeButton 
+        className="bg-primary text-white draggable-modal-header"
+        style={{ 
+          cursor: 'move',
+          backgroundColor: 'var(--citrus-green)',
+          userSelect: 'none'
+        }}
+      >
+        <Modal.Title style={{ color: '#000', fontWeight: '700', textShadow: '1px 1px 2px rgba(255,255,255,0.3)' }}>
+          📋 Detalles del Pedido - {viewPedido?.od_code || "N/A"}
+          <Badge bg="dark" className="ms-3" style={{ fontSize: '0.9rem' }}>
+            {viewPedido?.estado?.toUpperCase() || "N/A"}
+          </Badge>
+        </Modal.Title>
+      </Modal.Header>
+      <Modal.Body>
+          {viewPedido && (
+            <div className="p-3">
+              {/* Datos del Cliente y Destino */}
+              <h5 className="border-bottom pb-2 mb-3">📦 Datos del Cliente y Destino</h5>
+              <div className="row mb-3">
+                <div className="col-md-6">
+                  <p><strong>Cliente:</strong> {viewPedido.cliente_nombre || "No especificado"}</p>
+                  <p><strong>Producto:</strong> {viewPedido.producto_nombre || "No especificado"}</p>
+                  <p><strong>Destino:</strong> {viewPedido.destino || "No especificado"}</p>
+                </div>
+                <div className="col-md-6">
+                  <p><strong>Tipo de Destino:</strong> {
+                    viewPedido.tipo_destino === "puerto" ? "Marítimo (Puerto)" :
+                    viewPedido.tipo_destino === "aeropuerto" ? "Aéreo (Aeropuerto)" :
+                    viewPedido.tipo_destino === "otra_ciudad" ? "Terrestre (Ciudad)" :
+                    viewPedido.tipo_destino === "regreso_planta" ? "Regreso a Planta" :
+                    viewPedido.tipo_destino || "No especificado"
+                  }</p>
+                  <p><strong>Fecha Programada:</strong> {
+                    viewPedido.fecha_programada 
+                      ? new Date(viewPedido.fecha_programada).toLocaleDateString("es-AR")
+                      : "No especificada"
+                  }</p>
+                  <p><strong>Temperatura Consigne:</strong> {
+                    viewPedido.temperatura_consigne !== null && viewPedido.temperatura_consigne !== undefined && viewPedido.temperatura_consigne !== ""
+                      ? `${viewPedido.temperatura_consigne}°C` 
+                      : "No especificada"
+                  }</p>
+                </div>
+              </div>
+
+              {/* Información Logística */}
+              <h5 className="border-bottom pb-2 mb-3">🚛 Información Logística</h5>
+              <div className="row mb-3">
+                <div className="col-md-6">
+                  <p><strong>Transportista:</strong> {viewPedido.transportista_nombre || "No asignado"}</p>
+                  <p><strong>Camión:</strong> {
+                    viewPedido.camion_patente 
+                      ? `${viewPedido.camion_patente} (${viewPedido.camion_tipo || "N/A"})`
+                      : "No asignado"
+                  }</p>
+                </div>
+                <div className="col-md-6">
+                  <p><strong>Chofer:</strong> {viewPedido.chofer_nombre || "No asignado"}</p>
+                  <p><strong>Observaciones:</strong> {viewPedido.observaciones || "Sin observaciones"}</p>
+                </div>
+              </div>
+
+              {/* Pallets Asociados */}
+              <h5 className="border-bottom pb-2 mb-3">
+                📦 Pallets Asociados ({viewPedido.cantidad_pallets_prevista || viewPedido.pallets?.length || 0})
+              </h5>
+              {viewPedido.pallets && viewPedido.pallets.length > 0 ? (
+                <div className="table-responsive">
+                  <table className="table table-sm table-bordered table-hover">
+                    <thead className="table-light">
+                      <tr>
+                        <th>ID Pallet</th>
+                        <th>Lote</th>
+                        <th className="text-center">Cajas</th>
+                        <th className="text-center">Peso (kg)</th>
+                        <th>Tipo</th>
+                        <th className="text-center">Estado</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {viewPedido.pallets.map((pallet) => (
+                        <tr key={pallet.pallet_id}>
+                          <td><strong>{pallet.pallet_id}</strong></td>
+                          <td>{pallet.lote_descripcion || `Lote #${pallet.lote_id}` || "-"}</td>
+                          <td className="text-center">
+                            <Badge bg="info">{pallet.cantidad_cajas || 0}</Badge>
+                          </td>
+                          <td className="text-center">
+                            {parseFloat(pallet.peso_total || 0).toFixed(2)}
+                          </td>
+                          <td>{pallet.tipo_pallet || "-"}</td>
+                          <td className="text-center">
+                            <Badge bg={
+                              pallet.estado === "en_camara" ? "success" :
+                              pallet.estado === "armado" ? "warning" :
+                              pallet.estado === "despachado" ? "primary" :
+                              "secondary"
+                            }>
+                              {pallet.estado}
+                            </Badge>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                    <tfoot className="table-light">
+                      <tr>
+                        <td colSpan="2" className="text-end"><strong>TOTALES:</strong></td>
+                        <td className="text-center">
+                          <strong>{viewPedido.pallets.reduce((sum, p) => sum + (parseInt(p.cantidad_cajas) || 0), 0)}</strong>
+                        </td>
+                        <td className="text-center">
+                          <strong>{viewPedido.pallets.reduce((sum, p) => sum + (parseFloat(p.peso_total) || 0), 0).toFixed(2)}</strong>
+                        </td>
+                        <td colSpan="2"></td>
+                      </tr>
+                    </tfoot>
+                  </table>
+                </div>
+              ) : (
+                <Alert variant="info">No hay pallets asociados a este pedido.</Alert>
+              )}
+            </div>
+          )}
+        </Modal.Body>
+      <Modal.Footer>
+        <Button variant="secondary" onClick={() => setShowViewModal(false)}>
+          Cerrar
+        </Button>
+      </Modal.Footer>
+    </Modal>
+    </>
   );
 };
 

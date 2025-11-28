@@ -339,6 +339,7 @@
     box-shadow: var(--box-shadow);
     padding: 20px;
     margin-bottom: 25px;
+    margin-top: 30px;
 }
 
 .monitoreo-alerta {

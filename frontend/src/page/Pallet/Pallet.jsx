@@ -317,9 +317,12 @@ const Pallet = () => {
 
   return (
     <div className="pallet-container">
-      <div className="dashboard-header">
-        <h2>🏗️ Armado de Pallet</h2>
-        <p className="subtitle">Selecciona producto y lote para ver cajas disponibles</p>
+      <div className="stock-header">
+        <h1 className="stock-title"><i className="fas fa-pallet"></i> Armado de Pallet</h1>
+        <div className="monitoreo-user-info">
+          <i className="fas fa-user-circle"></i>
+          <span>Supervisor de Planta</span>
+        </div>
       </div>
 
       <div className="pallet-card">

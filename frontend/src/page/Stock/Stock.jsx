@@ -29,7 +29,6 @@ const Stock = () => {
   // Estados de UI
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [ultimaActualizacion, setUltimaActualizacion] = useState(new Date());
 
   // Estados disponibles según tu tabla
   const estadosPallet = [
@@ -70,7 +69,6 @@ const Stock = () => {
       const data = await stockService.getResumenStock(filtros);
 
       setStockData(data);
-      setUltimaActualizacion(new Date());
     } catch (err) {
       console.error("Error al obtener datos de stock:", err);
       setError(

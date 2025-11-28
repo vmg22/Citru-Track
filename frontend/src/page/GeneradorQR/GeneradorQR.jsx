@@ -138,21 +138,20 @@ const GeneradorQR = () => {
 
   return (
     <div className="generador-qr-container">
-      <div className="generador-qr-header">
-        <h2>
-          <i className="fas fa-qrcode"></i>
-          Generador de Códigos QR
-        </h2>
-        <p className="generador-qr-subtitle">
-          Genera códigos QR para tus cajas con toda la información necesaria
-        </p>
-      </div>
 
+      <div className="stock-header">
+        <h1 className="stock-title"><i className="fas fa-qrcode"></i> Generador de Códigos QR</h1>
+        <div className="monitoreo-user-info">
+          <i className="fas fa-user-circle"></i>
+          <span>Supervisor de Planta</span>
+        </div>
+      </div>
+ 
       <div className="generador-qr-content">
         {/* Panel de configuración */}
         <div className="generador-qr-config-panel">
           <h3>
-            <i className="fas fa-cog"></i>
+            <i className="fas fa-cog" style={{color:"green"}}></i>
             Configuración
           </h3>
 

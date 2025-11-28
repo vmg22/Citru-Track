@@ -33,6 +33,7 @@ import Camara from "./page/Settings/components/Camara";
 import ProductoVariedades from "./page/Settings/components/ProductoVariedades";
 import Stock from './page/Stock/Stock';
 import GeneradorQR from "./page/GeneradorQR/GeneradorQR"; // Nueva página
+import EstadisticasBins from "./page/Bins/EstadisticasBins"; // Nueva página
 // ---------------------------------------------------
 
 const routeToItemMap = {
@@ -49,6 +50,7 @@ const routeToItemMap = {
     "/productos": "productos",
     "/stock": "stock",
     "/generador-qr": "generador-qr",
+    "/estadisticas": "estadisticas",
 };
 
 const itemToPathMap = {
@@ -65,6 +67,7 @@ const itemToPathMap = {
     productos:"/productos", 
     stock:"/stock",
     "generador-qr": "/generador-qr",
+    estadisticas: "/estadisticas",
 };
 
 // ---------------------------------------------------
@@ -119,6 +122,7 @@ const AppContent = () => {
                 <Route path="/productos" element={<ProductoVariedades />} />
                 <Route path="/stock" element={<Stock />} />
                 <Route path="/generador-qr" element={<GeneradorQR />} />
+                <Route path="/estadisticas" element={<EstadisticasBins />} />// Nueva ruta para EstadisticasBins
             </Routes>
         </Layout>
     );
