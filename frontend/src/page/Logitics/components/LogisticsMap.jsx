@@ -43,60 +43,78 @@ export default function LogisticsMap() {
   }, [camiones]);
 
   // --- CARGA DE DATOS ---
-  useEffect(() => {
+useEffect(() => {
     const cargarFlotaActiva = async () => {
       try {
-        const data = await logisticService.getFlotaActiva();
-        const camionesNormalizados = Array.isArray(data) ? data : (data?.data || []);
-        
-        const camionesMapeados = camionesNormalizados.map(camion => ({
+        const response = await logisticService.getFlotaActiva();
+        // Aseguramos que sea un array, ya sea que venga directo o dentro de .data
+        const dataRaw = Array.isArray(response) ? response : (response?.data || []);
+
+        console.log("Datos recibidos del backend:", dataRaw); // Para tu control
+
+        const camionesMapeados = dataRaw.map(camion => {
+          // CONVERSIÓN ROBUSTA DE VELOCIDAD
+          // 1. Si es null o undefined, usa 0
+          // 2. Si viene como string "85.5", lo convierte a numero 85.5
+          let vel = 0;
+          if (camion.velocidad !== null && camion.velocidad !== undefined) {
+             vel = Number(camion.velocidad);
+          }
+          // Si la conversión falla (da NaN), volvemos a 0
+          if (isNaN(vel)) vel = 0;
+
+          return {
              orden_despacho_id: camion.orden_despacho_id || camion.id,
              patente: camion.patente || 'Sin patente',
+             
+             // Coordenadas: Forzamos float
              lat: parseFloat(camion.lat) || -31.4201,
              lng: parseFloat(camion.lng) || -64.1888,
-             velocidad: camion.velocidad || 0,
+             
+             // AQUI ESTABA EL PROBLEMA: Usamos la velocidad procesada
+             velocidad: vel,
+             
              estado: camion.estado || 'pendiente',
-             // AGREGADO: Mapeo del Origen
-             origen: camion.origen || camion.origen_nombre || 'Sin origen', 
+             origen: camion.origen || camion.origen_nombre || 'Planta Central', 
              destino: camion.destino || 'Desconocido',
              chofer: camion.chofer || 'Sin chofer',
              producto_nombre: camion.producto_nombre || 'Varios',
-             temperatura: camion.temperatura
-        }));
+             
+             // Sensores
+             temperatura: camion.temp_actual ?? camion.temperatura, 
+             humedad: camion.hum_actual ?? camion.humedad,
+             presion: camion.presion_actual ?? camion.presion
+          };
+        });
+
         setCamiones(camionesMapeados);
+        
       } catch (error) {
         console.error('Error cargando flota', error);
-        // Mock data
-        setCamiones([{ 
-          orden_despacho_id: 1, 
-          patente: 'TEST-01', 
-          lat: -31.4201, 
-          lng: -64.1888, 
-          estado: 'en_ruta', 
-          producto_nombre: 'Arándanos', 
-          origen: 'Tucumán', // Mock Origen
-          destino: 'Buenos Aires', 
-          chofer: 'Juan Pérez', 
-          velocidad: 45 
-        }]);
+        setCamiones([]);
       }
     };
+    
     cargarFlotaActiva();
 
-    // Socket Logic
+    // Socket Logic (Se mantiene igual)
     const socketUrl = import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:4000';
     try {
       const newSocket = io(socketUrl);
       setSocket(newSocket);
       newSocket.on('tracking:global_feed', newData => {
         setCamiones(prev => {
-          const idx = prev.findIndex(c => c.orden_despacho_id === newData.orden_despacho_id);
+          // Al recibir por socket, también aseguramos que la velocidad sea número
+          const velSocket = newData.velocidad ? Number(newData.velocidad) : 0;
+          const dataProcesada = { ...newData, velocidad: isNaN(velSocket) ? 0 : velSocket };
+
+          const idx = prev.findIndex(c => c.orden_despacho_id === dataProcesada.orden_despacho_id);
           if (idx !== -1) {
             const updated = [...prev];
-            updated[idx] = { ...updated[idx], ...newData };
+            updated[idx] = { ...updated[idx], ...dataProcesada };
             return updated;
           }
-          return [...prev, newData];
+          return [...prev, dataProcesada];
         });
       });
       return () => newSocket.disconnect();
@@ -130,7 +148,7 @@ export default function LogisticsMap() {
   // --- MAPA ---
   const handleMarkerClick = useCallback(camion => {
     setSelectedCamion(camion);
-    if (!camion.destino || camion.destino === 'Destino no especificado') return;
+    if (!camion.destino || camion.destino === 'Desconocido') return;
     
     const directionsService = new window.google.maps.DirectionsService();
     directionsService.route(
@@ -258,6 +276,8 @@ export default function LogisticsMap() {
               key={camion.orden_despacho_id}
               position={{ lat: parseFloat(camion.lat), lng: parseFloat(camion.lng) }}
               onClick={() => handleMarkerClick(camion)}
+              // Opcional: Icono diferente si está detenido
+              opacity={camion.estado === 'pendiente' ? 0.7 : 1}
             />
           ))}
           
@@ -271,7 +291,7 @@ export default function LogisticsMap() {
             />
           )}
 
-          {/* === INFO WINDOW COMPLETA CON ORIGEN === */}
+          {/* === INFO WINDOW COMPLETA === */}
           {selectedCamion && (
             <InfoWindow
               position={{ lat: parseFloat(selectedCamion.lat), lng: parseFloat(selectedCamion.lng) }}
@@ -281,53 +301,69 @@ export default function LogisticsMap() {
               }}
             >
               <div className="logistics-info-window">
-                <h2 className="logistics-info-title">{selectedCamion.patente}</h2>
+                <h2 className="logistics-info-title">
+                    {selectedCamion.patente} 
+                    <span style={{fontSize: '0.8em', color: '#666', fontWeight: 'normal'}}> ({selectedCamion.velocidad} km/h)</span>
+                </h2>
                 
                 <div className="logistics-info-content">
                   
+                  {/* Sección Principal */}
                   <div className="logistics-info-row">
                     <span className="logistics-info-label">Chofer:</span>
                     <span className="logistics-info-value">{selectedCamion.chofer}</span>
                   </div>
-                  
                   <div className="logistics-info-row">
                     <span className="logistics-info-label">Producto:</span>
                     <span className="logistics-info-value">{selectedCamion.producto_nombre}</span>
                   </div>
-
-                  {/* AGREGADO: ORIGEN */}
                   <div className="logistics-info-row">
-                    <span className="logistics-info-label">Origen:</span>
-                    <span className="logistics-info-value">{selectedCamion.origen}</span>
-                  </div>
-
-                  <div className="logistics-info-row">
-                    <span className="logistics-info-label">Destino:</span>
-                    <span className="logistics-info-value">{selectedCamion.destino}</span>
+                    <span className="logistics-info-label">Ruta:</span>
+                    <span className="logistics-info-value">{selectedCamion.origen} ➝ {selectedCamion.destino}</span>
                   </div>
                   
-                  <div className="logistics-info-row">
-                    <span className="logistics-info-label">Velocidad:</span>
-                    <span className="logistics-info-value">{selectedCamion.velocidad} km/h</span>
-                  </div>
-
-                  <div className="logistics-info-row" style={{marginTop: '4px'}}>
-                    <span className="logistics-info-label">Estado:</span>
+                  {/* Estado Badge */}
+                  <div className="logistics-info-row" style={{marginTop: '8px', marginBottom: '8px'}}>
                     <span className={getEstadoColorClass(selectedCamion.estado)}>
                       {traducirEstado(selectedCamion.estado)}
                     </span>
                   </div>
 
-                  {selectedCamion.temperatura && (
-                    <div className="logistics-info-row">
-                      <span className="logistics-info-label">Temperatura:</span>
-                      <span className="logistics-info-value">{selectedCamion.temperatura}°C</span>
-                    </div>
-                  )}
+                  {/* === SECCIÓN DE SENSORES (NUEVO) === */}
+                  <div style={{
+                      display: 'grid', 
+                      gridTemplateColumns: '1fr 1fr 1fr', 
+                      gap: '5px', 
+                      background: '#f1f3f4', 
+                      padding: '8px', 
+                      borderRadius: '6px',
+                      marginTop: '8px',
+                      textAlign: 'center'
+                  }}>
+                      <div title="Temperatura">
+                          <div style={{fontSize: '1.2em'}}>Temperatura</div>
+                          <div style={{fontSize: '0.85em', fontWeight: 'bold'}}>
+                              {selectedCamion.temperatura != null ? `${selectedCamion.temperatura}°C` : '--'}
+                          </div>
+                      </div>
+                      <div title="Humedad">
+                          <div style={{fontSize: '1.2em'}}>Humedad</div>
+                          <div style={{fontSize: '0.85em', fontWeight: 'bold'}}>
+                              {selectedCamion.humedad != null ? `${selectedCamion.humedad}%` : '--'}
+                          </div>
+                      </div>
+                      <div title="Presión">
+                          <div style={{fontSize: '1.2em'}}>Presion</div>
+                          <div style={{fontSize: '0.85em', fontWeight: 'bold'}}>
+                              {selectedCamion.presion != null ? `${selectedCamion.presion} hPa` : '--'}
+                          </div>
+                      </div>
+                  </div>
 
+                  {/* Estimación de Ruta */}
                   {directions && directions.routes[0]?.legs[0] && (
                     <div className="logistics-info-estimation">
-                      <p className="logistics-info-estimation-title">Estimación de arribo</p>
+                      <p className="logistics-info-estimation-title">Tiempo estimado</p>
                       <div className="logistics-info-estimation-details">
                         <p>🕒 {directions.routes[0].legs[0].duration?.text}</p>
                         <p>🛣️ {directions.routes[0].legs[0].distance?.text}</p>
