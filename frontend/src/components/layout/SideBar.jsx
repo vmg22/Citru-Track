@@ -93,7 +93,7 @@ const Sidebar = ({
           <div className="user-avatar">AD</div>
           <div className="user-details">
             <span className="user-name">Admin</span>
-            <span className="user-role">Gerente Planta</span>
+            <span className="user-role">Supervisor de Planta</span>
           </div>
         </div>
 

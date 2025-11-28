@@ -56,19 +56,55 @@ async function getPedidos(req, res) {
     let where = "";
 
     if (estado) {
-      where = "WHERE estado = ?";
+      where = "WHERE od.estado = ?";
       params.push(estado);
     }
 
     const sql = `
-      SELECT *
-      FROM pedidos
+      SELECT 
+        od.od_id,
+        od.od_code,
+        od.cliente_id,
+        od.producto_id,
+        od.transportista_id,
+        od.camion_id,
+        od.chofer_id,
+        od.destino,
+        od.tipo_destino,
+        od.fecha_programada,
+        od.fecha_creacion,
+        od.temperatura_consigne,
+        od.observaciones,
+        od.estado,
+        od.cantidad_pallets_prevista,
+        od.peso_total_previsto,
+        c.nombre AS cliente_nombre,
+        t.nombre AS transportista_nombre,
+        cam.patente AS camion_patente,
+        ch.nombre AS chofer_nombre,
+        pr.nombre AS producto_nombre
+      FROM orden_despacho od
+      LEFT JOIN clientes c ON od.cliente_id = c.cliente_id
+      LEFT JOIN transportistas t ON od.transportista_id = t.transportista_id
+      LEFT JOIN camiones cam ON od.camion_id = cam.camion_id
+      LEFT JOIN choferes ch ON od.chofer_id = ch.chofer_id
+      LEFT JOIN productos pr ON od.producto_id = pr.producto_id
       ${where}
-      ORDER BY fecha_programada DESC
+      ORDER BY od.fecha_creacion DESC
       LIMIT 1000
     `;
 
     const [rows] = await pool.query(sql, params);
+    
+    // 🔥 AGREGADO: Obtener pallets asociados a cada pedido
+    for (let pedido of rows) {
+      const [pallets] = await pool.query(
+        `SELECT pallet_id FROM od_pallets WHERE od_id = ?`,
+        [pedido.od_id]
+      );
+      pedido.palletsIds = pallets.map(p => p.pallet_id);
+    }
+    
     res.json(rows);
 
   } catch (err) {
@@ -535,7 +571,7 @@ async function getPalletsDisponiblesParaEditar(req, res) {
 
     console.log(`✅ Pallets asociados: ${palletsAsociados.length}`);
 
-    // 2. Obtener pallets disponibles en cámara del mismo producto
+    // 2. Obtener pallets disponibles (armado o en_camara) del mismo producto
     const [palletsDisponibles] = await pool.query(`
       SELECT 
         p.*,
@@ -544,7 +580,7 @@ async function getPalletsDisponiblesParaEditar(req, res) {
       FROM pallets p
       LEFT JOIN lotes l ON p.lote_id = l.lote_id
       WHERE p.producto_id = ? 
-      AND p.estado = 'en_camara'
+      AND p.estado IN ('armado', 'en_camara')
       AND NOT EXISTS (
         SELECT 1 FROM od_pallets op WHERE op.pallet_id = p.pallet_id
       )

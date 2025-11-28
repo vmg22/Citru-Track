@@ -1,21 +1,11 @@
 import React, { useState, useEffect } from "react";
 import binloteServices from "./services/binloteServices";
 import "../../style/bins.css";
-// Importar Modal y Button de react-bootstrap
-import { Modal, Button } from "react-bootstrap";
-import Swal from "sweetalert2";
-import { FaWarehouse, FaUserCircle, FaPlusCircle } from "react-icons/fa"; // Icono para el botón
+import { Button } from "react-bootstrap";
+import { FaWarehouse, FaUserCircle, FaPlusCircle } from "react-icons/fa";
 import RecepcionBinModal from "./RecepcionBinModal";
-// Importar el nuevo componente Modal
 
 const BinsPage = () => {
-  // ⚠️ Se eliminan los estados del formulario (formData, remitoValido, success, etc.)
-  // YA QUE AHORA VIVEN DENTRO DEL MODAL.
-
-  const [productores, setProductores] = useState([]);
-  const [productos, setProductos] = useState([]);
-  const [fincasDisponibles, setFincasDisponibles] = useState([]);
-  const [variedadesDisponibles, setVariedadesDisponibles] = useState([]);
   const [binsRecientes, setBinsRecientes] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(5);
@@ -23,11 +13,9 @@ const BinsPage = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  // 🎯 NUEVO ESTADO: Controla la visibilidad del modal
   const [showRecepcionModal, setShowRecepcionModal] = useState(false);
 
   useEffect(() => {
-    // Solo cargar datos de Bins Recientes al inicio (el modal carga sus propios datos)
     loadBinsRecientes();
   }, []);
 
@@ -45,18 +33,14 @@ const BinsPage = () => {
     }
   };
 
-  // Función para manejar la acción de registro exitoso en el modal
   const handleBinRegistered = () => {
-    // Cerrar el modal y recargar la lista
     handleCloseRecepcionModal();
     loadBinsRecientes();
   };
 
-  // Handlers del Modal
   const handleShowRecepcionModal = () => setShowRecepcionModal(true);
   const handleCloseRecepcionModal = () => setShowRecepcionModal(false);
 
-  // --- Funciones de Formato y Estado (Se mantienen) ---
   const formatearFecha = (fecha) => {
     if (!fecha) return "N/A";
     try {
@@ -89,7 +73,6 @@ const BinsPage = () => {
     }
   };
 
-  // --- Funciones de Paginación (Se mantienen) ---
   const getPaginatedBins = () => {
     const indexOfLastItem = currentPage * itemsPerPage;
     const indexOfFirstItem = indexOfLastItem - itemsPerPage;
@@ -103,7 +86,6 @@ const BinsPage = () => {
   };
 
   const getPageNumbers = () => {
-    // ... (Lógica de paginación se mantiene) ...
     const { totalPages } = getPaginatedBins();
     const pages = [];
     const maxVisiblePages = 5;
@@ -131,22 +113,20 @@ const BinsPage = () => {
         pages.push(totalPages);
       }
     }
-    return pages;
+
+    return pages.filter((item, index) => pages.indexOf(item) === index);
   };
 
   return (
     <div className="recepcion-bin-container">
       <div className="stock-header">
-        <h1 className="stock-title">
-          <i className="fas fa-warehouse"></i> Recepción de Bins
-        </h1>
+        <h1 className="stock-title"><i className="fas fa-warehouse"></i> Recepción de Bins</h1>
         <div className="monitoreo-user-info">
           <i className="fas fa-user-circle"></i>
           <span>Supervisor de Planta</span>
         </div>
       </div>
 
-      {/* 🎯 BOTÓN PARA ABRIR EL MODAL */}
       <div className="divBtnRegistrarBin mb-4">
         <Button
           variant="success"
@@ -157,7 +137,6 @@ const BinsPage = () => {
         </Button>
       </div>
 
-      {/* Mensajes de error (ahora manejados en el padre si son globales) */}
       {error && (
         <div className="alert alert-error">
           {error}
@@ -165,11 +144,9 @@ const BinsPage = () => {
         </div>
       )}
 
-      {/* ⚠️ El Formulario ya NO está aquí, se movió al modal. */}
-
-      {/* Bins recientes */}
       <div className="bins-recientes">
         <h3>Bins recientes</h3>
+
         {binsRecientes.length === 0 ? (
           <p>No hay bins registrados</p>
         ) : (
@@ -187,14 +164,17 @@ const BinsPage = () => {
                       {bin.estado_actual}
                     </span>
                   </div>
+
                   <div className="bin-info">
-                    {bin.producto_nombre}{" "}
-                    {bin.variedad_nombre && `- ${bin.variedad_nombre}`}
+                    {bin.producto_nombre}
+                    {bin.variedad_nombre && ` - ${bin.variedad_nombre}`}
                   </div>
+
                   <div className="bin-details">
-                    {/* APLICAMOS toFixed(2) DIRECTAMENTE EN LA EXPRESIÓN */}
-                    Remito: {bin.remito} | Peso: {parseFloat(bin.peso_bruto).toFixed(2)} kg
+                    Remito: {bin.remito} | Peso:{" "}
+                    {parseFloat(bin.peso_bruto).toFixed(2)} kg
                   </div>
+
                   <div className="bin-meta">
                     <small>
                       Ingreso: {formatearFecha(bin.fecha_ingreso_bin)}
@@ -204,7 +184,6 @@ const BinsPage = () => {
               ))}
             </ul>
 
-            {/* Paginación (Se mantiene) */}
             {getPaginatedBins().totalPages > 1 && (
               <div className="d-flex justify-content-center align-items-center mt-4 mb-3 paginationBin">
                 <nav>
@@ -222,6 +201,7 @@ const BinsPage = () => {
                         Anterior
                       </button>
                     </li>
+
                     {getPageNumbers().map((page, index) => (
                       <li
                         key={index}
@@ -241,6 +221,7 @@ const BinsPage = () => {
                         )}
                       </li>
                     ))}
+
                     <li
                       className={`page-item ${
                         currentPage === getPaginatedBins().totalPages
@@ -251,7 +232,9 @@ const BinsPage = () => {
                       <button
                         className="page-link"
                         onClick={() => handlePageChange(currentPage + 1)}
-                        disabled={currentPage === getPaginatedBins().totalPages}
+                        disabled={
+                          currentPage === getPaginatedBins().totalPages
+                        }
                       >
                         Siguiente
                       </button>
@@ -260,6 +243,7 @@ const BinsPage = () => {
                 </nav>
               </div>
             )}
+
             <div className="mt-3 text-muted small px-2 d-flex justify-content-between align-items-center">
               <span>
                 Mostrando{" "}

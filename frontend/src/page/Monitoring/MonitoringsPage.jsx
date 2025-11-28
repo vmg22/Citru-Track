@@ -6,18 +6,22 @@ import {
   PointElement,
   LineElement,
   BarElement,
+  ArcElement,
+  RadialLinearScale,
   Title,
   Tooltip,
   Legend,
   Filler,
 } from "chart.js";
-import { Line, Bar } from "react-chartjs-2";
+import { Line, Bar, PolarArea } from "react-chartjs-2";
+// Nota: Se asume que los componentes de Recharts están instalados si se usan en JSX.
+// import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip as RechartsTooltip, Legend as RechartsLegend } from "recharts";
 import { io } from "socket.io-client";
 import "../../style/monitoreo.css";
 import QRCameraScanner from "./components/QRCameraScanner";
 import { getAllProductosActivos } from "../Settings/services/settingsServices";
 import { getAllCamaras } from "../CamaraFrio/service/camaraService";
-import axios from "axios"
+import axios from "axios";
 
 // Registrar componentes de Chart.js
 ChartJS.register(
@@ -26,17 +30,15 @@ ChartJS.register(
   PointElement,
   LineElement,
   BarElement,
+  ArcElement,
+  RadialLinearScale,
   Title,
   Tooltip,
   Legend,
   Filler
 );
 
-// --- Componentes Auxiliares (omitiendo la definición de StatusBadge, Alert, Table, Charts, Conveyor para brevedad, ya que son idénticos a tu código) ---
-
-// ... (Definiciones de StatusBadge, Alert, Table, Conveyor, TemperatureHumidityChart, ProductProcessingChart) ...
-
-// Nota: El componente Conveyor ahora incluye el filtro de producto en su interior.
+// --- Componentes Auxiliares (mantienen su estructura) ---
 
 const StatusBadge = ({ status }) => {
   return (
@@ -192,7 +194,6 @@ const TemperatureHumidityChart = ({
   humidityData,
   labels,
 }) => {
-  // ... (Lógica de gráficos) ...
   const data = {
     labels: labels,
     datasets: [
@@ -342,11 +343,15 @@ const MonitoreoTiempoReal = () => {
   const [lastScannedData, setLastScannedData] = useState(null);
   const [scannedHistory, setScannedHistory] = useState([]);
 
+  // --- ESTADOS DE GRÁFICOS AVANZADOS (FALTANTES) ---
+  const [loadingBins, setLoadingBins] = useState(false); // Faltante
+  const [binStats, setBinStats] = useState({ porProducto: [] }); // Faltante
+  const [camarasLoading, setCamarasLoading] = useState(true); // Faltante
+
   // --- ESTADOS DINÁMICOS DE BACKEND ---
   const [productosConfigDB, setProductosConfigDB] = useState({});
   const [productosArray, setProductosArray] = useState([]);
   const [camaras, setCamaras] = useState([]);
-  const [camarasLoading, setCamarasLoading] = useState(true);
 
   // --- ESTADOS DE CONTROL ---
   const [productoSeleccionado, setProductoSeleccionado] = useState("");
@@ -372,7 +377,45 @@ const MonitoreoTiempoReal = () => {
   const [productData, setProductData] = useState([145, 128, 98, 112, 89]);
   const [timeLabels, setTimeLabels] = useState([]);
 
-  // Función para mapear la respuesta de la API
+  // --- FUNCIÓN FALTANTE: Carga de estadísticas de bins ---
+  const fetchBinStats = async () => {
+    setLoadingBins(true);
+    // SIMULACIÓN DE DATOS (Reemplazar con llamada a la API real)
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+
+    const totalBins = 150;
+    const mockData = [
+      {
+        producto_nombre: "Limón",
+        total_bins: 50,
+        peso_total: 2100.5,
+        porcentaje: 33,
+      },
+      {
+        producto_nombre: "Palta",
+        total_bins: 40,
+        peso_total: 1800.0,
+        porcentaje: 27,
+      },
+      {
+        producto_nombre: "Arándano",
+        total_bins: 30,
+        peso_total: 900.2,
+        porcentaje: 20,
+      },
+      {
+        producto_nombre: "Frutilla",
+        total_bins: 30,
+        peso_total: 1200.0,
+        porcentaje: 20,
+      },
+    ];
+
+    setBinStats({ porProducto: mockData });
+    setLoadingBins(false);
+  };
+
+  // Función para mapear la respuesta de la API (misma lógica)
   const mapProductosFromAPI = (data) => {
     const configMap = {};
     const keys = [];
@@ -424,7 +467,7 @@ const MonitoreoTiempoReal = () => {
     }
   };
 
-  // Manejar cambio de producto
+  // Manejar cambio de producto (misma lógica)
   const handleProductoChange = (e) => {
     const producto = e.target.value;
     setProductoSeleccionado(producto);
@@ -450,9 +493,65 @@ const MonitoreoTiempoReal = () => {
     setTemperatureData(newTempData);
   };
 
+  // --- NUEVO HANDLER PARA DATOS ESCANEADOS (Añadido Axios) ---
+  const handleCajaDetectada = async (decodedText) => {
+    let cajaData = {
+      codigo_qr: decodedText,
+      linea: lineaSeleccionada,
+      producto_id: productoSeleccionado,
+    };
+    let displayCode = decodedText;
 
+    // Intentar parsear el código QR como JSON
+    try {
+      const parsedData = JSON.parse(decodedText);
+      if (parsedData.caja_id) {
+        cajaData = parsedData;
+        displayCode = parsedData.caja_id;
+      }
+    } catch (e) {
+      /* no es json */
+    }
 
-  // --- EFECTOS (Carga Inicial, Socket.io, Simulación) ---
+    // 1. Almacenar el último dato escaneado
+    const dataString = JSON.stringify(cajaData, null, 2);
+    setLastScannedData(dataString);
+
+    // 2. Agregar al historial
+    setScannedHistory((prev) => {
+      const now = new Date();
+      const newEntry = {
+        id: displayCode,
+        data: dataString,
+        time: now.toLocaleTimeString("es-AR", {
+          hour: "2-digit",
+          minute: "2-digit",
+          second: "2-digit",
+        }),
+      };
+      return [newEntry, ...prev.slice(0, 4)];
+    });
+
+    // 3. ENVIAR AL BACKEND (Manejo de error 409)
+    try {
+      const API_URL = import.meta.env.VITE_API_URL || "http://localhost:4000";
+      await axios.post(`${API_URL}/api/cajas/ingresar`, cajaData);
+      // Éxito: La caja fue creada.
+    } catch (error) {
+      if (error.response?.status === 400 || error.response?.status === 409) {
+        console.warn("Caja ya existe/datos inválidos:", cajaData.caja_id);
+      } else {
+        console.error("Error al registrar la caja:", error);
+        alert(
+          `Error al registrar: ${
+            error.response?.data?.message || error.message
+          }`
+        );
+      }
+    }
+  };
+
+  // --- EFECTO DE CARGA INICIAL (PRODUCTOS Y CÁMARAS) ---
   useEffect(() => {
     const fetchInitialData = async () => {
       try {
@@ -473,18 +572,34 @@ const MonitoreoTiempoReal = () => {
       }
     };
     fetchInitialData();
+    // Llamada a la función faltante
+    fetchBinStats();
   }, []);
 
+  // --- EFECTO DE SOCKET.IO ---
   useEffect(() => {
     const API_URL = import.meta.env.VITE_API_URL || "http://localhost:4000";
     const socket = io(API_URL);
-    // ... (Lógica de socket.io) ...
     // ... (Tu código de socket) ...
+    socket.on("connect", () => {
+      setSocketConnected(true);
+    });
+    socket.on("disconnect", () => {
+      setSocketConnected(false);
+    });
+    socket.on("caja:ingresada", (data) => {
+      setCajasActivas((prev) => {
+        const existe = prev.find((c) => c.codigo_qr === data.codigo_qr);
+        if (existe) return prev;
+        return [data, ...prev.slice(0, 9)];
+      });
+    });
     return () => {
       socket.disconnect();
     };
   }, []);
 
+  // --- EFECTO DE ETIQUETAS DE TIEMPO (CORREGIDO: Faltaba el `setTimeLabels`) ---
   useEffect(() => {
     const now = new Date();
     const labels = [];
@@ -494,19 +609,56 @@ const MonitoreoTiempoReal = () => {
         time.toLocaleTimeString("es-AR", { hour: "2-digit", minute: "2-digit" })
       );
     }
-    setTimeLabels(labels);
-  }, []);
+    setTimeLabels(labels); // <-- Se agregó la actualización de estado
+  }, []); // <-- Dependencias vacías para ejecutar solo al montar
 
+  // --- EFECTO DE SIMULACIÓN DE DATOS EN TIEMPO REAL (CORREGIDO: Usaba 'productosConfig' en lugar de 'productosConfigDB') ---
   useEffect(() => {
     const interval = setInterval(() => {
       if (!productoSeleccionado || !productosConfigDB[productoSeleccionado])
         return;
-      // ... (Tu código de simulación) ...
+
+      const config = productosConfigDB[productoSeleccionado]; // <-- CORRECCIÓN
+
+      const newTemp = (
+        config.tempMin +
+        Math.random() * (config.tempMax - config.tempMin)
+      ).toFixed(1);
+      const newHum = Math.floor(Math.random() * 5 + 65);
+
+      setMetrics({
+        cajasPorMin: Math.floor(Math.random() * 10) + 38,
+        pesoPromedio: "15.2 kg",
+        temperaturaMedia: newTemp + "°C",
+        alertasActivas: Math.floor(Math.random() * 4),
+      });
+
+      setTemperatureData((prev) => [...prev.slice(1), parseFloat(newTemp)]);
+      setHumidityData((prev) => [...prev.slice(1), newHum]);
+
+      setTimeLabels((prev) => {
+        const newLabel = new Date().toLocaleTimeString("es-AR", {
+          hour: "2-digit",
+          minute: "2-digit",
+        });
+        return [...prev.slice(1), newLabel];
+      });
+
+      if (Math.random() > 0.7) {
+        setProductData([
+          Math.floor(Math.random() * 50 + 120),
+          Math.floor(Math.random() * 50 + 100),
+          Math.floor(Math.random() * 40 + 80),
+          Math.floor(Math.random() * 40 + 90),
+          Math.floor(Math.random() * 30 + 70),
+        ]);
+      }
     }, 10000);
 
     return () => clearInterval(interval);
   }, [productoSeleccionado, productosConfigDB]);
 
+  // Configuración actual (usa un objeto por defecto si no está cargado)
   const config = productosConfigDB[productoSeleccionado] || {
     nombre: "Cargando...",
     tempMin: 0,
@@ -517,58 +669,59 @@ const MonitoreoTiempoReal = () => {
 
   // Datos para la tabla (usa 'config')
   const cajasData = [
-    // ... (Tu array cajasData simulado) ...
+    [
+      `${config.planta}${config.linea}3121430`,
+      config.nombre,
+      "00123",
+      `${config.tempMin + 1}°C`,
+      "67%",
+      "0.3g",
+      <StatusBadge key="c1" status="Normal" />,
+      "23:40:12",
+    ],
+    [
+      `${config.planta}${config.linea}3121431`,
+      config.nombre,
+      "00123",
+      `${config.tempMax}°C`,
+      "65%",
+      "0.4g",
+      <StatusBadge key="c2" status="Normal" />,
+      "23:41:05",
+    ],
+    [
+      `${config.planta}${config.linea}3121432`,
+      config.nombre,
+      "00456",
+      `${config.tempMin + 0.5}°C`,
+      "70%",
+      "0.2g",
+      <StatusBadge key="c3" status="Normal" />,
+      "23:41:22",
+    ],
+    [
+      `${config.planta}${config.linea}3121433`,
+      config.nombre,
+      "00789",
+      `${config.tempMax - 1}°C`,
+      "72%",
+      "0.8g",
+      <StatusBadge key="c4" status="Alerta" />,
+      "23:42:15",
+    ],
+    [
+      `${config.planta}${config.linea}3121434`,
+      config.nombre,
+      "00124",
+      `${(config.tempMin + config.tempMax) / 2}°C`,
+      "68%",
+      "0.3g",
+      <StatusBadge key="c5" status="Normal" />,
+      "23:42:38",
+    ],
   ];
 
   // --- RENDERIZADO PRINCIPAL ---
-
-  const handleCajaDetectada = async (decodedText) => {
-        console.log("QR decodificado:", decodedText);
-        
-        let cajaData = { codigo_qr: decodedText, linea: lineaSeleccionada, producto_id: productoSeleccionado };
-        let displayCode = decodedText;
-
-        // Intentar parsear el código QR como JSON
-        try {
-            const parsedData = JSON.parse(decodedText);
-            if (parsedData.caja_id) {
-                cajaData = parsedData; // Usar el objeto completo
-                displayCode = parsedData.caja_id;
-            }
-        } catch (e) {
-            // Si no es JSON, sigue con el código simple
-        }
-
-        // 1. Almacenar el último dato escaneado (como JSON string para visualizar)
-        const dataString = JSON.stringify(cajaData, null, 2);
-        setLastScannedData(dataString);
-
-        // 2. Agregar al historial
-        setScannedHistory(prev => {
-            const now = new Date();
-            const newEntry = {
-                id: displayCode,
-                data: dataString,
-                time: now.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit', second: '2-digit' })
-            };
-            return [newEntry, ...prev.slice(0, 4)]; // Mantener los últimos 5
-        });
-
-        // 3. ENVIAR AL BACKEND (Lógica que estaba en QRCameraScanner)
-        try {
-            const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:4000';
-            const response = await axios.post(`${API_URL}/api/cajas/ingresar`, cajaData);
-
-            if (response.data.success) {
-                // Puedes agregar feedback visual aquí si lo deseas
-                console.log("Caja registrada con éxito:", response.data.caja);
-            }
-        } catch (error) {
-            console.error('Error al registrar la caja:', error);
-            // Mostrar error al usuario
-            alert(`Error al registrar: ${error.response?.data?.message || error.message}`);
-        }
-    };
   return (
     <>
       <link
@@ -588,7 +741,7 @@ const MonitoreoTiempoReal = () => {
             </div>
           </div>
 
-          {/* --- NUEVO DIV DE CONTROL SUPERIOR (Contenedor del Botón de Escaneo y Filtros) --- */}
+          {/* --- DIV DE CONTROL SUPERIOR --- */}
           <div
             className="monitoreo-top-controls"
             style={{
@@ -599,9 +752,8 @@ const MonitoreoTiempoReal = () => {
               paddingRight: isScannerActive ? "20px" : "0",
             }}
           >
-            {/* El Conveyor ahora tiene sus filtros internos, lo dejo aquí para que la estructura sea limpia */}
             <div style={{ flex: 1, minWidth: "200px" }}>
-              {/* Nota: El Conveyor aún tiene el filtro de producto, si no lo quieres duplicado, quítalo del Conveyor y muévelo aquí. */}
+              {/* Dejar este div vacío o mover el filtro aquí si se saca de Conveyor */}
             </div>
 
             {/* Botón de Escaneo QR (siempre visible) */}
@@ -628,67 +780,90 @@ const MonitoreoTiempoReal = () => {
             </button>
           </div>
 
-          {/* --- SECCIÓN DE ESCANEO QR Y DATOS (Debajo del Botón, Arriba de Gráficos) --- */}
+          {/* --- SECCIÓN DE ESCANEO QR Y DATOS (INLINE) --- */}
           {isScannerActive && (
-    <div className="monitoreo-scanner-area" style={{ 
-        display: 'grid', 
-        gridTemplateColumns: '1fr 1fr', 
-        gap: '20px', 
-        marginBottom: '2rem',
-        border: '1px solid #ddd',
-        padding: '15px',
-        borderRadius: '8px',
-        background: '#f9f9f9'
-    }}>
-        {/* 1. Visor de la Cámara (INLINE) */}
-        <div className="monitoreo-camera-viewer">
-            {/* Aquí se integra el componente simple, sin su propio contenedor flotante */}
-            <QRCameraScanner
-                // El prop isVisible es importante para que el QRScanner sepa si debe iniciar/detener la cámara
-                isVisible={isScannerActive} 
-                lineaActual={lineaSeleccionada}
-                productoActual={productoSeleccionado}
-                onCajaDetectada={handleCajaDetectada} 
-            />
-        </div>
+            <div
+              className="monitoreo-scanner-area"
+              style={{
+                display: "grid",
+                gridTemplateColumns: "1fr 1fr",
+                gap: "20px",
+                marginBottom: "2rem",
+                border: "1px solid #ddd",
+                padding: "15px",
+                borderRadius: "8px",
+                background: "#f9f9f9",
+              }}
+            >
+              {/* 1. Visor de la Cámara (INLINE) */}
+              <div className="monitoreo-camera-viewer">
+                <QRCameraScanner
+                  isVisible={isScannerActive}
+                  lineaActual={lineaSeleccionada}
+                  productoActual={productoSeleccionado}
+                  onCajaDetectada={handleCajaDetectada}
+                />
+              </div>
 
-        {/* 2. Datos y Historial Escaneado (Ahora en MonitoreoTiempoReal) */}
-        <div className="monitoreo-scanned-data">
-            <div className="monitoreo-section-title" style={{ marginTop: 0, borderBottom: '1px solid #eee', paddingBottom: '10px' }}>
-                <i className="fas fa-clipboard-list"></i>
-                Resultado del Escaneo
-            </div>
-            
-            <h4 style={{ color: '#065f46', marginBottom: '10px' }}>Último QR Escaneado:</h4>
-            <pre style={{ 
-                background: '#e6fffa', 
-                padding: '10px', 
-                borderRadius: '5px', 
-                whiteSpace: 'pre-wrap', 
-                fontSize: '0.85rem',
-                borderLeft: '4px solid #10b981'
-            }}>
-                {lastScannedData || 'Esperando lectura...'}
-            </pre>
+              {/* 2. Datos y Historial Escaneado */}
+              <div className="monitoreo-scanned-data">
+                <div
+                  className="monitoreo-section-title"
+                  style={{
+                    marginTop: 0,
+                    borderBottom: "1px solid #eee",
+                    paddingBottom: "10px",
+                  }}
+                >
+                  <i className="fas fa-clipboard-list"></i>
+                  Resultado del Escaneo
+                </div>
 
-            <h4 style={{ marginTop: '20px', borderTop: '1px solid #eee', paddingTop: '10px' }}>Historial (Últimos {scannedHistory.length}):</h4>
-            <ul style={{ listStyle: 'none', padding: 0 }}>
-                {scannedHistory.map((item, index) => (
-                    <li key={index} style={{ 
-                        padding: '5px 0', 
-                        borderBottom: '1px dotted #eee', 
-                        fontSize: '0.9rem',
-                        display: 'flex',
-                        justifyContent: 'space-between'
-                    }}>
-                        <strong>{item.id}</strong>
-                        <span style={{ color: '#666' }}>{item.time}</span>
+                <h4 style={{ color: "#065f46", marginBottom: "10px" }}>
+                  Último QR Escaneado:
+                </h4>
+                <pre
+                  style={{
+                    background: "#e6fffa",
+                    padding: "10px",
+                    borderRadius: "5px",
+                    whiteSpace: "pre-wrap",
+                    fontSize: "0.85rem",
+                    borderLeft: "4px solid #10b981",
+                  }}
+                >
+                  {lastScannedData || "Esperando lectura..."}
+                </pre>
+
+                <h4
+                  style={{
+                    marginTop: "20px",
+                    borderTop: "1px solid #eee",
+                    paddingTop: "10px",
+                  }}
+                >
+                  Historial (Últimos {scannedHistory.length}):
+                </h4>
+                <ul style={{ listStyle: "none", padding: 0 }}>
+                  {scannedHistory.map((item, index) => (
+                    <li
+                      key={index}
+                      style={{
+                        padding: "5px 0",
+                        borderBottom: "1px dotted #eee",
+                        fontSize: "0.9rem",
+                        display: "flex",
+                        justifyContent: "space-between",
+                      }}
+                    >
+                      <strong>{item.id}</strong>
+                      <span style={{ color: "#666" }}>{item.time}</span>
                     </li>
-                ))}
-            </ul>
-        </div>
-    </div>
-)}
+                  ))}
+                </ul>
+              </div>
+            </div>
+          )}
           {/* --- FIN SECCIÓN DE ESCANEO --- */}
 
           <Conveyor
@@ -699,17 +874,111 @@ const MonitoreoTiempoReal = () => {
             cajasActivas={cajasActivas}
             config={config}
           />
+
           <div className="monitoreo-panels-container">
+            {/* GRÁFICA POLAR (USA NUEVOS ESTADOS: loadingBins, binStats) */}
             <div className="monitoreo-panel">
               <div className="monitoreo-section-title">
-                <i className="fas fa-chart-line"></i>
-                Temperatura y Humedad - Últimos 10 Minutos
+                <i className="fas fa-chart-area"></i>
+                Bins por Producto (Gráfica Polar)
               </div>
-              <TemperatureHumidityChart
-                temperatureData={temperatureData}
-                humidityData={humidityData}
-                labels={timeLabels}
-              />
+              {loadingBins ? (
+                <div
+                  style={{
+                    padding: "40px",
+                    textAlign: "center",
+                    color: "#666",
+                  }}
+                >
+                  Cargando estadísticas de bins...
+                </div>
+              ) : binStats.porProducto.length > 0 ? (
+                <div style={{ height: "350px", padding: "10px" }}>
+                  <PolarArea
+                    data={{
+                      labels: binStats.porProducto.map(
+                        (p) => p.producto_nombre
+                      ),
+                      datasets: [
+                        {
+                          label: "Cantidad de Bins",
+                          data: binStats.porProducto.map((p) => p.total_bins),
+                          backgroundColor: [
+                            "rgba(255, 99, 132, 0.8)",
+                            "rgba(54, 162, 235, 0.8)",
+                            "rgba(255, 206, 86, 0.8)",
+                            "rgba(75, 192, 192, 0.8)",
+                            "rgba(153, 102, 255, 0.8)",
+                            "rgba(255, 159, 64, 0.8)",
+                            "rgba(199, 199, 199, 0.8)",
+                            "rgba(83, 102, 255, 0.8)",
+                          ],
+                          borderWidth: 2,
+                          borderColor: "#fff",
+                        },
+                      ],
+                    }}
+                    options={{
+                      responsive: true,
+                      maintainAspectRatio: false,
+                      plugins: {
+                        legend: {
+                          position: "right",
+                          labels: {
+                            color: "#1f2937",
+                            font: { size: 12, weight: "500" },
+                            padding: 15,
+                            generateLabels: (chart) => {
+                              const data = chart.data;
+                              return data.labels.map((label, i) => ({
+                                text: `${label} (${binStats.porProducto[i].porcentaje}%)`,
+                                fillStyle: data.datasets[0].backgroundColor[i],
+                                hidden: false,
+                                index: i,
+                              }));
+                            },
+                          },
+                        },
+                        tooltip: {
+                          callbacks: {
+                            label: (context) => {
+                              const idx = context.dataIndex;
+                              const producto = binStats.porProducto[idx];
+                              return [
+                                `Bins: ${producto.total_bins}`,
+                                `Porcentaje: ${producto.porcentaje}%`,
+                                `Peso Total: ${producto.peso_total.toFixed(
+                                  2
+                                )} kg`,
+                              ];
+                            },
+                          },
+                        },
+                      },
+                      scales: {
+                        r: {
+                          ticks: {
+                            backdropColor: "transparent",
+                            color: "#6b7280",
+                            font: { size: 11 },
+                          },
+                          grid: { color: "rgba(0, 0, 0, 0.1)" },
+                        },
+                      },
+                    }}
+                  />
+                </div>
+              ) : (
+                <div
+                  style={{
+                    padding: "40px",
+                    textAlign: "center",
+                    color: "#666",
+                  }}
+                >
+                  No hay datos de bins por producto
+                </div>
+              )}
             </div>
 
             <div className="monitoreo-panel">
@@ -1043,7 +1312,7 @@ const MonitoreoTiempoReal = () => {
             })}
           </div>
 
-          <div className="monitoreo-alertas-container">
+          <div className="monitoreo-alertas-container ">
             <div className="monitoreo-section-title">
               <i className="fas fa-bell"></i>
               Alertas en Tiempo Real
@@ -1081,8 +1350,6 @@ const MonitoreoTiempoReal = () => {
             />
           </div>
         </div>
-
-
       </div>
     </>
   );
