@@ -212,12 +212,12 @@ const getSublotesPorLote = async (req, res) => {
         s.sublote_id,
         s.lote_id,
         s.calibre,
-        s.variedad_id,
-        v.nombre as variedad_nombre,
+        s.cantidad_cajas,
+        
         COUNT(DISTINCT c.caja_id) as total_cajas,
         SUM(c.peso_neto) as peso_total_cajas
       FROM sublotes s
-      LEFT JOIN variedades v ON s.variedad_id = v.variedad_id
+      
       LEFT JOIN cajas c ON s.sublote_id = c.sublote_id
       WHERE s.lote_id = ?
       GROUP BY s.sublote_id

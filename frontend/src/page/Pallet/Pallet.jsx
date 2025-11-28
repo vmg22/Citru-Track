@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import '../../style/pallet.css';
-import * as palletService from '../../services/palletService';
+import palletService from '../../services/palletService';
 import { getAllProductosActivos } from '../Settings/services/settingsServices';
 
 const Pallet = () => {
@@ -312,8 +312,13 @@ const Pallet = () => {
     showMessage('QR descargado', 'success');
   };
 
-  const pesoTotal = cajasSeleccionadas.reduce((sum, c) => sum + parseFloat(c.peso_neto || 0), 0);
+    const pesoTotalPallet = cajasSeleccionadas.reduce((sum, c) => {
+    const pesoStr = String(c.peso_neto || 0).replace(/[^0-9.,]/g, '').replace(',', '.');
+    return sum + (parseFloat(pesoStr) || 0);
+  }, 0);
+    console.log("🔍 DEBUG - pesoTotalPallet:", pesoTotalPallet, "cajasSeleccionadas:", cajasSeleccionadas.map(c => ({ id: c.caja_id, peso_neto: c.peso_neto })));
   const cantidadCajas = cajasSeleccionadas.length;
+ 
 
   return (
     <div className="pallet-container">
@@ -374,7 +379,7 @@ const Pallet = () => {
               )}
             </div>
 
-            <div className="filter-item">
+            {/* <div className="filter-item">
               <label>Sublote (Opcional)</label>
               <select 
                 value={filtros.sublote_id} 
@@ -388,7 +393,7 @@ const Pallet = () => {
                   </option>
                 ))}
               </select>
-            </div>
+            </div> */}
           </div>
         </div>
 
@@ -517,7 +522,7 @@ const Pallet = () => {
                   </div>
                   <div className="pallet-stat-item">
                     <i className="fas fa-weight-hanging"></i>
-                    <span>Peso: <strong>{pesoTotal.toFixed(2)} kg</strong></span>
+                    <span>Peso: <strong>{pesoTotalPallet.toFixed(2)} kg</strong></span>
                   </div>
                 </div>
 
