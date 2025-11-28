@@ -1,4 +1,20 @@
-/* AddUserModal Styles */
+/* ============================================
+   binModal.css - ESTILO UNIFICADO (Basado en AddChoferModal y ajustes de RecepcionBin)
+   ============================================ */
+
+/* 1. Variables de Color */
+:root {
+    --modal-primary: #065f46; /* Verde oscuro para texto/botones (BIN) */
+    --modal-light-bg: #d1fae5; /* Verde muy claro para header (BIN) */
+    --modal-accent: #2ecc71; /* Verde brillante para foco */
+    --modal-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    --modal-error-bg: #fee;
+    --modal-error-text: #c53030;
+    --modal-cancel: #718096; /* Gris para Cancelar */
+    --modal-cancel-hover: #4a5568;
+}
+
+/* 2. Overlay del Modal */
 .modal-overlay {
     position: fixed;
     top: 0;
@@ -15,24 +31,33 @@
     animation: fadeIn 0.3s ease-out;
 }
 
+/* 3. Contenido del Modal (Ancho, Centrado y Apariencia) */
 .modal-content {
     background: white;
     padding: 0;
     border-radius: 12px;
-    max-width: 500px;
+    max-width: 650px; /* Ancho ajustable para una columna */
     width: 100%;
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    box-shadow: var(--modal-shadow);
     position: relative;
     animation: slideUp 0.3s ease-out;
     border: 1px solid #e0e0e0;
+    
+    /* Centrado horizontal forzado */
+    margin-right: auto;
+    margin-left: auto;
 }
 
+/* 4. Header del Modal */
 .modal-header {
-    background-color: #d1fae5;
-    color: #065f46;
+    background-color: var(--modal-light-bg);
+    color: var(--modal-primary);
     padding: 24px 30px;
     border-radius: 12px 12px 0 0;
     position: relative;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
 }
 
 .modal-header h3 {
@@ -42,18 +67,16 @@
     display: flex;
     align-items: center;
     gap: 12px;
-    border-bottom: none !important;
 }
 
-.modal-header h3 i {
-    font-size: 18px;
-}
-
+/* 5. Botón de Cerrar (Verde Oscuro en Fondo Verde Claro) */
 .modal-close-btn {
+    /* Posición absoluta eliminada para el flexbox, pero la recuperamos */
     position: absolute;
     top: 20px;
     right: 20px;
-    background: rgba(255, 255, 255, 0.2);
+    
+    background-color: var(--modal-light-bg); /* Fondo del header */
     border: none;
     border-radius: 50%;
     width: 32px;
@@ -62,26 +85,39 @@
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    color: white;
     transition: all 0.3s ease;
     font-size: 16px;
+    color: var(--modal-primary); /* Color del icono (si usa texto/fa-icon) */
 }
 
+/* Nota: Si el FaTimes no se colorea bien, puedes usar este SVG como fondo para forzar el color verde oscuro */
+/*
+.modal-close-btn {
+    ...
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%23065f46'%3e%3cpath d='M.293.293a1 1 0 0 1 1.414 0L8 6.586 14.293.293a1 1 0 1 1 1.414 1.414L9.414 8l6.293 6.293a1 1 0 0 1-1.414 1.414L8 9.414l-6.293 6.293a1 1 0 0 1-1.414-1.414L6.586 8 .293 1.707a1 1 0 0 1 0-1.414z'/%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: 10px;
+    color: transparent; // Ocultamos el icono de FontAwesome si usamos SVG
+}
+*/
+
 .modal-close-btn:hover {
-    background: rgba(255, 255, 255, 0.3);
+    background: rgba(0, 0, 0, 0.1);
     transform: rotate(90deg);
 }
 
+/* 6. Body, Formulario y Errores (Aseguramos 1 columna) */
 .modal-body {
     padding: 30px;
-    max-height: 60vh;
+    max-height: 70vh;
     overflow-y: auto;
 }
 
 .modal-error {
     padding: 12px 16px;
-    background: #fee;
-    color: #c53030;
+    background: var(--modal-error-bg);
+    color: var(--modal-error-text);
     border: 1px solid #fed7d7;
     border-radius: 8px;
     margin-bottom: 20px;
@@ -91,13 +127,15 @@
     gap: 8px;
 }
 
-.modal-error::before {
-    content: '⚠️';
-    font-size: 16px;
+.bin-form-modal {
+    display: grid;
+    grid-template-columns: 1fr; /* Una sola columna para que no se achique */
+    gap: 15px; 
 }
 
+/* 7. Estilos de Campos de Formulario (Reutilizados del modal de chofer) */
 .form-group {
-    margin-bottom: 20px;
+    margin-bottom: 0; /* Ya tenemos el gap en el grid */
 }
 
 .form-label {
@@ -126,18 +164,11 @@
 
 .form-input:focus {
     outline: none;
-    border-color: #2ecc71;
+    border-color: var(--modal-accent);
     box-shadow: 0 0 0 3px rgba(46, 204, 113, 0.1);
 }
 
-.form-input:invalid:not(:focus):not(:placeholder-shown) {
-    border-color: #e53e3e;
-}
-
-.form-input::placeholder {
-    color: #a0aec0;
-}
-
+/* 8. Footer y Botones */
 .modal-footer {
     padding: 20px 30px;
     background: #f7fafc;
@@ -170,48 +201,38 @@
 }
 
 .modal-btn-cancel {
-    background: #718096;
+    background: var(--modal-cancel);
     color: white;
 }
 
 .modal-btn-cancel:hover:not(:disabled) {
-    background: #4a5568;
+    background: var(--modal-cancel-hover);
     transform: translateY(-1px);
 }
 
 .modal-btn-submit {
-    background-color: #d1fae5;
-    color: #065f46;
+    background-color: var(--modal-primary);
+    color: white;
 }
 
 .modal-btn-submit:hover:not(:disabled) {
-    background: linear-gradient(135deg, #27ae60, #219653);
+    background: linear-gradient(135deg, var(--modal-accent), #219653);
     transform: translateY(-1px);
     box-shadow: 0 4px 12px rgba(46, 204, 113, 0.3);
 }
 
-/* Animaciones */
+/* 9. Animaciones */
 @keyframes fadeIn {
-    from {
-        opacity: 0;
-    }
-    to {
-        opacity: 1;
-    }
+    from { opacity: 0; }
+    to { opacity: 1; }
 }
 
 @keyframes slideUp {
-    from {
-        opacity: 0;
-        transform: translateY(30px) scale(0.95);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0) scale(1);
-    }
+    from { opacity: 0; transform: translateY(30px) scale(0.95); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
 }
 
-/* Responsive */
+/* 10. Responsive */
 @media (max-width: 768px) {
     .modal-overlay {
         padding: 10px;
@@ -244,23 +265,4 @@
         font-size: 18px;
         padding-right: 40px;
     }
-}
-
-/* Scrollbar personalizado para el modal */
-.modal-body::-webkit-scrollbar {
-    width: 6px;
-}
-
-.modal-body::-webkit-scrollbar-track {
-    background: #f1f1f1;
-    border-radius: 3px;
-}
-
-.modal-body::-webkit-scrollbar-thumb {
-    background: #c1c1c1;
-    border-radius: 3px;
-}
-
-.modal-body::-webkit-scrollbar-thumb:hover {
-    background: #a8a8a8;
 }

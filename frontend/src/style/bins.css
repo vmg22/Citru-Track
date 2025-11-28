@@ -1,23 +1,78 @@
-/* bins.css - Estilos para la página de recepción de bins */
+/* bins.css - Estilos completos para la página de Recepción y Gestión de Bins */
+
+/* ============================================
+   1. VARIABLES GLOBALES Y LAYOUT BASE
+   ============================================ */
+
+:root {
+  /* Colores Cítricos */
+  --citrus-green: #4a7c2f;
+  --citrus-green-dark: #2d5016;
+  --citrus-green-light: #f0fdf4;
+  --citrus-accent: #10b981; /* Verde esmeralda para éxito/pendiente */
+
+  /* Neutros */
+  --gray-bg: #f5f5f5;
+  --text-dark: #374151;
+  --text-muted: #6b7280;
+  --border-color: #d1d5db;
+
+  /* Efectos */
+  --base-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
 
 .recepcion-bin-container {
   padding: 30px 40px;
-  background-color: #f5f5f5;
+  background-color: var(--gray-bg);
   min-height: 100vh;
-  margin-left: 0; /* Se ajusta automáticamente con el sidebar */
+  margin-left: 0;
 }
 
-.recepcion-bin-container h2 {
-  color: #4a7c2f;
-  font-size: 26px;
-  font-weight: 600;
-  margin-bottom: 30px;
+/* Header de la página */
+.stock-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 25px;
   padding-bottom: 15px;
   border-bottom: 2px solid #e5e7eb;
 }
 
+.stock-title {
+  color: var(--citrus-green);
+  font-size: 26px;
+  font-weight: 600;
+}
+
+.monitoreo-user-info {
+  color: var(--text-muted);
+  font-size: 14px;
+}
+.divBtnRegistrarBin {
+  display: flex;
+  justify-content: end;
+}
+/* Botón principal en la página (para abrir el modal) */
+.btn-registrar-bin-main {
+  background-color: var(--citrus-green) !important;
+  border-color: var(--citrus-green) !important;
+  font-weight: 600;
+  padding: 10px 20px;
+  border-radius: 8px;
+  transition: background-color 0.3s;
+  color: white;
+}
+
+.btn-registrar-bin-main:hover {
+  background-color: var(--citrus-green-dark) !important;
+}
+
+.paginationBin{
+  margin-top: 20px;
+}
+
 /* ============================================
-   ALERTAS
+   2. ALERTAS Y MENSAJES
    ============================================ */
 .alert {
   padding: 15px 20px;
@@ -28,20 +83,6 @@
   align-items: center;
   font-weight: 500;
   animation: fadeIn 0.3s ease-out;
-}
-
-.alert button {
-  background: none;
-  border: none;
-  font-size: 20px;
-  cursor: pointer;
-  opacity: 0.7;
-  transition: opacity 0.2s;
-  color: inherit;
-}
-
-.alert button:hover {
-  opacity: 1;
 }
 
 .alert-error {
@@ -56,27 +97,37 @@
   border-left: 4px solid #3a3;
 }
 
+.alert button {
+  background: none;
+  border: none;
+  font-size: 18px;
+  cursor: pointer;
+  opacity: 0.7;
+  transition: opacity 0.2s;
+  color: inherit;
+}
+
+.alert button:hover {
+  opacity: 1;
+}
+
 /* ============================================
-   FORMULARIO
+   3. ESTILOS DE FORMULARIO BASE (APLICABLE AL MODAL)
    ============================================ */
-.bin-form {
-  background-color: white;
-  padding: 30px;
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 20px;
+
+/* Estilos de las alertas de validación */
+.error-text {
+  color: #c33;
+  font-size: 12px;
+  font-weight: 600;
+  margin-left: 10px;
 }
 
-/* Observaciones ocupa toda la fila */
-.bin-form .form-group:nth-last-child(2) {
-  grid-column: 1 / -1;
-}
-
-/* Botón submit ocupa toda la fila */
-.bin-form .btn-submit {
-  grid-column: 1 / -1;
+.success-text {
+  color: #3a3;
+  font-size: 12px;
+  font-weight: 600;
+  margin-left: 10px;
 }
 
 .form-group {
@@ -91,24 +142,12 @@
   margin-bottom: 8px;
 }
 
-.form-group label .error-text {
-  color: #c33;
-  font-size: 12px;
-  font-weight: 600;
-}
-
-.form-group label .success-text {
-  color: #3a3;
-  font-size: 12px;
-  font-weight: 600;
-}
-
 .form-group input,
 .form-group select,
 .form-group textarea {
   padding: 12px 15px;
   font-size: 15px;
-  border: 1px solid #d1d5db;
+  border: 1px solid var(--border-color);
   border-radius: 8px;
   background-color: white;
   transition: all 0.2s;
@@ -119,16 +158,8 @@
 .form-group select:focus,
 .form-group textarea:focus {
   outline: none;
-  border-color: #4a7c2f;
-  box-shadow: 0 0 0 3px rgba(74, 124, 47, 0.1);
-}
-
-.form-group input:disabled,
-.form-group select:disabled,
-.form-group textarea:disabled {
-  background-color: #f3f4f6;
-  cursor: not-allowed;
-  opacity: 0.6;
+  border-color: var(--citrus-green);
+  box-shadow: 0 0 0 3px rgba(74, 124, 47, 0.15);
 }
 
 .form-group textarea {
@@ -142,7 +173,7 @@
   font-size: 16px;
   font-weight: 600;
   color: white;
-  background-color: #4a7c2f;
+  background-color: var(--citrus-green);
   border: none;
   border-radius: 8px;
   cursor: pointer;
@@ -151,187 +182,15 @@
 }
 
 .btn-submit:hover:not(:disabled) {
-  background-color: #3a6325;
+  background-color: var(--citrus-green-dark);
   transform: translateY(-1px);
   box-shadow: 0 4px 12px rgba(74, 124, 47, 0.3);
-}
-
-.btn-submit:active:not(:disabled) {
-  transform: translateY(0);
 }
 
 .btn-submit:disabled {
   background-color: #9ca3af;
   cursor: not-allowed;
   opacity: 0.6;
-}
-
-/* ============================================
-   BINS RECIENTES
-   ============================================ */
-.bins-recientes {
-  margin-top: 40px;
-  background-color: white;
-  padding: 25px;
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-}
-
-.bins-recientes h3 {
-  color: #2d5016;
-  font-size: 20px;
-  font-weight: 600;
-  margin-bottom: 20px;
-  padding-bottom: 10px;
-  border-bottom: 2px solid #e5e7eb;
-}
-
-.bins-recientes ul {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
-
-.bins-recientes li {
-  padding: 15px;
-  margin-bottom: 12px;
-  background-color: #f9fafb;
-  border-radius: 8px;
-  border-left: 4px solid #4a7c2f;
-  transition: all 0.2s;
-  animation: fadeIn 0.4s ease-out;
-}
-
-.bins-recientes li:hover {
-  background-color: #f3f4f6;
-  transform: translateX(5px);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-}
-
-/* Header del bin (ID + Badge de lote) */
-.bin-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 8px;
-}
-
-.bin-header strong {
-  color: #4a7c2f;
-  font-size: 16px;
-  font-weight: 600;
-}
-
-.lote-badge {
-  background-color: #4a7c2f;
-  color: white;
-  padding: 4px 12px;
-  border-radius: 12px;
-  font-size: 12px;
-  font-weight: 600;
-  display: inline-block;
-}
-
-/* Información del producto */
-.bin-info {
-  color: #374151;
-  font-size: 15px;
-  margin-bottom: 6px;
-  font-weight: 500;
-}
-
-/* Detalles (remito y peso) */
-.bin-details {
-  color: #6b7280;
-  font-size: 14px;
-  margin-bottom: 8px;
-}
-
-/* Metadata (fecha de ingreso) */
-.bin-meta {
-  padding-top: 8px;
-  border-top: 1px solid #e5e7eb;
-  margin-top: 8px;
-}
-
-.bin-meta small {
-  color: #9ca3af;
-  font-size: 12px;
-  font-style: italic;
-}
-
-.bins-recientes p {
-  text-align: center;
-  color: #9ca3af;
-  padding: 20px;
-  font-style: italic;
-}
-
-/* ============================================
-   RESPONSIVE
-   ============================================ */
-@media (max-width: 768px) {
-  .bin-form {
-    grid-template-columns: 1fr;
-    padding: 20px;
-  }
-
-  .form-group:nth-last-child(2),
-  .btn-submit {
-    grid-column: 1;
-  }
-
-  .recepcion-bin-container h2 {
-    font-size: 24px;
-  }
-
-  .bin-header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 8px;
-  }
-
-  .lote-badge {
-    align-self: flex-start;
-  }
-}
-
-/* ============================================
-   ANIMACIONES
-   ============================================ */
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(-10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes slideIn {
-  from {
-    opacity: 0;
-    transform: translateX(-20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
-}
-
-/* ============================================
-   ESTADOS DE VALIDACIÓN
-   ============================================ */
-.form-group input.error {
-  border-color: #ef4444;
-  background-color: #fef2f2;
-}
-
-.form-group input.success {
-  border-color: #10b981;
-  background-color: #f0fdf4;
 }
 
 /* Loading spinner para el botón */
@@ -353,38 +212,175 @@
   }
 }
 
+
 /* ============================================
-   UTILIDADES
+   5. BINS RECIENTES (CARD GRID)
    ============================================ */
-.text-center {
-  text-align: center;
+.bins-recientes {
+  margin-top: 40px;
+  background-color: white;
+  padding: 25px;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
-.mt-20 {
-  margin-top: 20px;
-}
-
-.mb-20 {
+.bins-recientes h3 {
+  color: var(--citrus-green-dark);
+  font-size: 20px;
+  font-weight: 600;
   margin-bottom: 20px;
+  padding-bottom: 10px;
+  border-bottom: 2px solid #e5e7eb;
+}
+
+/* Contenedor Grid (3 columnas) */
+.bins-recientes ul.bins-card-grid {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 20px;
+}
+
+/* Estilo de Tarjeta para cada Bin */
+.bins-recientes li.bin-card {
+  padding: 20px;
+  margin-bottom: 0;
+  background-color: var(--citrus-green-light); /* Fondo suave */
+  border-radius: 10px;
+  border: 1px solid #e0e0e0;
+  border-left: 5px solid var(--citrus-green);
+  transition: all 0.2s;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+  cursor: pointer;
+}
+
+.bins-recientes li.bin-card:hover {
+  background-color: #e6f7e6; /* Verde aún más suave */
+  transform: translateY(-3px);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+}
+
+/* Header del bin (ID + Estado/Badge) */
+.bin-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+  padding-bottom: 8px;
+  border-bottom: 1px dashed #d1d5db;
+}
+
+.bin-header strong {
+  color: var(--citrus-green-dark);
+  font-size: 16px;
+  font-weight: 700;
+}
+
+/* Información del producto */
+.bin-info {
+  color: var(--text-dark);
+  font-size: 14px;
+  margin-bottom: 6px;
+  font-weight: 600;
+}
+
+/* Detalles (remito y peso) */
+.bin-details {
+  color: var(--text-muted);
+  font-size: 14px;
+  margin-bottom: 8px;
+}
+
+/* Metadata (fecha de ingreso) */
+.bin-meta {
+  padding-top: 8px;
+  border-top: 1px solid #e5e7eb;
+  margin-top: 10px;
+  text-align: right;
+}
+
+.bin-meta small {
+  color: #9ca3af;
+  font-size: 12px;
+  font-style: italic;
+}
+
+/* --- ESTILOS DE ESTADO (BADGES) --- */
+.bin-status-badge {
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+  display: inline-block;
+  color: white;
+}
+.status-recepcion {
+  background-color: #3b82f6;
+} /* Azul */
+.status-proceso {
+  background-color: #f59e0b;
+  color: #333;
+} /* Naranja */
+.status-pendiente {
+  background-color: var(--citrus-accent);
+} /* Verde Esmeralda */
+.status-loteado {
+  background-color: #6366f1;
+} /* Índigo */
+.status-default {
+  background-color: #9ca3af;
+} /* Gris */
+
+/* ============================================
+   6. PAGINACIÓN
+   ============================================ */
+
+/* Estilos básicos de paginación (asumiendo Bootstrap básico) */
+.pagination {
+  --bs-pagination-color: var(--citrus-green-dark);
+  --bs-pagination-active-bg: var(--citrus-green);
+  --bs-pagination-active-border-color: var(--citrus-green);
+}
+
+.page-link {
+  color: var(--citrus-green) !important;
+}
+
+.page-item.active .page-link {
+  background-color: white !important;
+  border-color: var(--citrus-green) !important;
 }
 
 /* ============================================
-   SCROLLBAR PERSONALIZADO (opcional)
+   7. RESPONSIVE
    ============================================ */
-.bins-recientes ul::-webkit-scrollbar {
-  width: 8px;
+
+@media (max-width: 992px) {
+  /* En tablets, ajusta el grid de cards a dos columnas */
+  .bins-recientes ul.bins-card-grid {
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  }
 }
 
-.bins-recientes ul::-webkit-scrollbar-track {
-  background: #f1f1f1;
-  border-radius: 10px;
+@media (max-width: 768px) {
+  .recepcion-bin-container {
+    padding: 15px 15px;
+  }
+
+
+  /* Grid de cards a una columna */
+  .bins-recientes ul.bins-card-grid {
+    grid-template-columns: 1fr;
+    gap: 15px;
+  }
+
+  .bin-header {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+  }
 }
 
-.bins-recientes ul::-webkit-scrollbar-thumb {
-  background: #888;
-  border-radius: 10px;
-}
-
-.bins-recientes ul::-webkit-scrollbar-thumb:hover {
-  background: #555;
-}

@@ -23,10 +23,16 @@ const LineadeProceso = () => {
 
   return (
     <div className="linea-proceso-container">
-      <div className="header-proceso">
-        <h2>Linea de Proceso</h2>
+        <div className="stock-header">
+        <h1 className="stock-title"><i className="fas fa-cogs"></i> Linea de Proceso</h1>
+        <div className="monitoreo-user-info">
+          <i className="fas fa-user-circle"></i>
+          <span>Supervisor de Planta</span>
+        </div>
+      </div>
+  
         
-        <div className="tabs-container">
+      <div className="tabs-container">
            <button 
              className={`tab-btn ${tabActiva === 'proceso' ? 'active' : ''}`}
              onClick={() => setTabActiva('proceso')}
@@ -46,7 +52,6 @@ const LineadeProceso = () => {
               Lista Lotes
            </button>
         </div>
-      </div>
 
       <div className="tab-body">
         {tabActiva === 'proceso' && <BandejaEnProceso productos={productos} />}

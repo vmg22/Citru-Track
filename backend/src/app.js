@@ -24,6 +24,7 @@ const rolesRoutes = require("./routes/roles.routes");
 const trackingRoutes = require("./routes/tracking.routes");
 const stockRoutes = require('./routes/stock.routes');
 const cajasRoutes = require('./routes/cajas.routes');
+const qrRoutes = require('./routes/qr.routes');
 
 const app = express();
 app.use(cors());
@@ -59,6 +60,7 @@ app.use('/api/stock', stockRoutes);
 // Esto permite que /pallets y /stock funcionen correctamente.
 app.use('/api', stockRoutes); 
 app.use('/api/cajas', cajasRoutes);
+app.use('/api/qr', qrRoutes);
 // health
 app.get('/health', (req, res) => res.json({ ok: true, env: process.env.NODE_ENV || 'dev' }));
 

@@ -38,20 +38,17 @@ const CamaraFrio = () => {
         <div className="loading">Cargando cámaras...</div>
       </div>
     );
-  }
+  } 
 
   return (
     <div className="camara-container" id="camara">
-      <div className="monitoreo-header">
-        <h2>
-          <i className="fa-solid fa-snowflake"></i> Cámaras de Frío
-        </h2>
+      <div className="stock-header">
+        <h1 className="stock-title"><i className="fa-solid fa-snowflake"></i> Cámaras de Frío</h1>
         <div className="monitoreo-user-info">
           <i className="fas fa-user-circle"></i>
           <span>Supervisor de Planta</span>
         </div>
       </div>
-
       <div className="camara-card">
         <h3 className="camara-title">Mapa de Cámaras</h3>
         <div className="camara-grid">

@@ -13,7 +13,7 @@ const movementController = require('../controllers/movimientoController');
 // POST /pallets/armar
 // Crea un nuevo pallet y asocia las cajas (Transaccional)
 router.post('/pallets/armar', palletCreationController.armarPallet);
-
+router.get('/pallets/cajas-disponibles', palletCreationController.getCajasDisponibles);
 // PUT /pallets/:pallet_id/mover
 // Mueve un pallet a un nuevo estado/cámara y sincroniza las cajas (Transaccional)
 router.put('/pallets/:pallet_id/mover', movementController.moverPallet);

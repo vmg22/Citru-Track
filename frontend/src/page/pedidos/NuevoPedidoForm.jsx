@@ -1,4 +1,3 @@
-
 //segundo generar pedido con remito // =========================================
 import React, { useEffect, useState } from "react";
 import {
@@ -22,6 +21,7 @@ import {
 } from "../../services/pedidosService";
 import { generarRemitoPDF } from "../../services/remitoPDFService";
 import "../../style/gestionpedidos.css";
+import "../../style/nuevopedido.css"
 
 const NuevoPedidoForm = ({ onOrderSaved, onCancel }) => {
   const [formData, setFormData] = useState({
@@ -202,7 +202,8 @@ const NuevoPedidoForm = ({ onOrderSaved, onCancel }) => {
 
       // Obtener datos del camión seleccionado
       const camion = camiones.find(
-        (cam) => String(cam.camion_id || cam.id) === String(ordenCreada.camionId)
+        (cam) =>
+          String(cam.camion_id || cam.id) === String(ordenCreada.camionId)
       );
 
       // Obtener datos del producto
@@ -212,8 +213,9 @@ const NuevoPedidoForm = ({ onOrderSaved, onCancel }) => {
 
       // Obtener información de los pallets
       const palletsInfo = ordenCreada.palletsIds.map((id) => {
-        const pallet = palletsDisponibles.find((p) => p.pallet_id === id) || 
-                       palletsSeleccionados.find((p) => p.pallet_id === id);
+        const pallet =
+          palletsDisponibles.find((p) => p.pallet_id === id) ||
+          palletsSeleccionados.find((p) => p.pallet_id === id);
         return {
           pallet_id: id,
           productoNombre: producto?.nombre || "Producto Citrus",
@@ -288,14 +290,17 @@ const NuevoPedidoForm = ({ onOrderSaved, onCancel }) => {
         palletsIds: formData.palletsIds,
       };
 
-      console.log("🔍 PAYLOAD ANTES DE ENVIAR:", JSON.stringify(payload, null, 2));
+      console.log(
+        "🔍 PAYLOAD ANTES DE ENVIAR:",
+        JSON.stringify(payload, null, 2)
+      );
 
       const res = await savePedido(payload);
 
       console.log("✅ RESPUESTA DEL SERVIDOR:", res);
 
       const code = res?.od_code ?? (res?.od_id ? `OD-${res.od_id}` : null);
-      
+
       // Guardar la orden creada
       const ordenCreada = {
         ...payload,
@@ -328,8 +333,9 @@ const NuevoPedidoForm = ({ onOrderSaved, onCancel }) => {
 
         // Obtener información de los pallets
         const palletsInfo = payload.palletsIds.map((id) => {
-          const pallet = palletsDisponibles.find((p) => p.pallet_id === id) || 
-                         palletsSeleccionados.find((p) => p.pallet_id === id);
+          const pallet =
+            palletsDisponibles.find((p) => p.pallet_id === id) ||
+            palletsSeleccionados.find((p) => p.pallet_id === id);
           return {
             pallet_id: id,
             productoNombre: producto?.nombre || "Producto Citrus",
@@ -354,17 +360,17 @@ const NuevoPedidoForm = ({ onOrderSaved, onCancel }) => {
         };
 
         await generarRemitoPDF(datosPDF);
-        
+
         setSuccessMessage(
-          code 
-            ? `Orden ${code} creada con éxito. El remito se ha descargado automáticamente.` 
+          code
+            ? `Orden ${code} creada con éxito. El remito se ha descargado automáticamente.`
             : "Orden creada con éxito. El remito se ha descargado automáticamente."
         );
       } catch (pdfError) {
         console.error("Error generando remito:", pdfError);
         setSuccessMessage(
-          code 
-            ? `Orden ${code} creada con éxito, pero hubo un error al generar el remito: ${pdfError.message}` 
+          code
+            ? `Orden ${code} creada con éxito, pero hubo un error al generar el remito: ${pdfError.message}`
             : `Orden creada con éxito, pero hubo un error al generar el remito: ${pdfError.message}`
         );
       }
@@ -397,7 +403,7 @@ const NuevoPedidoForm = ({ onOrderSaved, onCancel }) => {
     setOrdenCreada(null);
     setSuccessMessage(null);
     setError(null);
-    
+
     if (onCancel) onCancel();
   };
 
@@ -420,19 +426,16 @@ const NuevoPedidoForm = ({ onOrderSaved, onCancel }) => {
   });
 
   return (
-    <Card className="p-4 mt-3 shadow-sm">
-      <h4 className="text-citrus-dark mb-4">
-        Detalle del Nuevo Pedido (Orden de Despacho)
-      </h4>
-
+    <div className="p-4 mt-3 divContenedor ">
+      <h2 className="text-citrus-dark mb-4">AGREGAR NUEVO PEDIDO</h2>
       {error && <Alert variant="danger">{error}</Alert>}
       {successMessage && (
         <Alert variant="success">
           {successMessage}
           {ordenCreada && (
             <div className="mt-3">
-              <Button 
-                variant="primary" 
+              <Button
+                variant="primary"
                 onClick={handleGenerarRemito}
                 className="me-2"
                 disabled={isLoading}
@@ -443,382 +446,390 @@ const NuevoPedidoForm = ({ onOrderSaved, onCancel }) => {
           )}
         </Alert>
       )}
+      <Form onSubmit={handleSubmit} className="form-container-custom">
+  <h5 className="section-title-custom">
+    Datos del Cliente y Destino
+  </h5>
+  
+  {/* Cliente y Fecha - LADO A LADO */}
+  <div className="form-grid-custom">
+    <div className="form-group-custom">
+      <label className="form-label-custom">Cliente (*)</label>
+      <select
+        className="form-select-custom"
+        name="clienteId"
+        value={formData.clienteId}
+        onChange={handleChange}
+        required
+        disabled={!!ordenCreada}
+      >
+        <option value="">Seleccione Cliente</option>
+        {clientes.map((c) => (
+          <option key={c.cliente_id || c.id} value={c.cliente_id || c.id}>
+            {c.nombre}
+          </option>
+        ))}
+      </select>
+    </div>
 
-      <Form onSubmit={handleSubmit}>
-        <h5 className="mb-3 mt-3 text-secondary">
-          Datos del Cliente y Destino
-        </h5>
-        <Row className="mb-3">
-          <Form.Group as={Col} md="6">
-            <Form.Label>Cliente (*)</Form.Label>
-            <Form.Control
-              as="select"
-              name="clienteId"
-              value={formData.clienteId}
-              onChange={handleChange}
-              required
-              disabled={!!ordenCreada}
+    <div className="form-group-custom">
+      <label className="form-label-custom">Fecha de Carga Programada (*)</label>
+      <input
+        type="date"
+        className="form-input-custom"
+        name="fechaProgramada"
+        value={formData.fechaProgramada}
+        onChange={handleChange}
+        required
+        disabled={!!ordenCreada}
+      />
+    </div>
+  </div>
+
+  {/* Destino - TRES COLUMNAS */}
+  <div className="form-grid-three-custom">
+    <div className="form-group-custom">
+      <label className="form-label-custom">Tipo de Destino (*)</label>
+      <select
+        className="form-select-custom"
+        name="tipoDestino"
+        value={formData.tipoDestino}
+        onChange={handleChange}
+        required
+        disabled={!!ordenCreada}
+      >
+        {tiposDestino.map((t) => (
+          <option key={t.value} value={t.value}>
+            {t.label}
+          </option>
+        ))}
+      </select>
+    </div>
+
+    <div className="form-group-custom">
+      <label className="form-label-custom">Destino Final (Puerto/Ciudad) (*)</label>
+      <input
+        type="text"
+        className="form-input-custom"
+        name="destino"
+        placeholder="Ej: Puerto de Rotterdam / Aeropuerto de Miami"
+        value={formData.destino}
+        onChange={handleChange}
+        required
+        disabled={!!ordenCreada}
+      />
+    </div>
+
+    <div className="form-group-custom">
+      <label className="form-label-custom">Temp. Consigne (°C)</label>
+      <input
+        type="number"
+        step="0.1"
+        className="form-input-custom"
+        name="tempConsigne"
+        placeholder="Ej: -1.0"
+        value={formData.tempConsigne}
+        onChange={handleChange}
+        disabled={!!ordenCreada}
+      />
+    </div>
+  </div>
+
+  {/* Producto - UNA COLUMNA */}
+  <div className="form-grid-full-custom">
+    <div className="form-group-custom">
+      <label className="form-label-custom">Producto (*)</label>
+      <select
+        className="form-select-custom"
+        name="productoId"
+        value={formData.productoId}
+        onChange={handleChange}
+        required
+        disabled={!!ordenCreada}
+      >
+        <option value="">Seleccione Producto</option>
+        {productos.map((p) => (
+          <option
+            key={p.producto_id || p.id}
+            value={p.producto_id || p.id}
+          >
+            {p.nombre}
+          </option>
+        ))}
+      </select>
+    </div>
+  </div>
+
+  {/* El resto de tu código de la tabla de pallets permanece igual */}
+  {formData.productoId && !ordenCreada && (
+    <>
+      <h5 className="subsection-title-custom">
+        Pallets Disponibles en Cámara
+      </h5>
+      {loadingPallets ? (
+        <Alert variant="info">Cargando pallets...</Alert>
+      ) : palletsDisponibles.length === 0 ? (
+        <Alert variant="warning">
+          No hay pallets disponibles en cámara para este producto.
+        </Alert>
+      ) : (
+        <>
+          <div className="pallets-disponibles-table-wrapper">
+            <Table
+              striped
+              bordered
+              hover
+              className="pallets-disponibles-table mb-3"
             >
-              <option value="">Seleccione Cliente</option>
-              {clientes.map((c) => (
-                <option key={c.cliente_id || c.id} value={c.cliente_id || c.id}>
-                  {c.nombre}
-                </option>
-              ))}
-            </Form.Control>
-          </Form.Group>
-
-          <Form.Group as={Col} md="6">
-            <Form.Label>Fecha de Carga Programada (*)</Form.Label>
-            <Form.Control
-              type="date"
-              name="fechaProgramada"
-              value={formData.fechaProgramada}
-              onChange={handleChange}
-              required
-              disabled={!!ordenCreada}
-            />
-          </Form.Group>
-        </Row>
-
-        <Row className="mb-4">
-          <Form.Group as={Col} md="4">
-            <Form.Label>Tipo de Destino (*)</Form.Label>
-            <Form.Control
-              as="select"
-              name="tipoDestino"
-              value={formData.tipoDestino}
-              onChange={handleChange}
-              required
-              disabled={!!ordenCreada}
-            >
-              {tiposDestino.map((t) => (
-                <option key={t.value} value={t.value}>
-                  {t.label}
-                </option>
-              ))}
-            </Form.Control>
-          </Form.Group>
-
-          <Form.Group as={Col} md="5">
-            <Form.Label>Destino Final (Puerto/Ciudad) (*)</Form.Label>
-            <Form.Control
-              type="text"
-              name="destino"
-              placeholder="Ej: Puerto de Rotterdam / Aeropuerto de Miami"
-              value={formData.destino}
-              onChange={handleChange}
-              required
-              disabled={!!ordenCreada}
-            />
-          </Form.Group>
-
-          <Form.Group as={Col} md="3">
-            <Form.Label>Temp. Consigne (°C)</Form.Label>
-            <Form.Control
-              type="number"
-              step="0.1"
-              name="tempConsigne"
-              placeholder="Ej: -1.0"
-              value={formData.tempConsigne}
-              onChange={handleChange}
-              disabled={!!ordenCreada}
-            />
-          </Form.Group>
-        </Row>
-
-        <Row className="mb-4">
-          <Form.Group as={Col} md="12">
-            <Form.Label>Producto (*)</Form.Label>
-            <Form.Control
-              as="select"
-              name="productoId"
-              value={formData.productoId}
-              onChange={handleChange}
-              required
-              disabled={!!ordenCreada}
-            >
-              <option value="">Seleccione Producto</option>
-              {productos.map((p) => (
-                <option
-                  key={p.producto_id || p.id}
-                  value={p.producto_id || p.id}
-                >
-                  {p.nombre}
-                </option>
-              ))}
-            </Form.Control>
-          </Form.Group>
-        </Row>
-
-        {/* TABLA DE PALLETS DISPONIBLES */}
-        {formData.productoId && !ordenCreada && (
-          <>
-            <h5 className="mb-3 mt-4 text-secondary">
-              Pallets Disponibles en Cámara
-            </h5>
-            {loadingPallets ? (
-              <Alert variant="info">Cargando pallets...</Alert>
-            ) : palletsDisponibles.length === 0 ? (
-              <Alert variant="warning">
-                No hay pallets disponibles en cámara para este producto.
-              </Alert>
-            ) : (
-              <>
-                <div className="pallets-disponibles-table-wrapper">
-                  <Table
-                    striped
-                    bordered
-                    hover
-                    className="pallets-disponibles-table mb-3"
-                  >
-                    <thead>
-                      <tr>
-                        <th className="pallets-col-checkbox">Seleccionar</th>
-                        <th className="pallets-col-id">ID Pallet</th>
-                        <th className="pallets-col-lote">Lote</th>
-                        <th className="pallets-col-cajas">Cajas</th>
-                        <th className="pallets-col-peso">Peso (kg)</th>
-                        <th className="pallets-col-tipo">Tipo Pallet</th>
-                        <th className="pallets-col-fecha">Fecha Armado</th>
-                        <th className="pallets-col-estado">Estado</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {palletsDisponibles.map((pallet) => (
-                        <tr key={pallet.pallet_id}>
-                          <td className="text-center align-middle">
-                            <Form.Check
-                              type="checkbox"
-                              checked={palletsSeleccionados.some(
-                                (p) => p.pallet_id === pallet.pallet_id
-                              )}
-                              onChange={(e) =>
-                                handlePalletCheck(pallet, e.target.checked)
-                              }
-                            />
-                          </td>
-                          <td className="align-middle">
-                            <strong>{pallet.pallet_id}</strong>
-                          </td>
-                          <td className="align-middle">
-                            {pallet.lote_descripcion ||
-                              `Lote #${pallet.lote_id}` ||
-                              "-"}
-                          </td>
-                          <td className="text-center align-middle">
-                            <Badge bg="info" className="px-3 py-2">
-                              {pallet.cantidad_cajas || 0}
-                            </Badge>
-                          </td>
-                          <td className="text-center align-middle">
-                            <strong>
-                              {parseFloat(pallet.peso_total || 0).toFixed(2)}
-                            </strong>
-                          </td>
-                          <td className="align-middle">
-                            {pallet.tipo_pallet || "-"}
-                          </td>
-                          <td className="text-center align-middle">
-                            {pallet.fecha_armado
-                              ? new Date(
-                                  pallet.fecha_armado
-                                ).toLocaleDateString("es-AR", {
-                                  day: "2-digit",
-                                  month: "2-digit",
-                                  year: "numeric",
-                                })
-                              : "-"}
-                          </td>
-                          <td className="text-center align-middle">
-                            <Badge bg="success" className="px-3 py-2">
-                              {pallet.estado}
-                            </Badge>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </Table>
-                </div>
-                <div className="pallets-disponibles-footer d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
-                  <div className="text-muted">
-                    <strong>Total disponibles:</strong>{" "}
-                    {palletsDisponibles.length} pallet(s)
-                  </div>
-                  <Button
-                    variant="primary"
-                    size="lg"
-                    onClick={handleAgregarPallets}
-                    disabled={palletsSeleccionados.length === 0}
-                  >
-                    Agregar Pallets Seleccionados ({palletsSeleccionados.length}
-                    )
-                  </Button>
-                </div>
-              </>
-            )}
-          </>
-        )}
-
-        <h5 className="mb-3 mt-3 text-secondary">
-          Asignación Logística (Opcional)
-        </h5>
-        <Row className="mb-4">
-          <Form.Group as={Col} md="12">
-            <Form.Label>Transportista</Form.Label>
-            <Form.Control
-              as="select"
-              name="transportistaId"
-              value={formData.transportistaId}
-              onChange={handleChange}
-              disabled={!!ordenCreada}
-            >
-              <option value="">(Sin asignar)</option>
-              {transportistas.map((t) => (
-                <option
-                  key={t.transportista_id || t.id}
-                  value={t.transportista_id || t.id}
-                >
-                  {t.nombre}
-                </option>
-              ))}
-            </Form.Control>
-          </Form.Group>
-        </Row>
-
-        {/* Mostrar Camión y Chofer solo si hay transportista seleccionado */}
-        {formData.transportistaId && (
-          <Row className="mb-4">
-            <Form.Group as={Col} md="6">
-              <Form.Label>Camión</Form.Label>
-              <Form.Control
-                as="select"
-                name="camionId"
-                value={formData.camionId}
-                onChange={handleChange}
-                disabled={!!ordenCreada}
-              >
-                <option value="">(Sin asignar)</option>
-                {camionesDisponibles.length > 0 ? (
-                  camionesDisponibles.map((c) => (
-                    <option
-                      key={c.camion_id || c.id}
-                      value={c.camion_id || c.id}
-                    >
-                      {c.patente} -{" "}
-                      {c.tipo_camion || c.tipo || "Tipo no especificado"}
-                    </option>
-                  ))
-                ) : (
-                  <option value="" disabled>
-                    No hay camiones activos para este transportista
-                  </option>
-                )}
-              </Form.Control>
-            </Form.Group>
-
-            <Form.Group as={Col} md="6">
-              <Form.Label>Chofer</Form.Label>
-              <Form.Control
-                as="select"
-                name="choferId"
-                value={formData.choferId}
-                onChange={handleChange}
-                disabled={!!ordenCreada}
-              >
-                <option value="">(Sin asignar)</option>
-                {choferesDisponibles.length > 0 ? (
-                  choferesDisponibles.map((ch) => (
-                    <option
-                      key={ch.chofer_id || ch.id}
-                      value={ch.chofer_id || ch.id}
-                    >
-                      {ch.nombre}
-                    </option>
-                  ))
-                ) : (
-                  <option value="" disabled>
-                    No hay choferes activos para este transportista
-                  </option>
-                )}
-              </Form.Control>
-            </Form.Group>
-          </Row>
-        )}
-
-        <Row className="mb-4">
-          <Form.Group as={Col} md="12">
-            <Form.Label>Observaciones</Form.Label>
-            <Form.Control
-              as="textarea"
-              rows={2}
-              name="observaciones"
-              value={formData.observaciones}
-              onChange={handleChange}
-              disabled={!!ordenCreada}
-            />
-          </Form.Group>
-        </Row>
-
-        <h5 className="mb-3 mt-3 text-secondary">
-          Pallets Asociados al Pedido (*)
-        </h5>
-        <Row className="mb-4">
-          <Col md="12">
-            <Form.Label>Pallets del Pedido:</Form.Label>
-            <div
-              className="pallet-list-box p-3 border rounded bg-light"
-              style={{ minHeight: "100px" }}
-            >
-              {formData.palletsIds.length === 0 ? (
-                <p className="text-muted m-0">
-                  Aún no se han asociado pallets. Debe agregar al menos uno.
-                </p>
-              ) : (
-                <div>
-                  <Row>
-                    {formData.palletsIds.map((id, index) => (
-                      <Col md="3" key={index} className="mb-2">
-                        <Badge
-                          bg="success"
-                          className="w-100 p-2 d-flex justify-content-between align-items-center"
-                        >
-                          <span>{id}</span>
-                          {!ordenCreada && (
-                            <Button
-                              variant="link"
-                              size="sm"
-                              className="text-white p-0 ms-2"
-                              onClick={() => handleRemoverPallet(id)}
-                              style={{ textDecoration: "none" }}
-                            >
-                              ✕
-                            </Button>
-                          )}
-                        </Badge>
-                      </Col>
-                    ))}
-                  </Row>
-                  <p className="m-0 mt-3 text-primary fw-bold">
-                    Total de Pallets: {formData.palletsIds.length}
-                  </p>
-                </div>
-              )}
+              <thead>
+                <tr>
+                  <th className="pallets-col-checkbox">Seleccionar</th>
+                  <th className="pallets-col-id">ID Pallet</th>
+                  <th className="pallets-col-lote">Lote</th>
+                  <th className="pallets-col-cajas">Cajas</th>
+                  <th className="pallets-col-peso">Peso (kg)</th>
+                  <th className="pallets-col-tipo">Tipo Pallet</th>
+                  <th className="pallets-col-fecha">Fecha Armado</th>
+                  <th className="pallets-col-estado">Estado</th>
+                </tr>
+              </thead>
+              <tbody>
+                {palletsDisponibles.map((pallet) => (
+                  <tr key={pallet.pallet_id}>
+                    <td className="text-center align-middle">
+                      <Form.Check
+                        type="checkbox"
+                        checked={palletsSeleccionados.some(
+                          (p) => p.pallet_id === pallet.pallet_id
+                        )}
+                        onChange={(e) =>
+                          handlePalletCheck(pallet, e.target.checked)
+                        }
+                      />
+                    </td>
+                    <td className="align-middle">
+                      <strong>{pallet.pallet_id}</strong>
+                    </td>
+                    <td className="align-middle">
+                      {pallet.lote_descripcion ||
+                        `Lote #${pallet.lote_id}` ||
+                        "-"}
+                    </td>
+                    <td className="text-center align-middle">
+                      <Badge bg="info" className="px-3 py-2">
+                        {pallet.cantidad_cajas || 0}
+                      </Badge>
+                    </td>
+                    <td className="text-center align-middle">
+                      <strong>
+                        {parseFloat(pallet.peso_total || 0).toFixed(2)}
+                      </strong>
+                    </td>
+                    <td className="align-middle">
+                      {pallet.tipo_pallet || "-"}
+                    </td>
+                    <td className="text-center align-middle">
+                      {pallet.fecha_armado
+                        ? new Date(
+                            pallet.fecha_armado
+                          ).toLocaleDateString("es-AR", {
+                            day: "2-digit",
+                            month: "2-digit",
+                            year: "numeric",
+                          })
+                        : "-"}
+                    </td>
+                    <td className="text-center align-middle">
+                      <Badge bg="success" className="px-3 py-2">
+                        {pallet.estado}
+                      </Badge>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </Table>
+          </div>
+          <div className="pallets-disponibles-footer d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+            <div className="text-muted">
+              <strong>Total disponibles:</strong>{" "}
+              {palletsDisponibles.length} pallet(s)
             </div>
-          </Col>
-        </Row>
+            <Button
+              variant="primary"
+              size="lg"
+              onClick={handleAgregarPallets}
+              disabled={palletsSeleccionados.length === 0}
+            >
+              Agregar Pallets Seleccionados ({palletsSeleccionados.length})
+            </Button>
+          </div>
+        </>
+      )}
+    </>
+  )}
 
-                <div className="d-flex justify-content-end">
-                    <Button variant="secondary" onClick={handleCancelar} className="me-2">
-                        Cancelar
-                    </Button>
-                    <Button variant="success" type="submit" disabled={isLoading}>
-                        {isLoading ? 'Guardando...' : 'Crear Orden de Despacho'}
-                    </Button>
-                </div>
-            </Form>
-        </Card>
-    );
+  {/* Asignación Logística */}
+  <h5 className="section-title-custom">
+    Asignación Logística (Opcional)
+  </h5>
+  
+  <div className="form-grid-full-custom">
+    <div className="form-group-custom">
+      <label className="form-label-custom">Transportista</label>
+      <select
+        className="form-select-custom"
+        name="transportistaId"
+        value={formData.transportistaId}
+        onChange={handleChange}
+        disabled={!!ordenCreada}
+      >
+        <option value="">(Sin asignar)</option>
+        {transportistas.map((t) => (
+          <option
+            key={t.transportista_id || t.id}
+            value={t.transportista_id || t.id}
+          >
+            {t.nombre}
+          </option>
+        ))}
+      </select>
+    </div>
+  </div>
+
+  {/* Camión y Chofer - LADO A LADO */}
+  {formData.transportistaId && (
+    <div className="form-grid-custom">
+      <div className="form-group-custom">
+        <label className="form-label-custom">Camión</label>
+        <select
+          className="form-select-custom"
+          name="camionId"
+          value={formData.camionId}
+          onChange={handleChange}
+          disabled={!!ordenCreada}
+        >
+          <option value="">(Sin asignar)</option>
+          {camionesDisponibles.length > 0 ? (
+            camionesDisponibles.map((c) => (
+              <option
+                key={c.camion_id || c.id}
+                value={c.camion_id || c.id}
+              >
+                {c.patente} - {c.tipo_camion || c.tipo || "Tipo no especificado"}
+              </option>
+            ))
+          ) : (
+            <option value="" disabled>
+              No hay camiones activos para este transportista
+            </option>
+          )}
+        </select>
+      </div>
+
+      <div className="form-group-custom">
+        <label className="form-label-custom">Chofer</label>
+        <select
+          className="form-select-custom"
+          name="choferId"
+          value={formData.choferId}
+          onChange={handleChange}
+          disabled={!!ordenCreada}
+        >
+          <option value="">(Sin asignar)</option>
+          {choferesDisponibles.length > 0 ? (
+            choferesDisponibles.map((ch) => (
+              <option
+                key={ch.chofer_id || ch.id}
+                value={ch.chofer_id || ch.id}
+              >
+                {ch.nombre}
+              </option>
+            ))
+          ) : (
+            <option value="" disabled>
+              No hay choferes activos para este transportista
+            </option>
+          )}
+        </select>
+      </div>
+    </div>
+  )}
+
+  {/* Observaciones */}
+  <div className="form-grid-full-custom">
+    <div className="form-group-custom">
+      <label className="form-label-custom">Observaciones</label>
+      <textarea
+        className="form-textarea-custom"
+        rows={3}
+        name="observaciones"
+        value={formData.observaciones}
+        onChange={handleChange}
+        disabled={!!ordenCreada}
+      />
+    </div>
+  </div>
+
+  {/* Pallets Asociados - CORREGIDO */}
+  <h5 className="section-title-custom">
+    Pallets Asociados al Pedido (*)
+  </h5>
+  <Row className="mb-4">
+    <Col md="12">
+      <Form.Label>Pallets del Pedido:</Form.Label>
+      <div
+        className="pallet-list-box p-3 border rounded bg-light"
+        style={{ minHeight: "100px" }}
+      >
+        {formData.palletsIds.length === 0 ? (
+          <p className="text-muted m-0">
+            Aún no se han asociado pallets. Debe agregar al menos uno.
+          </p>
+        ) : (
+          <div>
+            <Row>
+              {formData.palletsIds.map((id, index) => (
+                <Col md="3" key={index} className="mb-2">
+                  <Badge
+                    bg="success"
+                    className="w-100 p-2 d-flex justify-content-between align-items-center"
+                  >
+                    <span>{id}</span>
+                    {!ordenCreada && (
+                      <Button
+                        variant="link"
+                        size="sm"
+                        className="text-white p-0 ms-2"
+                        onClick={() => handleRemoverPallet(id)}
+                        style={{ textDecoration: "none" }}
+                      >
+                        ✕
+                      </Button>
+                    )}
+                  </Badge>
+                </Col>
+              ))}
+            </Row>
+            <p className="m-0 mt-3 text-primary fw-bold">
+              Total de Pallets: {formData.palletsIds.length}
+            </p>
+          </div>
+        )}
+      </div>
+    </Col>
+  </Row>
+
+   <div className="d-flex justify-content-end mt-4 divBotonFinal">
+    <Button variant="secondary" onClick={handleCancelar} className="me-2">
+      Cancelar
+    </Button>
+    <Button variant="success" type="submit" disabled={isLoading} style={{color:"white"}}>
+      {isLoading ? "Guardando..." : "Crear Pedido"}
+    </Button>
+  </div>
+</Form>
+    </div>
+  );
 };
 
 export default NuevoPedidoForm;
