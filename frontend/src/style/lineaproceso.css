@@ -400,21 +400,14 @@
 }
 
 /* ESTILOS PESTAÑAS */
-.header-proceso {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 20px;
-    
-}
-
-
 .tabs-container {
     display: flex;
     gap: 10px;
+    justify-content: end;
     background: #f1f6f3;
     padding: 5px;
     border-radius: 8px;
+    margin-bottom: 25px;
 }
 
 .tab-btn {
