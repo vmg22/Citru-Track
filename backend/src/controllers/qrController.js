@@ -1,21 +1,27 @@
-const QRCode = require('qrcode');
-const db = require('../config/db');
+const QRCode = require("qrcode");
+const db = require("../config/db");
 
 // --- Función Auxiliar para Generar el QR ---
 const generateQRCode = async (qrData, format) => {
-    const qrString = JSON.stringify(qrData);
+  const qrString = JSON.stringify(qrData);
 
-    if (format === 'svg') {
-        const qrSVG = await QRCode.toString(qrString, { type: 'svg' });
-        return { type: 'image/svg+xml', data: qrSVG };
-    } else if (format === 'dataURL') {
-        const qrDataURL = await QRCode.toDataURL(qrString, { width: 200, margin: 1 });
-        return { type: 'application/json', data: { success: true, dataURL: qrDataURL, data: qrData } };
-    } else {
-        // PNG por defecto
-        const qrBuffer = await QRCode.toBuffer(qrString);
-        return { type: 'image/png', data: qrBuffer };
-    }
+  if (format === "svg") {
+    const qrSVG = await QRCode.toString(qrString, { type: "svg" });
+    return { type: "image/svg+xml", data: qrSVG };
+  } else if (format === "dataURL") {
+    const qrDataURL = await QRCode.toDataURL(qrString, {
+      width: 200,
+      margin: 1,
+    });
+    return {
+      type: "application/json",
+      data: { success: true, dataURL: qrDataURL, data: qrData },
+    };
+  } else {
+    // PNG por defecto
+    const qrBuffer = await QRCode.toBuffer(qrString);
+    return { type: "image/png", data: qrBuffer };
+  }
 };
 
 // ============================================
@@ -29,7 +35,7 @@ const generateQRCode = async (qrData, format) => {
 const generarQRCaja = async (req, res) => {
   try {
     const { id: caja_id } = req.params;
-    const { format = 'png' } = req.query; 
+    const { format = "png" } = req.query;
 
     // Obtener información completa de la caja
     // Usamos las uniones necesarias para obtener los nombres descriptivos
@@ -50,7 +56,7 @@ const generarQRCaja = async (req, res) => {
     if (cajas.length === 0) {
       return res.status(404).json({
         success: false,
-        message: 'Caja no encontrada'
+        message: "Caja no encontrada",
       });
     }
 
@@ -65,29 +71,27 @@ const generarQRCaja = async (req, res) => {
       tipo_caja: caja.tipo_caja || null,
       peso_neto: parseFloat(caja.peso_neto) || null,
       // Opcional: Puedes incluir el nombre para la vista previa, aunque no es esencial para el escaneo
-      producto_nombre: caja.producto_nombre, 
-      estado: caja.estado
+      producto_nombre: caja.producto_nombre,
+      estado: caja.estado,
     };
 
     const result = await generateQRCode(qrData, format);
 
-    if (format === 'dataURL') {
+    if (format === "dataURL") {
       return res.json(result.data);
     } else {
-      res.setHeader('Content-Type', result.type);
+      res.setHeader("Content-Type", result.type);
       return res.send(result.data);
     }
-
   } catch (error) {
-    console.error('Error generando QR para caja:', error);
+    console.error("Error generando QR para caja:", error);
     res.status(500).json({
       success: false,
-      message: 'Error al generar código QR para caja',
-      error: error.message
+      message: "Error al generar código QR para caja",
+      error: error.message,
     });
   }
 };
-
 
 // ============================================
 // 2. GENERAR QR PARA PALLET (EXISTENTE)
@@ -100,33 +104,44 @@ const generarQRCaja = async (req, res) => {
 const generarQRPallet = async (req, res) => {
   try {
     const { id: pallet_id } = req.params;
-    const { format = 'png' } = req.query; // png, svg, dataURL
+    const { format = "png" } = req.query;
 
-    // ... (Tu lógica de obtención de pallet permanece igual) ...
+    // 1. Obtener información básica del pallet
     const [pallets] = await db.query(
-        `SELECT p.*, 
-              pr.nombre as producto_nombre,
-              l.descripcion as lote_descripcion,
-              sl.calibre as sublote_calibre
-        FROM pallets p
-        LEFT JOIN productos pr ON p.producto_id = pr.producto_id
-        LEFT JOIN lotes l ON p.lote_id = l.lote_id
-        LEFT JOIN sublotes sl ON p.sublote_id = sl.sublote_id
-        WHERE p.pallet_id = ?
-        LIMIT 1`,
-        [pallet_id]
+      // Tu consulta SQL existente...
+      `SELECT p.*, 
+                  pr.nombre as producto_nombre,
+                  l.descripcion as lote_descripcion,
+                  sl.calibre as sublote_calibre
+            FROM pallets p
+            LEFT JOIN productos pr ON p.producto_id = pr.producto_id
+            LEFT JOIN lotes l ON p.lote_id = l.lote_id
+            LEFT JOIN sublotes sl ON p.sublote_id = sl.sublote_id
+            WHERE p.pallet_id = ?
+            LIMIT 1`,
+      [pallet_id]
     );
 
     if (pallets.length === 0) {
-      return res.status(404).json({
-        success: false,
-        message: 'Pallet no encontrado'
-      });
+      return res
+        .status(404)
+        .json({ success: false, message: "Pallet no encontrado" });
     }
 
     const pallet = pallets[0];
 
-    // Preparar datos para el QR
+    // 2. 🚨 CONSULTA ADICIONAL: Obtener las IDs de las cajas en este pallet
+    const [cajas] = await db.query(
+      `SELECT caja_id 
+             FROM cajas 
+             WHERE pallet_id = ?`,
+      [pallet_id]
+    );
+
+    // Mapear las cajas a un array de IDs para incluirlo en el QR
+    const cajas_ids = cajas.map((c) => c.caja_id);
+
+    // 3. Preparar datos para el QR (INCLUIMOS cajas_ids)
     const qrData = {
       pallet_id: pallet.pallet_id,
       producto: pallet.producto_nombre,
@@ -138,26 +153,26 @@ const generarQRPallet = async (req, res) => {
       cantidad_cajas: pallet.cantidad_cajas,
       peso_total: parseFloat(pallet.peso_total),
       tipo_pallet: pallet.tipo_pallet,
-      fecha_armado: pallet.fecha_armado,
-      estado: pallet.estado
+      estado: pallet.estado,
+      // 🚨 CAMBIO CLAVE: Incluir el listado de IDs de las cajas
+      cajas_en_pallet: cajas_ids,
     };
-    
+
     const result = await generateQRCode(qrData, format);
 
     // Devolver la respuesta en el formato correcto
-    if (format === 'dataURL') {
-        return res.json(result.data);
+    if (format === "dataURL") {
+      return res.json(result.data);
     } else {
-        res.setHeader('Content-Type', result.type);
-        return res.send(result.data);
+      res.setHeader("Content-Type", result.type);
+      return res.send(result.data);
     }
-
   } catch (error) {
-    console.error('Error generando QR:', error);
+    console.error("Error generando QR:", error);
     res.status(500).json({
       success: false,
-      message: 'Error al generar código QR',
-      error: error.message
+      message: "Error al generar código QR",
+      error: error.message,
     });
   }
 };
