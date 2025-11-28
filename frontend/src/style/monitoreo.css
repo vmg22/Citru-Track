@@ -74,8 +74,6 @@
     align-items: center;
     background-color: white;
     padding: 8px 15px;
-    border-radius: var(--border-radius);
-    box-shadow: var(--box-shadow);
 }
 
 .monitoreo-filtro-grupo label {
@@ -84,12 +82,21 @@
 }
 
 .monitoreo-filtro-grupo select {
-    padding: 5px 10px;
-    border: 1px solid #e0e0e0;
-    border-radius: 4px;
-    background-color: white;
-    cursor: pointer;
+  padding: 7px 13px;
+  font-size: 15px;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  background-color: white;
+  transition: all 0.2s;
+  font-family: inherit;
 }
+
+.monitoreo-filtro-grupo select:focus{
+  outline: none;
+  border-color: var(--citrus-green);
+  box-shadow: 0 0 0 3px rgba(74, 124, 47, 0.15);
+}
+
 
 /* Métricas */
 .monitoreo-metrics-container {
@@ -138,7 +145,7 @@
 /* Cinta Transportadora */
 .monitoreo-conveyor-section {
     background-color: white;
-    border-radius: var(--border-radius);
+    border-radius: 30px;
     box-shadow: var(--box-shadow);
     padding: 20px;
     margin-bottom: 25px;
@@ -150,7 +157,7 @@
     color: #2c3e50;
     margin-bottom: 20px;
     padding-bottom: 12px;
-    border-bottom: 3px solid #3498db;
+    border-bottom: 3px solid #2ecc71;
     display: flex;
     align-items: center;
     gap: 10px;
@@ -512,6 +519,23 @@ html, body, #root {
 
 .box-cana {
     background-color: #795548;
+}
+
+.box-alcohol {
+    background-color: #ff9800; /* Naranja - asociado a calor/fermentación */
+}
+
+.box-bagazo {
+    background-color: #8d6e63; /* Marrón claro - color de bagazo seco */
+}
+
+.box-melaza {
+    background-color: #5d4037; /* Marrón oscuro - color melaza */
+}
+
+.box-azucar {
+    background-color: #fff9c4; /* Amarillo claro - color azúcar */
+    color: #333; /* Texto oscuro para contraste */
 }
 
 /* Deshabilitar selects de planta y línea */
