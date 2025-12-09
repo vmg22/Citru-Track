@@ -1930,7 +1930,7 @@ const GestionPedidos = () => {
         }}
       >
         <Modal.Title style={{ color: '#000', fontWeight: '700', textShadow: '1px 1px 2px rgba(255,255,255,0.3)' }}>
-          📋 Detalles del Pedido - {viewPedido?.od_code || "N/A"}
+        Detalles del Pedido - {viewPedido?.od_code || "N/A"}
           <Badge bg="dark" className="ms-3" style={{ fontSize: '0.9rem' }}>
             {viewPedido?.estado?.toUpperCase() || "N/A"}
           </Badge>
@@ -1940,7 +1940,7 @@ const GestionPedidos = () => {
           {viewPedido && (
             <div className="p-3">
               {/* Datos del Cliente y Destino */}
-              <h5 className="border-bottom pb-2 mb-3">📦 Datos del Cliente y Destino</h5>
+              <h5 className="border-bottom pb-2 mb-3">Datos del Cliente y Destino</h5>
               <div className="row mb-3">
                 <div className="col-md-6">
                   <p><strong>Cliente:</strong> {viewPedido.cliente_nombre || "No especificado"}</p>
@@ -1969,7 +1969,7 @@ const GestionPedidos = () => {
               </div>
 
               {/* Información Logística */}
-              <h5 className="border-bottom pb-2 mb-3">🚛 Información Logística</h5>
+              <h5 className="border-bottom pb-2 mb-3">Información Logística</h5>
               <div className="row mb-3">
                 <div className="col-md-6">
                   <p><strong>Transportista:</strong> {viewPedido.transportista_nombre || "No asignado"}</p>
@@ -1987,7 +1987,7 @@ const GestionPedidos = () => {
 
               {/* Pallets Asociados */}
               <h5 className="border-bottom pb-2 mb-3">
-                📦 Pallets Asociados ({viewPedido.cantidad_pallets_prevista || viewPedido.pallets?.length || 0})
+              Pallets Asociados ({viewPedido.cantidad_pallets_prevista || viewPedido.pallets?.length || 0})
               </h5>
               {viewPedido.pallets && viewPedido.pallets.length > 0 ? (
                 <div className="table-responsive">

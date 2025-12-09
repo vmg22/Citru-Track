@@ -1133,3 +1133,100 @@ h5.text-secondary {
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6) !important;
 }
 
+
+/* =========================================
+   TABLA MODAL DETALLES PEDIDO (MEJORADA)
+   ========================================= */
+.draggable-modal .table-responsive {
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  overflow: hidden;
+  margin-top: 10px;
+}
+
+.draggable-modal .table {
+  margin-bottom: 0;
+  font-size: 0.9rem;
+  width: 100%;
+  table-layout: fixed; /* Importante para distribuir columnas */
+}
+
+.draggable-modal .table thead th {
+  background-color: #f8f9fa;
+  color: #495057;
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 0.8rem;
+  padding: 12px 10px;
+  border-bottom: 2px solid #dee2e6;
+  vertical-align: middle;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.draggable-modal .table tbody td {
+  padding: 10px 10px;
+  vertical-align: middle;
+  color: #333;
+  border-bottom: 1px solid #f1f1f1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.draggable-modal .table tfoot td {
+  background-color: #f8f9fa;
+  padding: 12px 10px;
+  color: #495057;
+  font-weight: 600;
+  border-top: 2px solid #dee2e6;
+}
+
+/* Distribución de columnas específica */
+/* 1. ID Pallet */
+.draggable-modal .table th:nth-child(1),
+.draggable-modal .table td:nth-child(1) {
+  width: 15%;
+}
+
+/* 2. Lote */
+.draggable-modal .table th:nth-child(2),
+.draggable-modal .table td:nth-child(2) {
+  width: 25%;
+}
+
+/* 3. Cajas */
+.draggable-modal .table th:nth-child(3),
+.draggable-modal .table td:nth-child(3) {
+  width: 10%;
+  text-align: center;
+}
+
+/* 4. Peso (kg) */
+.draggable-modal .table th:nth-child(4),
+.draggable-modal .table td:nth-child(4) {
+  width: 15%;
+  text-align: center;
+}
+
+/* 5. Tipo */
+.draggable-modal .table th:nth-child(5),
+.draggable-modal .table td:nth-child(5) {
+  width: 15%;
+}
+
+/* 6. Estado */
+.draggable-modal .table th:nth-child(6),
+.draggable-modal .table td:nth-child(6) {
+  width: 20%;
+  text-align: center;
+}
+
+/* Ajustes para badges dentro de la tabla */
+.draggable-modal .table .badge {
+  font-weight: 500;
+  padding: 6px 10px;
+  font-size: 0.8rem;
+}
+

@@ -273,7 +273,7 @@ const ModalEditarRechazado = ({ pedido, onClose, onSave }) => {
     <div className="modal-overlay-rechazado" onClick={onClose}>
       <div className="modal-container-rechazado" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header-rechazado">
-          <h2>✏️ Editar Pedido Rechazado</h2>
+          <h2>Editar Pedido Rechazado</h2>
           <button onClick={onClose} className="btn-close-rechazado">✕</button>
         </div>
 
@@ -286,7 +286,7 @@ const ModalEditarRechazado = ({ pedido, onClose, onSave }) => {
         <div className="modal-body-rechazado">
           {/* Información General */}
           <div className="section-rechazado">
-            <h5 className="section-title-rechazado">📋 Información General</h5>
+            <h5 className="section-title-rechazado">Información General</h5>
             <div className="info-grid-rechazado">
               <div className="info-item-rechazado">
                 <label>Código OD:</label>
@@ -311,18 +311,8 @@ const ModalEditarRechazado = ({ pedido, onClose, onSave }) => {
 
           {/* Destino */}
           <div className="section-rechazado">
-            <h5 className="section-title-rechazado">📍 Destino</h5>
+            <h5 className="section-title-rechazado">Destino</h5>
             <div className="form-grid-rechazado">
-              <Form.Group>
-                <Form.Label>Destino Final *</Form.Label>
-                <Form.Control
-                  type="text"
-                  name="destino"
-                  value={formData.destino}
-                  onChange={handleChange}
-                  placeholder="Ingrese el destino"
-                />
-              </Form.Group>
               
               <Form.Group>
                 <Form.Label>Tipo de Destino *</Form.Label>
@@ -338,7 +328,7 @@ const ModalEditarRechazado = ({ pedido, onClose, onSave }) => {
               </Form.Group>
               
               <Form.Group>
-                <Form.Label>📅 Fecha Programada *</Form.Label>
+                <Form.Label>Fecha Programada *</Form.Label>
                 <Form.Control
                   type="date"
                   name="fechaProgramada"
@@ -351,7 +341,7 @@ const ModalEditarRechazado = ({ pedido, onClose, onSave }) => {
 
           {/* Asignación Logística */}
           <div className="section-rechazado">
-            <h5 className="section-title-rechazado">🚛 Asignación Logística</h5>
+            <h5 className="section-title-rechazado">Asignación Logística</h5>
             <div className="form-grid-rechazado">
               <Form.Group>
                 <Form.Label>Transportista</Form.Label>
@@ -395,7 +385,7 @@ const ModalEditarRechazado = ({ pedido, onClose, onSave }) => {
               </Form.Group>
               
               <Form.Group>
-                <Form.Label>👤 Chofer</Form.Label>
+                <Form.Label>Chofer</Form.Label>
                 <Form.Select
                   name="choferId"
                   value={formData.choferId}
@@ -423,7 +413,7 @@ const ModalEditarRechazado = ({ pedido, onClose, onSave }) => {
 
           {/* Pallets Asociados */}
           <div className="section-rechazado">
-            <h5 className="section-title-rechazado">📦 Pallets Asociados (Solo Lectura)</h5>
+            <h5 className="section-title-rechazado">📦 Pallets Asociados</h5>
             {loading ? (
               <div className="text-center py-4">
                 <Spinner animation="border" size="sm" className="me-2" />
@@ -484,14 +474,14 @@ const ModalEditarRechazado = ({ pedido, onClose, onSave }) => {
           <Button variant="secondary" onClick={onClose} disabled={loading}>
             Cancelar
           </Button>
-          <Button variant="success" onClick={handleSubmit} disabled={loading}>
+          <Button variant="success" style={{color: 'white'}} onClick={handleSubmit} disabled={loading}>
             {loading ? (
               <>
                 <Spinner animation="border" size="sm" className="me-2" />
                 Guardando...
               </>
             ) : (
-              '💾 Guardar Cambios'
+              'Guardar Cambios'
             )}
           </Button>
         </div>

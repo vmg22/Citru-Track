@@ -400,6 +400,7 @@ const styles = {
     fontSize: "28px",
     color: "#333",
     margin: "0 0 10px",
+    textAlign: "center",
   },
   subtitle: {
     fontSize: "14px",
@@ -466,7 +467,7 @@ const styles = {
   },
   linksContainer: {
     display: "flex",
-    justifyContent: "space-between",
+    justifyContent: "center",
     marginTop: "15px",
   },
   successIcon: {
