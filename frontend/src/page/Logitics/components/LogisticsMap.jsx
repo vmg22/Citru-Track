@@ -84,20 +84,38 @@ export default function LogisticsMap() {
     cargarFlotaActiva();
 
     // Socket Logic
-    const socketUrl = import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:4000';
+    const socketUrl = import.meta.env.VITE_SOCKET_URL || 'http://localhost:4000';
     try {
       const newSocket = io(socketUrl);
       setSocket(newSocket);
       newSocket.on('tracking:global_feed', newData => {
-        setCamiones(prev => {
-          const idx = prev.findIndex(c => c.orden_despacho_id === newData.orden_despacho_id);
-          if (idx !== -1) {
-            const updated = [...prev];
-            updated[idx] = { ...updated[idx], ...newData };
-            return updated;
-          }
-          return [...prev, newData];
-        });
+        if (Array.isArray(newData)) {
+          // Si el backend envía la flota completa, reemplaza todo el estado
+          setCamiones(newData.map(camion => ({
+            orden_despacho_id: camion.orden_despacho_id || camion.id,
+            patente: camion.patente || 'Sin patente',
+            lat: parseFloat(camion.lat) || -31.4201,
+            lng: parseFloat(camion.lng) || -64.1888,
+            velocidad: camion.velocidad || 0,
+            estado: camion.estado || 'pendiente',
+            origen: camion.origen || camion.origen_nombre || 'Sin origen',
+            destino: camion.destino || 'Desconocido',
+            chofer: camion.chofer || 'Sin chofer',
+            producto_nombre: camion.producto_nombre || 'Varios',
+            temperatura: camion.temperatura
+          })));
+        } else {
+          // Si solo envía un camión, actualiza el correspondiente
+          setCamiones(prev => {
+            const idx = prev.findIndex(c => c.orden_despacho_id === newData.orden_despacho_id);
+            if (idx !== -1) {
+              const updated = [...prev];
+              updated[idx] = { ...updated[idx], ...newData };
+              return updated;
+            }
+            return [...prev, newData];
+          });
+        }
       });
       return () => newSocket.disconnect();
     } catch (e) {
@@ -253,9 +271,9 @@ export default function LogisticsMap() {
             center={center} 
             options={options}
         >
-          {camionesFiltrados.map(camion => (
+          {camionesFiltrados.map((camion, idx) => (
             <Marker
-              key={camion.orden_despacho_id}
+              key={camion.orden_despacho_id + '-' + camion.patente + '-' + idx}
               position={{ lat: parseFloat(camion.lat), lng: parseFloat(camion.lng) }}
               onClick={() => handleMarkerClick(camion)}
             />

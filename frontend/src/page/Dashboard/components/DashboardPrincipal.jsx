@@ -371,14 +371,14 @@ const DashboardPrincipal = () => {
     ],
     [
       "T1A3121431LIM00123J",
-      "Limón",
+      "Derivados de Azúcar",
       "12.5°C",
       "65%",
       <StatusBadge key="c2" status="Alerta" />,
     ],
     [
       "T2B3121450ORA00456A",
-      "Naranja",
+      "Arándano",
       "8.7°C",
       "70%",
       <StatusBadge key="c3" status="Normal" />,
@@ -540,38 +540,13 @@ const DashboardPrincipal = () => {
             </Card>
           </div>
 
-          {/* Card de KPIs - Debajo, ocupa toda la fila */}
-          <div style={{ width: '100%', marginBottom: '20px' }}>
-            <Card
-              title="Dashboard de KPIs"
-              icon="fas fa-chart-line"
-              iconClass="kpis"
-              fullWidth={true}
-            >
-              <p style={{ marginBottom: '20px' }}>
-                Métricas clave de calidad y eficiencia con gráficos y comparativas.
-              </p>
-              <div style={{ 
-                display: 'grid', 
-                gridTemplateColumns: 'repeat(4, 1fr)', 
-                gap: '20px',
-                width: '100%'
-              }}>
-                <KPIItem value="99.7%" label="Lecturas Correctas" status="good" />
-                <KPIItem value="1.8%" label="Merma Promedio" status="warning" />
-                <KPIItem value="87.3" label="Costo por Caja ($)" status="good" />
-                <KPIItem value="12" label="Alertas Críticas" status="bad" />
-              </div>
-            </Card>
-          </div>
-
           <div className="dashboard-grid">
             <div className="dashboard-left">
               <div className="dashboard-info-card">
                 <h3>Condiciones Actuales</h3>
                 <Table
                   headers={[
-                    "ID Caja",
+                    "ID Cámara",
                     "Producto",
                     "Temperatura",
                     "Humedad",
@@ -614,7 +589,7 @@ const DashboardPrincipal = () => {
                 <div className="dashboard-alertas-container">
                   <Alert
                     title="Ruptura de frío detectada"
-                    description="Caja T1A3121431LIM00123J - Temperatura: 12.5°C"
+                    description="Cámara T1A3121431LIM00123J - Temperatura: 12.5°C"
                   />
                   <Alert
                     title="Vibración excesiva"

@@ -1320,7 +1320,7 @@ const MonitoreoTiempoReal = () => {
             {/* Las alertas siguen usando la configuración actual 'config' */}
             <Alert
               title="Ruptura de frío detectada"
-              description={`Caja ${config.planta}${
+              description={`Camara ${config.planta}${
                 config.linea
               }3121431 - Temperatura actual: ${config.tempMax + 2}°C (Límite: ${
                 config.tempMax

@@ -40,9 +40,9 @@ const GeneradorQR = () => {
       console.log('Cargando datos desde:', API_URL);
       
       const [productosRes, lotesRes, sublotesRes] = await Promise.all([
-        axios.get(`${API_URL}/api/productos`),
-        axios.get(`${API_URL}/api/lotes`),
-        axios.get(`${API_URL}/api/lotes/sublotes/all`)
+        axios.get(`${API_URL}/productos`),
+        axios.get(`${API_URL}/lotes`),
+        axios.get(`${API_URL}/lotes/sublotes/all`)
       ]);
 
       console.log('Productos cargados:', productosRes.data);
