@@ -164,12 +164,7 @@ const UsuariosTable = () => {
             <button className="camara-btn camara-btn-primary" onClick={openAddModal}>
               <i className="fas fa-plus"></i> Agregar Usuario
             </button>
-            <button
-              className="camara-btn camara-btn-secondary"
-              style={{ marginLeft: "10px" }}
-            >
-              <i className="fas fa-file-export"></i> Exportar Lista
-            </button>
+
           </div>
         </div>
 

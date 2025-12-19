@@ -167,12 +167,7 @@ const Productores = () => {
             >
               <i className="fas fa-plus"></i> Agregar Productor
             </button>
-            <button
-              className="camara-btn camara-btn-secondary"
-              style={{ marginLeft: "10px" }}
-            >
-              <i className="fas fa-file-export"></i> Exportar Lista
-            </button>
+
           </div>
         </div>
 
